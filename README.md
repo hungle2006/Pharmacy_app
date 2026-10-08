@@ -6,7 +6,9 @@ Production: https://pharmacyapp-murex.vercel.app/
 
 ## Experience
 
-- Animated three-dimensional capsule, orbiting particles and pointer parallax on the introduction screen. Start opens the workspace. Reduced-motion preferences are respected and animation stops when the cover is hidden.
+- Blender-authored GLB capsule with smooth PBR materials, WebGL lighting, orbiting particles and pointer parallax on the introduction screen. Start opens the workspace. Reduced-motion preferences are respected and animation stops when the cover is hidden.
+- Persistent light/dark theme on both the cover and workspace; higher-contrast readable typography.
+- Database-derived analysis briefs, removable filter chips, 6/12/all-month timeline controls and count/median switching.
 - Responsive dashboard with eight sections: Overview, Pricing, Competition, Portfolio, Data Quality, Business Understanding, Data Understanding, Modeling & Evaluation.
 - Shared search and filters for ingredient, country, price type and price unit. Chart selections filter the dashboard.
 - SVG charts with accessible labels, interactive tooltips, animations and a presentation layout.
@@ -41,6 +43,7 @@ Catalog size is not sales volume or revenue market share. The Modeling section i
 
 ```bash
 npm ci --ignore-scripts
+npm run build
 npm run check
 npm test
 ```
@@ -48,3 +51,14 @@ npm test
 Tests validate filter parameterization, bounded pagination, explicit unavailable states and execute the analytical SQL in PostgreSQL via PGlite. Fixtures cover multiple observations per product, missing prices, non-VND prices, empty filters, equivalent groups and pagination.
 
 The GitHub main branch is connected to the existing Vercel `pharmacy.app` project. Vercel deploys static frontend assets and Node API functions. Neon credentials stay in Production environment variables.
+
+## Blender source
+
+The editable scene is `assets/models/pharmabiz-capsule.blend`. Rebuild using official Blender 4.5 LTS:
+
+```bash
+blender --background --python scripts/build-capsule.py
+npm run build
+```
+
+`src/scene3d.js` loads the exported GLB with Three.js, uses a procedural studio environment, pauses rendering when hidden, and respects reduced motion. A lightweight canvas fallback remains available for browsers without WebGL. Three.js is bundled locally during the Vercel build; no third-party runtime CDN is required. Timeline windows end at the latest month in the filtered data; absent months are not filled. The P10/P90 analysis card summarizes the observed distribution and does not imply unit-normalized market prices.
