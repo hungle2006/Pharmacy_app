@@ -17,9 +17,9 @@
     ['workflow','⬡','Data Understanding','CONNECTED DATA','Nguồn dữ liệu, luồng xử lý và kiến trúc phân tích.'],
     ['modeling','⌁','Modeling & Evaluation','RESEARCH ROADMAP','Thiết kế dự báo giá và đánh giá trước khi huấn luyện.']
   ];
-  let data=null,inventory=null,page=1,view='overview',controller=null,seq=0,timeout=null,toastTimer;
+  let data=null,inventory=null,page=1,view='overview',controller=null,seq=0,timeout=null,toastTimer,optionsLoaded=false;
   const theory=()=>['business','workflow','modeling'].includes(view);
-  const filters=()=>{const p=new URLSearchParams();for(const [key,id] of [['q','search'],['ingredient','ingredient'],['country','country'],['kind','kind'],['unit','unit']])if($(id).value.trim())p.set(key,$(id).value.trim());p.set('page',page);return p;};
+  const filters=()=>{const p=new URLSearchParams();for(const [key,id] of [['q','search'],['ingredient','ingredient'],['country','country'],['kind','kind'],['unit','unit']])if($(id).value.trim())p.set(key,$(id).value.trim());p.set('page',page);p.set('options',optionsLoaded?'0':'1');return p;};
   function tip(label,value){return 'data-tip="'+esc(label)+'" data-value="'+esc(value)+'" tabindex="0"';}
   function panel(title,sub,body,tag=''){return '<section class="panel"><div class="panel-head"><div><h2>'+esc(title)+'</h2><p>'+esc(sub)+'</p></div>'+(tag?'<span class="tag">'+esc(tag)+'</span>':'')+'</div>'+body+'</section>';}
   const note=t=>'<p class="chart-note">'+esc(t)+'</p>';
@@ -86,7 +86,7 @@
   function setStatus(error,text){$('status').classList.toggle('error',error);$('status').innerHTML='<span class="signal"></span><span>'+esc(text)+'</span>';$('connection').classList.toggle('error',error);$('connection').textContent=error?'KẾT NỐI GIÁN ĐOẠN':'NEON CONNECTED';$('db-status').textContent=error?'Nguồn chưa sẵn sàng':'Database connected';$('db-dot').style.background=error?'#c29862':'';}
   async function load(){
     controller?.abort();controller=new AbortController();const activeController=controller;const current=++seq;$('content').classList.add('loading');$('status').innerHTML='<span class="signal"></span><span>Đang cập nhật phân tích từ database…</span>';const abortTimer=setTimeout(()=>activeController.abort(),45000);
-    try{const response=await fetch('/api/analytics?'+filters(),{signal:activeController.signal,cache:'no-store'});const result=await response.json();if(!response.ok||result.mode!=='database')throw new Error(result.notice||'Không thể đọc nguồn dữ liệu.');if(current!==seq)return;data=result;options(data.options);setStatus(false,'Dữ liệu thật từ Neon · Tổng hợp toàn bộ phạm vi bộ lọc · Cập nhật '+new Date(data.refreshedAt).toLocaleString('vi-VN')+' · Giá và số sản phẩm không đại diện doanh số.');render();}
+    try{const response=await fetch('/api/analytics?'+filters(),{signal:activeController.signal,cache:'no-store'});const result=await response.json();if(!response.ok||result.mode!=='database')throw new Error(result.notice||'Không thể đọc nguồn dữ liệu.');if(current!==seq)return;data=result;if(data.options){options(data.options);optionsLoaded=true;}setStatus(false,'Dữ liệu thật từ Neon · Tổng hợp toàn bộ phạm vi bộ lọc · Cập nhật '+new Date(data.refreshedAt).toLocaleString('vi-VN')+' · Giá và số sản phẩm không đại diện doanh số.');render();}
     catch(e){if(current!==seq)return;if(e.name==='AbortError'&&activeController.signal.aborted){data=null;setStatus(true,'Kết nối quá thời gian chờ. Nhấn làm mới để thử lại.');}else{data=null;setStatus(true,e.message||'Không thể kết nối dữ liệu. Nhấn làm mới để thử lại.');}render();}
     finally{clearTimeout(abortTimer);if(current===seq)$('content').classList.remove('loading');}
   }
@@ -99,7 +99,7 @@
   $('return-cover').onclick=()=>{$('app').hidden=true;$('cover').hidden=false;$('cover').classList.remove('entering');document.body.classList.remove('presenting');window.scrollTo(0,0);$('start').focus({preventScroll:true});};
   $('menu').onclick=()=>{const open=!$('sidebar').classList.contains('open');$('sidebar').classList.toggle('open',open);$('backdrop').hidden=!open;$('menu').setAttribute('aria-expanded',String(open));};$('backdrop').onclick=closeMenu;
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();$('tooltip').hidden=true;}if((e.key==='Enter'||e.key===' ')&&e.target.matches('circle[data-filter]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
-  $('refresh').onclick=()=>{load();fetchInventory();};$('search').addEventListener('input',()=>{clearTimeout(timeout);timeout=setTimeout(()=>{page=1;load();},350);});
+  $('refresh').onclick=()=>{optionsLoaded=false;load();fetchInventory();};$('search').addEventListener('input',()=>{clearTimeout(timeout);timeout=setTimeout(()=>{page=1;load();},350);});
   for(const id of ['ingredient','country','kind','unit'])$(id).onchange=()=>{page=1;load();};
   $('reset').onclick=()=>{clearTimeout(timeout);for(const id of ['search','ingredient','country','kind','unit'])$(id).value='';page=1;load();};
   $('prev').onclick=()=>{page=Math.max(1,page-1);load();};$('next').onclick=()=>{page++;load();};

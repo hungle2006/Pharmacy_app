@@ -61,12 +61,12 @@ async function handler(req, res) {
     const sql = neon(process.env.DATABASE_URL), query = buildQuery(req.query);
     const [result, options, mapping] = await Promise.all([
       sql.query(query.text, query.params),
-      sql.query(`SELECT json_build_object(
+      (req.query?.options==='0' ? Promise.resolve([{options:null}]) : sql.query(`SELECT json_build_object(
         'ingredient',(SELECT COALESCE(json_agg(name),'[]') FROM (SELECT DISTINCT active_ingredient_raw AS name FROM public.dav_product WHERE active_ingredient_raw IS NOT NULL AND active_ingredient_raw<>'' ORDER BY name) a),
         'country',(SELECT COALESCE(json_agg(name),'[]') FROM (SELECT DISTINCT country AS name FROM public.dav_product WHERE country IS NOT NULL AND country<>'' ORDER BY name) a),
         'kind',(SELECT COALESCE(json_agg(name),'[]') FROM (SELECT DISTINCT price_type AS name FROM public.price_record WHERE price_type IS NOT NULL AND price_type<>'' ORDER BY name) a),
         'unit',(SELECT COALESCE(json_agg(name),'[]') FROM (SELECT DISTINCT COALESCE(NULLIF(p.unit,''),NULLIF(d.unit,'')) AS name FROM public.dav_product d LEFT JOIN public.price_record p ON p.dav_row_id=d.dav_row_id) a WHERE name IS NOT NULL)
-      ) AS options`),
+      ) AS options`)),
       sql.query(`SELECT COUNT(*) AS total,COUNT(*) FILTER (WHERE accepted_for_serving=1) AS accepted,
         COUNT(*) FILTER (WHERE review_required=1) AS review,COUNT(*) FILTER (WHERE selected_scd_fk_valid=1) AS valid_fk,
         (SELECT COUNT(*) FROM public.disease) AS diseases,(SELECT COUNT(*) FROM public.medi_relation) AS relations,

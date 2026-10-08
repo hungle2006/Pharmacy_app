@@ -9,3 +9,5 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.chart-line{stroke-dashoffset:0}}
 
 .donut-legend button:disabled{opacity:1}.cover h1{font-weight:500}
+
+.sidebar{overflow-y:auto;scrollbar-width:thin}
