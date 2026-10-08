@@ -57,3 +57,44 @@ for p in bpy.context.object.data.polygons:
 bpy.ops.wm.save_as_mainfile(filepath=str(dest / 'pharmabiz-capsule.blend'))
 bpy.ops.export_scene.gltf(filepath=str(dest / 'pharmabiz-capsule.glb'), export_format='GLB', export_animations=False)
 print('Exported Blender capsule:', bpy.app.version_string)
+
+# CPU-rendered transparent fallback uses the same Blender model and materials.
+from mathutils import Vector
+capsule_objects = [o for o in bpy.context.scene.objects if o.type == 'MESH']
+pivot = bpy.data.objects.new('Poster pose', None)
+bpy.context.collection.objects.link(pivot)
+for obj in capsule_objects:
+    obj.parent = pivot
+pivot.rotation_euler = (0, math.radians(-34), 0)
+bpy.ops.object.camera_add(location=(0, -8, 3))
+camera = bpy.context.object
+camera.name = 'Studio camera'
+camera.rotation_euler = (Vector((0, 0, 0)) - camera.location).to_track_quat('-Z', 'Y').to_euler()
+camera.data.type = 'ORTHO'
+camera.data.ortho_scale = 4.4
+bpy.context.scene.camera = camera
+for name, position, power, size in [('Key',(-3,-4,5),650,4),('Softbox',(4,-2,2),420,3),('Rim',(2,3,4),800,3)]:
+    bpy.ops.object.light_add(type='AREA', location=position)
+    lamp = bpy.context.object
+    lamp.name = name
+    lamp.data.energy = power
+    lamp.data.shape = 'DISK'
+    lamp.data.size = size
+    lamp.rotation_euler = (-lamp.location).to_track_quat('-Z', 'Y').to_euler()
+scene = bpy.context.scene
+scene.render.engine = 'CYCLES'
+scene.cycles.device = 'CPU'
+scene.cycles.samples = 32
+scene.cycles.use_denoising = True
+scene.render.threads_mode = 'FIXED'
+scene.render.threads = 4
+scene.render.resolution_x = scene.render.resolution_y = 800
+scene.render.resolution_percentage = 100
+scene.render.film_transparent = True
+scene.render.image_settings.file_format = 'PNG'
+scene.render.image_settings.color_mode = 'RGBA'
+scene.render.filepath = str(dest / 'capsule-poster.png')
+scene.world.use_nodes = True
+scene.world.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.3
+bpy.ops.render.render(write_still=True)
+bpy.ops.wm.save_as_mainfile(filepath=str(dest / 'pharmabiz-capsule.blend'))

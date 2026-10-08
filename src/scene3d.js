@@ -5,22 +5,25 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 const cover = document.getElementById('cover');
 const canvas = document.getElementById('scene');
 const reduced = matchMedia('(prefers-reduced-motion:reduce)');
-let renderer, model, frame = 0, previous = 0, running = false, elapsed = 0;
+let renderer, model, frame = 0, previous = 0, running = false, elapsed = 0, fallbackActive = false;
 const pointer = {x:0,y:0};
 const eased = {x:0,y:0};
 
 function fallback() {
-  running = false;
-  cover.dataset.fallback = 'true';
-  cancelAnimationFrame(frame);
-  renderer?.dispose();
-  const replacement = document.createElement('canvas');
-  replacement.id = 'scene';
-  replacement.setAttribute('aria-hidden', 'true');
-  canvas.replaceWith(replacement);
-  const script = document.createElement('script');
-  script.src = '/assets/scene.js';
-  document.body.append(script);
+  if(fallbackActive)return;
+  fallbackActive=true;running=false;cancelAnimationFrame(frame);renderer?.dispose();
+  canvas.hidden=true;canvas.dataset.renderer='blender-poster';cover.dataset.fallback='poster';
+  const backdrop=document.createElement('div');backdrop.className='blender-fallback';backdrop.setAttribute('aria-hidden','true');
+  backdrop.innerHTML='<div class="blender-stage"><div class="blender-orbit"></div><div class="blender-orbit two"></div><img src="/assets/models/capsule-poster.png" alt="" width="800" height="800"></div>';
+  cover.prepend(backdrop);
+  const stage=backdrop.querySelector('.blender-stage');
+  cover.addEventListener('pointermove',e=>{if(!reduced.matches)stage.style.transform=`rotateY(${(e.clientX/innerWidth-.5)*10}deg) rotateX(${(e.clientY/innerHeight-.5)*-6}deg)`;});
+  cover.addEventListener('pointerleave',()=>{stage.style.transform='';});
+  backdrop.querySelector('img').onerror=()=>{
+    backdrop.remove();cover.dataset.fallback='true';
+    const replacement=document.createElement('canvas');replacement.id='scene';replacement.setAttribute('aria-hidden','true');canvas.replaceWith(replacement);
+    const script=document.createElement('script');script.src='/assets/scene.js';document.body.append(script);
+  };
 }
 
 try {
@@ -59,6 +62,7 @@ try {
     group.scale.setScalar(w<760?.68:Math.min(1.08,h/850));draw();
   }
   function draw() {
+    if(fallbackActive)return;
     if(model){model.rotation.set(.18+eased.y*.15,elapsed*.13+eased.x*.22,-.38);model.position.y=Math.sin(elapsed*.7)*.09;}
     orbit.rotation.y=elapsed*.045;renderer.render(scene,camera);
   }
@@ -69,7 +73,7 @@ try {
     frame=requestAnimationFrame(tick);
   }
   function stop(){running=false;cancelAnimationFrame(frame);}
-  function start(){if(running||cover.hidden||document.hidden)return;if(reduced.matches){draw();return;}running=true;previous=performance.now();frame=requestAnimationFrame(tick);}
+  function start(){if(fallbackActive||running||cover.hidden||document.hidden)return;if(reduced.matches){draw();return;}running=true;previous=performance.now();frame=requestAnimationFrame(tick);}
   new GLTFLoader().load('/assets/models/pharmabiz-capsule.glb',gltf=>{
     model=gltf.scene;group.add(model);canvas.dataset.renderer='blender-webgl';size();start();
   },undefined,fallback);
