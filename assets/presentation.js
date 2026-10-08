@@ -1,157 +1,111 @@
-
-(function(){
-  var schemaInfo=null;
-  var chartColors=['#0d907b','#43b8aa','#7cadd9','#dda75d','#9f9bdc','#73a3a1','#bdc8d0','#527795'];
-  var fmt1=function(n){return (Math.round(Number(n)*10)/10).toLocaleString('vi-VN');};
-  var dataRows=function(){return typeof filtered==='undefined'?[]:filtered;};
-  var pricedRows=function(){return dataRows().filter(function(x){return x.price_vnd!==null && x.price_vnd!==undefined && Number.isFinite(Number(x.price_vnd));});};
-  var note=function(x){return '<div class="chart-caption">'+esc(x)+'</div>';};
-  var simpleSVG=function(body){return '<svg viewBox="0 0 650 270" class="chart-svg" role="img" aria-label="Biểu đồ phân tích">'+body+'</svg>';};
-  var axisText=function(x,y,str,anchor){return '<text x="'+x+'" y="'+y+'" fill="#879ba6" font-size="10" text-anchor="'+(anchor||'start')+'">'+esc(str)+'</text>';};
-  function histogram(records){
-    var vals=records.map(function(x){return Number(x.price_vnd);}).filter(Number.isFinite).sort(function(a,b){return a-b;});
-    if(vals.length<3)return '<div class="empty">Chưa đủ dữ liệu giá hợp lệ để tạo biểu đồ phân phối.</div>';
-    var p05=pct(vals,.05),p95=pct(vals,.95);
-    if(p95<=p05)p95=p05+1;
-    var bins=Array(9).fill(0),outliers=0;
-    vals.forEach(function(v){if(v<p05||v>p95){outliers++;return;}bins[Math.min(8,Math.floor((v-p05)/(p95-p05)*9))]++;});
-    var max=Math.max(1,...bins),out='';
-    for(var i=0;i<9;i++){var barH=bins[i]/max*186,x=46+i*64;
-      out+='<rect x="'+x+'" y="'+(220-barH)+'" width="39" height="'+barH+'" rx="6" fill="'+chartColors[i%chartColors.length]+'" opacity=".92"></rect>';
-      out+=axisText(x+18,242,fmt1(p05+(p95-p05)*(i+.5)/9),'middle');
-      out+=axisText(x+18,210-barH,String(bins[i]),'middle');
-    }
-    out+='<line x1="35" x2="635" y1="220" y2="220" stroke="#dfe8ec"/>';
-    return simpleSVG(out)+note('Histogram giá quan sát: bỏ '+fmt(outliers)+' dòng ngoài P05–P95 để dễ xem. Trục X là VND theo đơn vị giá trong dữ liệu gốc; cần chuẩn hóa đơn vị trước khi kết luận.');
+(() => {
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt=v=>v===null||v===undefined?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:0});
+  const money=v=>v===null||v===undefined?'—':fmt(v)+' ₫';
+  const short=v=>Number(v)>=1e6?(Number(v)/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1})+'M':Number(v)>=1e3?(Number(v)/1e3).toLocaleString('vi-VN',{maximumFractionDigits:1})+'k':fmt(v);
+  const colors=['#3d8961','#78b797','#b4d1ac','#d6dfa7','#a8bacd','#ced9ce','#ecdfc3'];
+  const views=[
+    ['overview','◫','Tổng quan thị trường','THE BIG PICTURE','Góc nhìn toàn cảnh từ dữ liệu dược Việt Nam.'],
+    ['pricing','▤','Phân tích giá thuốc','PRICING INTELLIGENCE','Phân bố giá, nhóm so sánh và các quan sát theo thời gian.'],
+    ['competition','▥','Phân tích cạnh tranh','COMPETITIVE LANDSCAPE','Nhà sản xuất, độ phủ hoạt chất và quy mô danh mục.'],
+    ['portfolio','◇','Danh mục sản phẩm','PORTFOLIO ANALYTICS','Khám phá cơ cấu quốc gia, hoạt chất và dạng bào chế.'],
+    ['quality','✓','Chất lượng dữ liệu','TRUST THE DATA','Độ đầy đủ, trạng thái mapping và khả năng sử dụng dữ liệu.'],
+    ['business','◎','Business Understanding','FROM DATA TO DECISIONS','Câu hỏi kinh doanh, KPI và giá trị của dashboard.'],
+    ['workflow','⬡','Data Understanding','CONNECTED DATA','Nguồn dữ liệu, luồng xử lý và kiến trúc phân tích.'],
+    ['modeling','⌁','Modeling & Evaluation','RESEARCH ROADMAP','Thiết kế dự báo giá và đánh giá trước khi huấn luyện.']
+  ];
+  let data=null,inventory=null,page=1,view='overview',controller=null,seq=0,timeout=null,toastTimer;
+  const theory=()=>['business','workflow','modeling'].includes(view);
+  const filters=()=>{const p=new URLSearchParams();for(const [key,id] of [['q','search'],['ingredient','ingredient'],['country','country'],['kind','kind'],['unit','unit']])if($(id).value.trim())p.set(key,$(id).value.trim());p.set('page',page);return p;};
+  function tip(label,value){return 'data-tip="'+esc(label)+'" data-value="'+esc(value)+'" tabindex="0"';}
+  function panel(title,sub,body,tag=''){return '<section class="panel"><div class="panel-head"><div><h2>'+esc(title)+'</h2><p>'+esc(sub)+'</p></div>'+(tag?'<span class="tag">'+esc(tag)+'</span>':'')+'</div>'+body+'</section>';}
+  const note=t=>'<p class="chart-note">'+esc(t)+'</p>';
+  const empty=t=>'<div class="empty">'+esc(t||'Không có dữ liệu trong phạm vi bộ lọc.')+'</div>';
+  function table(headers,rows){return '<div class="table-scroll"><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map((x,i)=>'<td>'+(i===0?'<strong>'+esc(x)+'</strong>':esc(x))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';}
+  function card(n,title,body){return '<article class="story-card"><div class="eyebrow">'+esc(n)+'</div><h3>'+esc(title)+'</h3><p>'+esc(body)+'</p></article>';}
+  function metric(label,value,detail,icon){return '<article class="metric"><div class="metric-top"><span>'+esc(label)+'</span><span class="metric-icon">'+icon+'</span></div><div class="metric-value">'+esc(value)+'</div><div class="metric-note">'+esc(detail)+'</div></article>';}
+  function bars(items,key){if(!items?.length)return empty();let max=Math.max(...items.map(i=>Number(i.value)),1);return items.map((r,i)=>'<div class="bar-row"><button class="bar-label" title="'+esc(r.name)+'" '+(key?'data-filter="'+esc(r.name)+'" data-key="'+key+'"':'')+'>'+esc(r.name)+'</button><div class="bar-track" '+tip(r.name,fmt(r.value)+' sản phẩm')+'><div class="bar-fill" style="width:'+Math.max(1,Number(r.value)/max*100)+'%;animation-delay:'+i*.04+'s"></div></div><b>'+fmt(r.value)+'</b></div>').join('');}
+  function donut(input,key,label){
+    if(!input?.length)return empty();
+    const total=input.reduce((s,x)=>s+Number(x.value),0);if(!total)return empty();
+    const items=input.slice(0,5).map(x=>({...x}));if(input.length>5)items.push({name:'Các nhóm khác',value:input.slice(5).reduce((s,x)=>s+Number(x.value),0),other:true});
+    let acc=0;
+    const circles=items.map((r,i)=>{let p=Number(r.value)/total*100;const out='<circle class="donut-segment" cx="110" cy="110" r="77" fill="none" stroke="'+colors[i]+'" stroke-width="24" pathLength="100" stroke-dasharray="'+p+' '+(100-p)+'" stroke-dashoffset="'+(-acc)+'" transform="rotate(-90 110 110)" '+tip(r.name,fmt(r.value)+' sản phẩm · '+p.toFixed(1)+'%')+(key&&!r.other?' data-filter="'+esc(r.name)+'" data-key="'+key+'"':'')+'><title>'+esc(r.name)+' '+p.toFixed(1)+'%</title></circle>';acc+=p;return out;}).join('');
+    return '<div class="donut-wrap"><svg viewBox="0 0 220 220" role="img" aria-label="'+esc(label)+'">'+circles+'<text x="110" y="110" text-anchor="middle" fill="#34553c" font-family="Manrope, sans-serif" font-size="27" font-weight="600">'+short(total)+'</text><text x="110" y="130" text-anchor="middle" fill="#a0b09a" font-size="9">sản phẩm</text></svg><div class="donut-legend">'+items.map((r,i)=>'<button '+(key&&!r.other?'data-filter="'+esc(r.name)+'" data-key="'+key+'"':'disabled')+' title="'+esc(r.name)+'"><i class="legend-dot" style="background:'+colors[i]+'"></i><span>'+esc(r.name)+'</span><b>'+((Number(r.value)/total)*100).toFixed(1)+'%</b></button>').join('')+'</div></div>';
   }
-  function donut(groups,title){
-    if(!groups.length)return '<div class="empty">Chưa có dữ liệu</div>';
-    var sum=groups.reduce(function(a,b){return a+b.value;},0)||1,acc=0,circles='';
-    groups.slice(0,7).forEach(function(g,i){
-      var len=g.value/sum*100;
-      circles+='<circle r="71" cx="118" cy="118" fill="none" stroke="'+chartColors[i]+'" stroke-width="28" stroke-dasharray="'+len+' '+(100-len)+'" stroke-dashoffset="'+(-acc)+'" pathLength="100" transform="rotate(-90 118 118)"><title>'+esc(g.name)+': '+fmt1(len)+'%</title></circle>';
-      acc+=len;
-    });
-    var leftover=Math.max(0,100-acc);
-    if(leftover>0)circles+='<circle r="71" cx="118" cy="118" fill="none" stroke="#ccd6da" stroke-width="28" stroke-dasharray="'+leftover+' '+(100-leftover)+'" stroke-dashoffset="'+(-acc)+'" pathLength="100" transform="rotate(-90 118 118)"/>';
-    var legend=groups.slice(0,7).map(function(g,i){return '<div><i style="background:'+chartColors[i]+'"></i><span title="'+esc(g.name)+'">'+esc(g.name)+'</span><b>'+fmt1(g.value/sum*100)+'%</b></div>';}).join('');
-    return '<div class="chart-flex"><svg viewBox="0 0 236 236" class="donut-svg" role="img" aria-label="'+esc(title)+'"><circle cx="118" cy="118" r="71" stroke="#eaf0f2" fill="none" stroke-width="28"/>'+circles+'<text x="118" y="111" text-anchor="middle" fill="#1a3b43" font-size="23" font-weight="bold">'+fmt(sum)+'</text><text x="118" y="133" fill="#8298a0" font-size="11" text-anchor="middle">bản ghi</text></svg><div class="legend">'+legend+'</div></div>'+note('Tỷ trọng theo số bản ghi sản phẩm, không phải doanh số hoặc thị phần.');
+  function histogram(){
+    const labels=['< 1k','1–5k','5–10k','10–50k','50–100k','≥ 100k'],bins=Array(6).fill(0);(data.bins||[]).forEach(x=>bins[Number(x.bucket)]=Number(x.value));const max=Math.max(...bins,1);if(!bins.some(Boolean))return empty('Chưa có giá VND hợp lệ để tạo phân phối.');
+    let svg='';for(let i=0;i<5;i++){let y=25+i*43;svg+='<line x1="42" y1="'+y+'" x2="590" y2="'+y+'" stroke="#edf2e9" stroke-dasharray="3 5"/><text x="32" y="'+(y+4)+'" text-anchor="end" fill="#a6b399" font-size="9">'+short(max*(1-i/4))+'</text>';}
+    bins.forEach((v,i)=>{let h=v/max*172,x=63+i*86;svg+='<rect class="chart-bar" x="'+x+'" y="'+(197-h)+'" width="45" height="'+h+'" rx="5" fill="'+colors[i%4]+'" '+tip(labels[i]+' VND',fmt(v)+' quan sát')+'><title>'+labels[i]+' VND: '+fmt(v)+'</title></rect><text x="'+(x+22)+'" y="221" text-anchor="middle" fill="#97a990" font-size="9">'+labels[i]+'</text>';});
+    return '<svg viewBox="0 0 615 239" class="chart-svg" role="img" aria-label="Phân phối giá quan sát tính bằng VND">'+svg+'</svg>'+note('Trục X: giá VND theo đơn vị nguồn. Trục Y: số quan sát. Lọc đơn vị và loại giá để thu hẹp phạm vi diễn giải.');
   }
-  function lineChart(g){
-    if(g.length<2)return '<div class="empty">Chưa có đủ nhóm dữ liệu so sánh.</div>';
-    g=g.slice(0,10);
-    var max=Math.max(1,...g.map(function(x){return x.value;})),points=g.map(function(x,i){return [45+i*555/Math.max(1,g.length-1),212-x.value/max*160];});
-    var pointStr=points.map(function(x){return x.join(',');}).join(' ');
-    var area='M '+points[0][0]+' 219 L '+points.map(function(x){return x.join(' ');}).join(' L ')+' L '+points[points.length-1][0]+' 219 Z';
-    var svg='<defs><linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#54c7b1" stop-opacity=".31"/><stop offset="1" stop-color="#54c7b1" stop-opacity=".015"/></linearGradient></defs>';
-    for(var j=0;j<5;j++)svg+='<line x1="38" x2="610" y1="'+(52+j*40)+'" y2="'+(52+j*40)+'" stroke="#eaf0f2" stroke-dasharray="3 5"/>';
-    svg+='<path d="'+area+'" fill="url(#areaFill)"/><polyline points="'+pointStr+'" fill="none" stroke="#14917f" stroke-width="3" stroke-linejoin="round"/>';
-    points.forEach(function(p,i){svg+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="5" fill="#fff" stroke="#159583" stroke-width="3"/>'+axisText(p[0],244,g[i].name.slice(0,9),'middle');});
-    return simpleSVG(svg)+note('Giá trung vị theo nhóm hoạt chất (danh mục, không phải xu hướng theo thời gian). Không suy ra mức tăng giảm giá nếu không có chuỗi thời gian.');
+  function trend(field='value'){
+    const rows=(data.timeline||[]).filter(x=>x[field]!==null&&Number.isFinite(Number(x[field]))).slice(-18);if(!rows.length)return empty('Chưa có quan sát giá có ngày hợp lệ.');
+    const max=Math.max(...rows.map(x=>Number(x[field])),1),left=48,right=610,top=25,bottom=208,step=(right-left)/Math.max(1,rows.length-1);
+    const points=rows.map((r,i)=>[rows.length===1?(left+right)/2:left+i*step,bottom-Number(r[field])/max*(bottom-top)]);
+    let svg='<defs><linearGradient id="trend-fill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#88c89f" stop-opacity=".25"/><stop offset="1" stop-color="#88c89f" stop-opacity="0"/></linearGradient></defs>';
+    for(let i=0;i<5;i++){const y=top+i*(bottom-top)/4;svg+='<line x1="'+left+'" x2="'+right+'" y1="'+y+'" y2="'+y+'" stroke="#edf2e9" stroke-dasharray="3 5"/><text x="'+(left-10)+'" y="'+(y+3)+'" text-anchor="end" fill="#a6b499" font-size="9">'+short(max*(1-i/4))+'</text>';}
+    const coords=points.map(p=>p.join(',')).join(' ');if(rows.length>1)svg+='<path d="M '+points[0][0]+' '+bottom+' L '+points.map(p=>p.join(' ')).join(' L ')+' L '+points.at(-1)[0]+' '+bottom+' Z" fill="url(#trend-fill)"/><polyline class="chart-line" points="'+coords+'" fill="none" stroke="#499e6b" stroke-width="2.6" stroke-linejoin="round"/>';
+    points.forEach((p,i)=>{const r=rows[i],value=field==='median'?money(r.median):fmt(r.value)+' quan sát';svg+='<circle class="chart-point" cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="#fff" stroke="#5eaa7b" stroke-width="2" '+tip(r.name,value)+'><title>'+esc(r.name)+' '+esc(value)+'</title></circle>';if(i===0||i===rows.length-1||i%Math.max(1,Math.ceil(rows.length/6))===0)svg+='<text x="'+p[0]+'" y="232" fill="#a0b194" font-size="9" text-anchor="middle">'+esc(r.name)+'</text>';});
+    return '<svg viewBox="0 0 645 247" class="chart-svg" role="img" aria-label="'+(field==='median'?'Giá trung vị theo tháng':'Số quan sát giá theo tháng')+'">'+svg+'</svg><div class="chart-legend"><span><i class="legend-dot" style="background:#5eaa7b"></i>'+(field==='median'?'Giá trung vị (VND)':'Quan sát có giá VND')+'</span><span>'+esc(rows[0].name)+' → '+esc(rows.at(-1).name)+'</span></div>'+note(field==='median'?'Trung vị theo tháng chịu ảnh hưởng của cơ cấu sản phẩm. Đây là các quan sát trong database, chưa phải chỉ số tăng giảm giá thị trường.':'Các tháng không có dữ liệu không được nội suy. Số quan sát giá phản ánh dữ liệu đã thu thập, không đại diện doanh số.');
   }
-  function card(n,t,d){return '<article class="story-card"><div class="num">'+n+'</div><h3>'+t+'</h3><p>'+d+'</p></article>';}
-  function headline(kicker,title,text){
-    return '<div class="section-title"><div><span class="eyebrow">'+kicker+'</span><h2>'+title+'</h2><p>'+text+'</p></div><span class="pill">● Business Intelligence</span></div>';
+  function comparison(){const items=data.comparable||[];if(!items.length)return empty('Chưa có nhóm đủ thông tin và ít nhất hai sản phẩm để so sánh.');return table(['Hoạt chất · Hàm lượng','Dạng / Đơn vị / Loại giá','Sản phẩm','Nhà SX','P10','Trung vị','P90'],items.map(x=>[x.ingredient+' · '+x.strength,x.dosage_form+' / '+x.unit+' / '+x.price_type,fmt(x.products),fmt(x.makers),money(x.p10),money(x.median),money(x.p90)]))+note('Nhóm theo hoạt chất, hàm lượng, dạng bào chế, đơn vị và loại giá. Chưa chuẩn hóa đường dùng, quy cách đóng gói hoặc thời điểm; cần kiểm tra trước quyết định mua sắm.');}
+  function overview(){
+    const s=data.summary,top=data.ingredients?.[0];
+    return '<div class="chart-grid">'+panel('Quan sát giá theo thời gian','Số quan sát có giá theo tháng kê khai',trend(),'FULL DATABASE')+panel('Cơ cấu quốc gia sản xuất','Tỷ trọng theo sản phẩm phân biệt',donut(data.countries,'country','Cơ cấu quốc gia'),'CLICK TO FILTER')+'</div>'+
+    '<div class="insight-banner"><div><div class="eyebrow">✦ DATA-DRIVEN INSIGHT</div><h3>'+esc(top?'Hoạt chất dẫn đầu danh mục: '+top.name:'Khám phá góc nhìn từ dữ liệu')+'</h3><p>'+esc(top?fmt(top.value)+' sản phẩm trong phạm vi bộ lọc, đến từ '+fmt(top.makers)+' nhà sản xuất. Có '+fmt(s.priced)+' quan sát giá VND hợp lệ để tiếp tục phân tích.':'Thử thay đổi bộ lọc để khám phá danh mục và các quan sát giá.')+'</p></div><button data-view="competition">Khám phá cạnh tranh &nbsp; ↗</button></div>'+
+    '<div class="equal-grid">'+panel('Top hoạt chất','Xếp hạng theo số sản phẩm; nhấn để lọc',bars(data.ingredients,'ingredient'),'TOP 8')+panel('Phân phối giá quan sát','Nhận diện cơ cấu và độ lệch của dữ liệu giá',histogram(),'VND')+'</div>';
   }
-  function renderBusiness(){
-    return headline('01 / BUSINESS UNDERSTANDING','Từ dữ liệu dược đến quyết định kinh doanh','Vấn đề, mục tiêu, stakeholder và tiêu chí thành công')+
-      '<div class="cards3">'+card('01 — PROBLEM','Vấn đề kinh doanh','Dữ liệu thuốc, giá và nhà sản xuất phân tán nhiều bảng; khó so sánh danh mục, cạnh tranh và chất lượng dữ liệu.')+
-      card('02 — OBJECTIVE','Mục tiêu phân tích','Xây dashboard hỗ trợ phân tích cơ cấu danh mục, độ phân tán giá, số đối thủ trong cùng phân khúc.')+
-      card('03 — USER','Người sử dụng','Nhà phân tích thị trường dược, nhóm mua sắm, quản trị danh mục và nhóm nghiên cứu dữ liệu.')+'</div>'+
-      panel('Từ câu hỏi kinh doanh đến KPI có thể đo','Đầu ra thiết kế theo CRISP-DM',table(['Business Question','Metric','Giới hạn'],[
-        ['Cơ cấu sản phẩm ra sao?','Số sản phẩm theo hoạt chất/dạng bào chế','Không đại diện doanh số'],
-        ['Giá cùng phân khúc phân tán thế nào?','P10, Median, P90, IQR','Phải chuẩn hóa đơn vị giá'],
-        ['Mức cạnh tranh danh mục?','Nhà sản xuất trên mỗi hoạt chất','Không phải thị phần'],
-        ['Mapping liên kết đáng tin?','Match rate, unlinked, needs review','Không tự suy luận chỉ định'],
-        ['Chất lượng dữ liệu đủ tốt?','Completeness, duplicates, provenance','Phụ thuộc nguồn và thời điểm']
-      ]))+
-      '<div class="cards2">'+panel('Success Criteria','Tiêu chí chấp nhận', '<div class="speaking"><span class="bubble">1</span><div><strong>Tính đúng</strong><p>KPI được đối chiếu bằng SQL; kết quả phân tích có định nghĩa và nguồn rõ ràng.</p></div></div><div class="speaking"><span class="bubble">2</span><div><strong>Tính hữu dụng</strong><p>Người xem lọc được theo hoạt chất, nhà sản xuất, quốc gia, loại giá.</p></div></div><div class="speaking"><span class="bubble">3</span><div><strong>Tính minh bạch</strong><p>Biết dữ liệu là demo, mẫu giới hạn hay tập đầy đủ. Không nhầm số sản phẩm với thị phần.</p></div></div>')+
-      panel('Phạm vi nghiên cứu','Phân tích sử dụng dataset hiện có','<div class="speaking"><span class="bubble">A</span><div><strong>Trọng tâm: DAV × Giá</strong><p>Danh mục sản phẩm, hoạt chất, giá công bố/trúng thầu và nhà sản xuất.</p></div></div><div class="speaking"><span class="bubble">B</span><div><strong>Mở rộng: RxNorm, ICD-10, MEDI</strong><p>Chuẩn hóa định danh hoạt chất và đo lường độ phủ liên kết; không dùng để khuyến nghị kê đơn.</p></div></div>')+'</div>';
+  function pricing(){return '<div class="chart-grid">'+panel('Phân phối giá quan sát','Số quan sát theo khoảng giá',histogram(),'PRICE DISTRIBUTION')+panel('Đọc giá trong đúng ngữ cảnh','Lọc loại giá và đơn vị trước khi so sánh','<div class="story-card" style="border:0;padding:0">'+ '<h3>'+money(data.summary.median)+'</h3><p>Trung vị trên '+fmt(data.summary.priced)+' quan sát VND. Giá của các sản phẩm khác hoạt chất hoặc khác đơn vị không tạo thành một chỉ số giá thị trường.</p><h3>Chuẩn hóa nhóm so sánh</h3><p>Bảng bên dưới tách theo hoạt chất, hàm lượng, dạng bào chế, đơn vị và loại giá. Các nhóm thiếu trường quan trọng được loại khỏi bảng so sánh.</p></div>')+'</div>'+panel('Quan sát giá trung vị theo tháng','Dựa trên declaration_date trong price_record',trend('median'),'TIME SERIES')+panel('Các nhóm sản phẩm có thể khảo sát','Ít nhất hai sản phẩm khác nhau trong cùng cấu hình',comparison(),'BENCHMARKING');}
+  function competition(){return '<div class="equal-grid">'+panel('Nhà sản xuất có danh mục lớn','Số sản phẩm phân biệt, không phải thị phần',bars(data.manufacturers,'q'),'TOP 10')+panel('Độ phủ nhà sản xuất theo hoạt chất','Số nhà sản xuất khác nhau trong các hoạt chất nổi bật',bars((data.ingredients||[]).map(x=>({name:x.name,value:x.makers})),'ingredient'),'CATALOG COVERAGE')+'</div>'+panel('Cấu trúc danh mục nhà sản xuất','Xếp hạng theo số sản phẩm trong phạm vi lọc',table(['Nhà sản xuất','Sản phẩm','Hoạt chất phân biệt'],(data.manufacturers||[]).map(x=>[x.name,fmt(x.value),fmt(x.ingredients)])))+'<div class="insight-banner"><div><div class="eyebrow">INTERPRETATION</div><h3>Cạnh tranh danh mục là một góc nhìn về nguồn cung.</h3><p>Số sản phẩm và số nhà sản xuất giúp khảo sát độ phủ. Cần dữ liệu bán hàng để tính thị phần doanh thu và tốc độ tăng trưởng.</p></div><button data-view="business">Business context &nbsp; ↗</button></div>';}
+  function portfolio(){return '<div class="equal-grid">'+panel('Cơ cấu dạng bào chế','Phân biệt sản phẩm trước khi phân tích giá',donut(data.forms,null,'Cơ cấu dạng bào chế'),'PRODUCT MIX')+panel('Quốc gia sản xuất','Nhấn tên quốc gia để lọc toàn dashboard',donut(data.countries,'country','Cơ cấu quốc gia'),'COUNTRY MIX')+'</div>'+panel('Độ phủ hoạt chất','Số sản phẩm và nhà sản xuất trong các nhóm nổi bật',table(['Hoạt chất','Sản phẩm','Nhà sản xuất'],(data.ingredients||[]).map(x=>[x.name,fmt(x.value),fmt(x.makers)])));}
+  function quality(){
+    const q=data.quality||{},m=data.mapping||{},total=Number(q.total)||0;
+    const completeness=[['drug_name','Tên thuốc'],['ingredient','Hoạt chất'],['strength','Hàm lượng'],['dosage_form','Dạng bào chế'],['manufacturer','Nhà sản xuất'],['country','Quốc gia'],['unit','Đơn vị giá']].map(([key,name])=>{let p=total?Number(q[key])/total*100:0;return '<div class="quality-row"><div class="quality-label"><span>'+name+'</span><span>'+p.toFixed(1)+'%</span></div><div class="quality-track"><span style="width:'+p+'%"></span></div></div>';}).join('');
+    return '<div class="equal-grid">'+panel('Độ đầy đủ của danh mục','Tính trên sản phẩm phân biệt trong phạm vi bộ lọc',completeness,'COMPLETENESS')+panel('Trạng thái DAV → RxNorm','Toàn bộ bảng mapping, không áp dụng bộ lọc sản phẩm',m.unavailable?empty('Chưa đọc được bảng mapping.'):bars(m.statuses),'FULL MAPPING TABLE')+'</div><div class="cards-three">'+card('01 / ACCEPTED','Mapping được chấp nhận',m.unavailable?'Chưa có dữ liệu.':fmt(m.accepted)+' / '+fmt(m.total)+' dòng có accepted_for_serving = 1. Trạng thái này lấy trực tiếp từ dữ liệu nguồn.')+card('02 / REVIEW','Cần kiểm tra thủ công',m.unavailable?'Chưa có dữ liệu.':fmt(m.review)+' dòng có review_required = 1. Nên ưu tiên kiểm tra hoạt chất, hàm lượng, dạng và bằng chứng mapping.')+card('03 / RELATION','Tính hợp lệ của khóa',m.unavailable?'Chưa có dữ liệu.':fmt(m.valid_fk)+' dòng có selected_scd_fk_valid = 1. Khóa hợp lệ là điều kiện kỹ thuật, chưa chứng minh quan hệ lâm sàng.')+'</div>'+panel('Giới hạn cần kiểm soát','Đọc các chỉ số cùng định nghĩa',table(['Phạm vi','Cách diễn giải'],[['Sản phẩm','COUNT(DISTINCT dav_row_id), tránh nhân bản do một sản phẩm có nhiều giá.'],['Giá quan sát','Chỉ tính giá không âm, đồng VND hoặc chưa ghi currency; cần rà soát nguồn.'],['Độ đầy đủ','Trường không trống; chưa đo mức chính xác ngữ nghĩa.'],['Mapping','Trạng thái do nguồn cung cấp, không tự gán chính xác.'],['Phân tích giá','Tách loại giá, đơn vị và cấu hình; chưa có doanh số hoặc thị phần.']]));}
+  function business(){return '<div class="insight-banner"><div><div class="eyebrow">01 / BUSINESS UNDERSTANDING</div><h3>Từ dữ liệu phân tán đến góc nhìn có thể hành động.</h3><p>Phân tích giá và danh mục dược Việt Nam cho nhà phân tích thị trường, nhóm mua sắm và quản trị danh mục.</p></div><button data-view="overview">Mở dashboard &nbsp; ↗</button></div><div class="cards-three">'+card('01 / CHALLENGE','Dữ liệu khó so sánh','Thông tin sản phẩm, giá và định danh nằm ở nhiều nguồn. Giá khác đơn vị, loại và thời điểm dễ dẫn đến kết luận sai.')+card('02 / APPROACH','Một không gian phân tích','Kết nối DAV, giá, RxNorm, ICD-10 và MEDI. Định nghĩa KPI, lọc dữ liệu và truy ngược bản ghi sử dụng trong biểu đồ.')+card('03 / VALUE','Quyết định có cơ sở','Khảo sát danh mục, nghiên cứu phân khúc, tìm nhóm nhiều nhà cung cấp và nhận diện vấn đề chất lượng dữ liệu.')+'</div>'+panel('Câu hỏi kinh doanh → chỉ số → hành động','Thiết kế dựa trên mục tiêu phân tích',table(['Câu hỏi','KPI','Hành động khảo sát'],[['Danh mục tập trung ở đâu?','Sản phẩm phân biệt theo hoạt chất / dạng / quốc gia','Khảo sát cơ hội mở rộng danh mục'],['Nhóm nào nhiều nhà cung cấp?','Nhà sản xuất phân biệt theo hoạt chất','Xem xét cạnh tranh nguồn cung'],['Giá quan sát phân tán ra sao?','P10 / Median / P90 trong nhóm tương đồng','Kiểm tra quy cách, thời điểm và nguồn'],['Dữ liệu đủ tin cậy chưa?','Completeness / Review / Accepted mapping','Ưu tiên làm sạch và xác minh'],['Kết quả kiểm chứng được không?','Truy xuất bản ghi và định nghĩa SQL','Đối chiếu nguồn và tài liệu nghiên cứu']]))+'<div class="equal-grid">'+panel('Tiêu chí thành công','Đo chất lượng của chính dashboard','<div class="pipeline" style="grid-template-columns:1fr"><article><h3>Tính đúng</h3><p>KPI tính trên database, xác định grain sản phẩm và quan sát giá.</p></article><article><h3>Tính hữu dụng</h3><p>Bộ lọc cập nhật đồng bộ KPI, biểu đồ và bảng dữ liệu.</p></article><article><h3>Tính minh bạch</h3><p>Hiển thị nguồn, thời điểm cập nhật, phạm vi và giới hạn diễn giải.</p></article></div>')+panel('Phạm vi ứng dụng','Business Intelligence cho giá và danh mục','<div class="story-card" style="border:0;padding:0"><h3>Pharmaceutical Pricing & Market Analysis in Vietnam</h3><p>Ứng dụng hỗ trợ khám phá dữ liệu và nghiên cứu kinh doanh. Database hiện có giá và danh mục; các chỉ số doanh thu, lợi nhuận và thị phần bán hàng cần thêm dữ liệu giao dịch.</p><h3>Trình bày theo CRISP-DM</h3><p>Business Understanding → Data Understanding → Data Preparation → Modeling → Evaluation → Deployment & Feedback.</p></div>')+'</div>';}
+  function workflow(){
+    const descriptions={dav_product:'Danh mục DAV',price_record:'Quan sát giá',dav_rxnorm_mapping:'Liên kết DAV / RxNorm',disease:'ICD-10 Việt Nam',medi_relation:'Quan hệ MEDI',rxnorm_concept:'Thuật ngữ RxNorm',rxnorm_scd:'Clinical Drug',rxnorm_scd_component:'Thành phần SCD'};
+    const sources=(inventory?.tables||[]).map(x=>'<article class="source-item"><h3>'+esc(x.name)+'</h3><b>'+(x.estimatedRows===null?'—':'~ '+fmt(x.estimatedRows))+'</b><p>'+esc(descriptions[x.name]||'Nguồn dữ liệu')+' · '+(x.available?'Có thể truy cập':'Chưa xác định')+'</p></article>').join('');
+    return panel('Nguồn dữ liệu đang kết nối','Ước lượng dòng từ PostgreSQL; KPI phân tích dùng đếm SQL chính xác',sources?'<div class="source-grid">'+sources+'</div>':empty('Đang kiểm tra nguồn dữ liệu.'),'NEON / PUBLIC')+panel('Từ nguồn dữ liệu đến Business Intelligence','Luồng xử lý của ứng dụng','<div class="pipeline">'+[['01 / COLLECT','Nguồn dữ liệu','DAV, ICD-10, RxNorm và MEDI lưu trong PostgreSQL.'],['02 / PREPARE','Chuẩn hóa & mapping','Làm sạch, giữ thông tin nguồn, cờ review và trạng thái liên kết.'],['03 / ANALYZE','SQL analytics','Phân biệt sản phẩm và quan sát giá; tổng hợp toàn bộ phạm vi bộ lọc.'],['04 / EXPLORE','Dashboard','KPI, biểu đồ tương tác, bảng phân trang và truy xuất bản ghi.']].map(x=>'<article><b>'+x[0]+'</b><h3>'+x[1]+'</h3><p>'+x[2]+'</p></article>').join('')+'</div>')+panel('Quan hệ và đơn vị phân tích','Liên kết chính đã đối chiếu với schema Neon',table(['Liên kết','Ý nghĩa','Grain'],[['dav_product → price_record','Nối bằng dav_row_id','Một sản phẩm có thể có nhiều quan sát giá'],['dav_product → dav_rxnorm_mapping','Liên kết sản phẩm và RxNorm SCD','Giữ trạng thái accepted, review và khóa hợp lệ'],['rxnorm_scd → rxnorm_scd_component','Nối bằng scd_rxcui','Một thuốc có thể có nhiều thành phần'],['medi_relation → disease / rxnorm_concept','Mã bệnh và rxcui, có trạng thái match','Quan hệ thuật ngữ, cần kiểm tra hệ mã']]))+'<div class="cards-three">'+card('DATA / SOURCE','Giữ nguồn dữ liệu','Các bảng lưu định danh, source và các trạng thái xử lý. Giá truy xuất cùng đơn vị, loại giá và ngày kê khai.')+card('DATA / GRAIN','Đếm đúng đối tượng','KPI sản phẩm dùng ID phân biệt. Biểu đồ thời gian dùng số quan sát giá; hai đại lượng được hiển thị riêng.')+card('DATA / FEEDBACK','Cải thiện có bằng chứng','Ưu tiên bản ghi thiếu và mapping cần review. Bổ sung dữ liệu giao dịch nếu mở rộng sang doanh thu và thị phần.')+'</div>';}
+  function modeling(){return '<div class="status-strip error"><span class="signal"></span>Thiết kế nghiên cứu — chưa huấn luyện mô hình hoặc công bố kết quả dự báo.</div><div class="cards-three">'+card('01 / TARGET','Giá trên một đơn vị chuẩn','Định nghĩa price/unit hoặc log(price), tách loại giá, hàm lượng và dạng bào chế. Chỉ đưa dữ liệu đã chuẩn hóa vào thí nghiệm.')+card('02 / FEATURES','Biến giải thích từ database','Hoạt chất, hàm lượng, dạng bào chế, nhà sản xuất, quốc gia, ngày quan sát và loại giá. Không dùng giá tương lai làm feature.')+card('03 / MODELS','Bắt đầu bằng baseline','Trung vị trong nhóm → Ridge Regression → Random Forest → Gradient Boosting. Chọn độ phức tạp dựa trên dữ liệu và kết quả validation.')+'</div>'+panel('Thiết kế và đánh giá','Kiểm chứng trước khi dùng để hỗ trợ quyết định',table(['Bước','Phương pháp','Tiêu chí'],[['Split','Tách theo thời gian và nhóm số đăng ký','Hạn chế leakage giữa train / validation / test'],['Baseline','Trung vị giá trong nhóm tương đồng','Mô hình cần cải thiện rõ so với baseline'],['Evaluation','MAE, RMSE và R² trên held-out test','Báo sai số theo phân khúc và độ phủ'],['Explainability','Permutation importance / SHAP','Liên hệ dự báo không đồng nghĩa nhân quả'],['Deployment','Theo dõi drift và phản hồi','Cập nhật khi dữ liệu nguồn thay đổi']]))+'<div class="insight-banner"><div><div class="eyebrow">NEXT RESEARCH QUESTION</div><h3>Biến nào giải thích khác biệt giá trong cùng phân khúc?</h3><p>Dashboard hiện tại giúp xác định giả thuyết và kiểm tra dữ liệu đầu vào. Mô hình được triển khai sau khi có tập dữ liệu chuẩn hóa và kết quả kiểm chứng.</p></div><button data-view="pricing">Khảo sát giá &nbsp; ↗</button></div>';}
+  function render(){
+    $('filters').hidden=theory();$('metrics').hidden=theory();$('records-panel').hidden=theory();$('export').hidden=theory();
+    if(!data){$('metrics').innerHTML=[['Sản phẩm','◫'],['Hoạt chất','◇'],['Nhà sản xuất','▥'],['Giá trung vị','↗']].map(([l,i])=>metric(l,'—','Đang chờ dữ liệu nguồn',i)).join('');$('visuals').innerHTML=theory()?(view==='business'?business():view==='modeling'?modeling():workflow()):panel('Kết nối dữ liệu phân tích','Không sử dụng số liệu mô phỏng','<div class="empty"><strong>Đang chờ dữ liệu từ Neon</strong>Nhấn làm mới để thử lại nếu kết nối chưa sẵn sàng.</div>');$('records').innerHTML='<tr><td colspan="5">Chưa có dữ liệu nguồn.</td></tr>';$('records-count').textContent='—';$('range').textContent='Chưa có bản ghi';$('pageinfo').textContent='—';$('prev').disabled=true;$('next').disabled=true;return;}
+    const s=data.summary||{};
+    $('metrics').innerHTML=view==='pricing'?metric('Giá P10',money(s.p10),'Phân vị 10% · VND','↓')+metric('Giá trung vị',money(s.median),'Phân vị 50% · VND','◫')+metric('Giá P90',money(s.p90),'Phân vị 90% · VND','↑')+metric('Quan sát có giá',fmt(s.priced),'Giá không âm · VND','▤'):metric('Sản phẩm phân biệt',fmt(s.products),'ID sản phẩm DAV trong bộ lọc','◫')+metric('Hoạt chất',fmt(s.ingredients),'Tên hoạt chất phân biệt','◇')+metric('Nhà sản xuất',fmt(s.manufacturers),'Tên nhà sản xuất phân biệt','▥')+metric('Giá trung vị',money(s.median),fmt(s.priced)+' quan sát giá VND','↗');
+    const renderers={overview,pricing,competition,portfolio,quality,business,workflow,modeling};$('visuals').innerHTML=renderers[view]();
+    $('records').innerHTML=(data.records||[]).map(r=>'<tr><td><strong>'+esc(r.drug_name||'Chưa có tên')+'</strong><small>'+esc([r.ingredient,r.strength].filter(Boolean).join(' · ')||'—')+'</small></td><td>'+esc(r.manufacturer||'—')+'</td><td>'+esc(r.country||'—')+'</td><td>'+esc(r.price_type||'—')+'<small>'+esc(r.unit||'Chưa có đơn vị')+'</small></td><td class="numeric"><strong>'+money(r.price_vnd)+'</strong><small>'+esc(r.snapshot_date?String(r.snapshot_date).slice(0,10):'Chưa có ngày')+'</small></td></tr>').join('')||'<tr><td colspan="5">Không có bản ghi phù hợp.</td></tr>';
+    const total=Number(s.observations)||0, maxPage=Math.max(1,Math.ceil(total/12));$('records-count').textContent=fmt(total)+' quan sát';$('range').textContent='Hiển thị '+(total?(page-1)*12+1:0)+'–'+Math.min(page*12,total)+' / '+fmt(total)+' bản ghi';$('pageinfo').textContent=page+' / '+maxPage;$('prev').disabled=page<=1;$('next').disabled=page>=maxPage;
   }
-  function renderWorkflow(){
-    var t=(schemaInfo&&schemaInfo.tables)||[],lookup=function(n){return t.find(function(x){return x.name===n;});};
-    var tbl=['dav_product','price_record','dav_rxnorm_mapping','rxnorm_concept','rxnorm_scd','disease','medi_relation','rxnorm_scd_component'];
-    var tableBoxes=tbl.map(function(n){var x=lookup(n),ok=x&&x.available;return '<div class="status-item"><strong>'+esc(n)+'</strong><small>'+(!schemaInfo?'Ảnh Neon / chưa kết nối':(ok?('Neon ✓ · ~'+(x.estimatedRows===null?'?':fmt(x.estimatedRows))+' dòng'):'Chưa xác định'))+'</small></div>';}).join('');
-    return headline('02 / DATA UNDERSTANDING','Hành trình và kiến trúc dữ liệu','Từ hệ quản trị Neon PostgreSQL đến analytical storytelling')+
-     panel('Tám bảng nguồn','Ảnh Neon cho thấy các bảng dưới đây; kết quả live được xác minh khi kết nối', '<div class="status-list">'+tableBoxes+'</div>')+
-     panel('Data pipeline — ETL / BI','Business-driven analytics architecture',
-       '<div class="funnel">'+[
-         ['SOURCE','Neon: DAV, MEDI, ICD, RxNorm'],
-         ['AUDIT','Profile, nulls, duplicates'],
-         ['CLEANING','Chuẩn hóa giá, hàm lượng, tên'],
-         ['MAPPING','Kiểm tra join + provenance'],
-         ['DATA MART','Facts + dimensions'],
-         ['VISUALIZATION','KPI, charts, insights']
-       ].map(function(x){return '<div class="funnel-step"><b>'+x[0]+'</b><small>'+x[1]+'</small></div>';}).join('')+'</div>')+
-     '<div class="cards2">'+panel('Thiết kế Star Schema','Data mart đề xuất','<div class="speaking"><span class="bubble">F</span><div><strong>fact_drug_price</strong><p>price_record + khóa sản phẩm, loại giá, ngày, giá/đơn vị. Xác định grain trước khi tính KPI.</p></div></div><div class="speaking"><span class="bubble">D</span><div><strong>dim_drug / dim_manufacturer / dim_date</strong><p>Chuẩn hóa hoạt chất, hàm lượng, dạng bào chế, nhà sản xuất và thời điểm.</p></div></div><div class="speaking"><span class="bubble">M</span><div><strong>bridge_rxnorm / disease_relation</strong><p>Lưu quan hệ có trạng thái match và nguồn; không ép unmatched thành mapped.</p></div></div>')+
-     panel('Data Governance Checklist','Các lỗi cần xử lý trước khi kết luận','<div class="speaking"><span class="bubble">1</span><div><strong>Giá</strong><p>Phân biệt giá kê khai, trúng thầu và đơn vị đóng gói.</p></div></div><div class="speaking"><span class="bubble">2</span><div><strong>Entity matching</strong><p>Hoạt chất + hàm lượng + dạng bào chế + đường dùng; giữ match status.</p></div></div><div class="speaking"><span class="bubble">3</span><div><strong>Sampling</strong><p>Dashboard mẫu tối đa 2.000 bản ghi; cần SQL aggregation để tính KPI toàn bộ dữ liệu.</p></div></div>')+'</div>';
+  function options(o){for(const [id,title] of [['ingredient','Tất cả hoạt chất'],['country','Tất cả quốc gia'],['kind','Tất cả loại giá'],['unit','Tất cả đơn vị']]){const current=$(id).value;$(id).innerHTML='<option value="">'+title+'</option>'+(o?.[id]||[]).map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');$(id).value=current;}}
+  function setStatus(error,text){$('status').classList.toggle('error',error);$('status').innerHTML='<span class="signal"></span><span>'+esc(text)+'</span>';$('connection').classList.toggle('error',error);$('connection').textContent=error?'KẾT NỐI GIÁN ĐOẠN':'NEON CONNECTED';$('db-status').textContent=error?'Nguồn chưa sẵn sàng':'Database connected';$('db-dot').style.background=error?'#c29862':'';}
+  async function load(){
+    controller?.abort();controller=new AbortController();const activeController=controller;const current=++seq;$('content').classList.add('loading');$('status').innerHTML='<span class="signal"></span><span>Đang cập nhật phân tích từ database…</span>';const abortTimer=setTimeout(()=>activeController.abort(),45000);
+    try{const response=await fetch('/api/analytics?'+filters(),{signal:activeController.signal,cache:'no-store'});const result=await response.json();if(!response.ok||result.mode!=='database')throw new Error(result.notice||'Không thể đọc nguồn dữ liệu.');if(current!==seq)return;data=result;options(data.options);setStatus(false,'Dữ liệu thật từ Neon · Tổng hợp toàn bộ phạm vi bộ lọc · Cập nhật '+new Date(data.refreshedAt).toLocaleString('vi-VN')+' · Giá và số sản phẩm không đại diện doanh số.');render();}
+    catch(e){if(current!==seq)return;if(e.name==='AbortError'&&activeController.signal.aborted){data=null;setStatus(true,'Kết nối quá thời gian chờ. Nhấn làm mới để thử lại.');}else{data=null;setStatus(true,e.message||'Không thể kết nối dữ liệu. Nhấn làm mới để thử lại.');}render();}
+    finally{clearTimeout(abortTimer);if(current===seq)$('content').classList.remove('loading');}
   }
-  function renderEDA(){
-    var r=dataRows(),p=pricedRows(),values=p.map(function(x){return Number(x.price_vnd);});
-    var byCountry=group(r,'country').sort(function(a,b){return b.items.length-a.items.length;}).slice(0,7).map(function(x){return {name:x.name,value:x.items.length};});
-    var ing=group(p,'ingredient').filter(function(x){return x.items.length>=2;}).sort(function(a,b){return b.items.length-a.items.length;}).slice(0,7).map(function(x){return {name:x.name,value:med(x.items.map(function(y){return Number(y.price_vnd);}))};});
-    var numericStat=pricesLen=>pricesLen?('Số quan sát có giá: '+fmt(pricesLen)):'Không có giá hợp lệ';
-    return headline('03 / EXPLORATORY DATA ANALYSIS','Khám phá phân bố, chênh lệch và cơ cấu','EDA giúp xác định giả thuyết, không chỉ tạo biểu đồ')+
-     '<div class="two">'+panel('Price Distribution · Histogram',numericStat(values.length),histogram(p))+
-     panel('Country Composition · Donut','Tỷ trọng theo bản ghi sản phẩm',donut(byCountry,'Cơ cấu quốc gia'))+'</div>'+
-     panel('Ingredient-level Median · Comparison','Các nhóm nhiều quan sát có giá hợp lệ',lineChart(ing))+
-     '<div class="info-band warn"><strong>! Giải thích EDA:</strong> Giá chưa chuẩn hóa theo đơn vị sản phẩm chỉ phản ánh phân bố trong snapshot. Chưa được coi là tương quan giá/giá trị giữa thuốc khác hàm lượng, dạng bào chế.</div>';
-  }
-
-  function renderModeling(){
-    return headline('06 / MODELING & EVALUATION','Roadmap phân tích dự đoán giá thuốc','Thiết kế thí nghiệm ML trước khi huấn luyện mô hình')+
-    '<div class="info-band warn"><strong>Research stage:</strong> Đây là đề xuất mô hình, chưa huấn luyện hoặc công bố chỉ số dự đoán. Chỉ thực hiện sau khi chuẩn hóa giá/đơn vị và nguồn quan sát.</div>'+
-    '<div class="cards3">'+card('01 / TARGET','Biến mục tiêu','Giá trên một đơn vị chuẩn hoặc log(price); tách theo loại giá, dạng bào chế, hàm lượng và thời gian.')+
-    card('02 / FEATURES','Biến giải thích','Hoạt chất, hàm lượng, dạng bào chế, nhà sản xuất, quốc gia, ngày quan sát và loại giá.')+
-    card('03 / BASELINES','Các mô hình','Median baseline → Ridge Regression → Random Forest → Gradient Boosting/XGBoost (nếu dữ liệu đủ).')+'</div>'+
-    '<div class="cards2">'+panel('Experimental Design','Tránh leakage và overclaim','<div class="speaking"><span class="bubble">1</span><div><strong>Split</strong><p>Ưu tiên kiểm thử theo thời gian; nhóm cùng số đăng ký không được bị rò giữa train/test.</p></div></div><div class="speaking"><span class="bubble">2</span><div><strong>Evaluation</strong><p>MAE, RMSE, R² trên tập held-out; báo sai số theo nhóm và chênh lệch phân phối.</p></div></div><div class="speaking"><span class="bubble">3</span><div><strong>Explainability</strong><p>Permutation importance/SHAP chỉ phản ánh liên hệ dự báo, không chứng minh quan hệ nhân quả.</p></div></div>')+
-    panel('Business Decision Support','Hành động có thể hỗ trợ sau khi mô hình được xác minh','<div class="speaking"><span class="bubble">A</span><div><strong>Price benchmarking</strong><p>Đánh dấu sản phẩm chênh lệch giá trong nhóm thực sự tương đương.</p></div></div><div class="speaking"><span class="bubble">B</span><div><strong>Catalog strategy</strong><p>Nhóm hoạt chất có nhiều nhà cung cấp và phân phối giá rộng để nghiên cứu.</p></div></div><div class="speaking"><span class="bubble">C</span><div><strong>Data monitoring</strong><p>Cảnh báo bản ghi thiếu và bất thường do lỗi chuẩn hóa.</p></div></div>')+'</div>';
-  }
-  function priceTrend(){
-    var dated=pricedRows().filter(function(r){return /^\d{4}-\d{2}/.test(String(r.snapshot_date||''));});
-    var dict={};dated.forEach(function(r){var key=String(r.snapshot_date).slice(0,7);(dict[key]??=[]).push(Number(r.price_vnd));});
-    var arr=Object.keys(dict).sort().slice(-10).map(function(key){return {name:key,value:med(dict[key])};});
-    return arr.length<2?'<div class="empty">Chưa đủ chuỗi quan sát giá theo tháng để vẽ biểu đồ. Không nội suy dữ liệu thiếu.</div>':lineChart(arr)+note('Giá trung vị của các quan sát có mốc thời gian trong mẫu. Thay đổi thành phần sản phẩm có thể ảnh hưởng xu hướng; đây không phải chỉ số giá chuẩn hóa.');
-  }
-  function enrichOverview(){
-    var r=dataRows(),p=pricedRows(),groups=group(r,'dosage_form').sort(function(a,b){return b.items.length-a.items.length;}).slice(0,7).map(function(x){return {name:x.name,value:x.items.length};});
-    return headline('04 / VISUAL ANALYTICS','Các biểu đồ khám phá bổ sung','Phân phối giá và cơ cấu sản phẩm theo dữ liệu đang được lọc')+
-     '<div class="two">'+panel('Distribution of Observed Prices','Phát hiện lệch phải và ngoại lệ tiềm năng',histogram(p))+panel('Dosage Form Mix','Số bản ghi theo dạng bào chế',donut(groups,'Dạng bào chế'))+'</div>';
-  }
-  function stories(){
-    var r=dataRows(),p=pricedRows(),a=group(r,'ingredient').sort(function(x,y){return y.items.length-x.items.length;})[0],vals=p.map(function(x){return Number(x.price_vnd);});
-    var insights=[];
-    if(a)insights.push({title:'Danh mục tập trung',text:'Nhóm "'+a.name+'" đang có '+fmt(a.items.length)+' bản ghi trong phạm vi lọc. Đây không phải thị phần.'});
-    if(vals.length>2)insights.push({title:'Độ phân tán giá',text:'Giá P90/P10 của mẫu là '+(pct(vals,.1)>0?fmt1(pct(vals,.9)/pct(vals,.1))+' lần':'không xác định')+'. Chỉ diễn giải sau khi chuẩn hóa đơn vị.'});
-    insights.push({title:'Đặt câu hỏi tiếp theo',text:'Sản phẩm nào có cùng hoạt chất–hàm lượng–dạng bào chế nhưng chênh giá đáng kể, và có bao nhiêu nhà cung cấp?'});
-    return '<div class="section-title"><div><span class="eyebrow">DATA STORYTELLING</span><h2>Ba insight để thuyết trình</h2></div></div><div class="cards3">'+insights.map(function(x,i){return card('INSIGHT 0'+(i+1),esc(x.title),esc(x.text));}).join('')+'</div>';
-  }
-  var origDraw=draw,tableSection=$('table').closest('section'),filterSection=document.querySelector('section.filter');
-  var noticeEl=$('notice'),hero=document.createElement('div'),add=document.createElement('div'),story=document.createElement('div');
-  hero.id='presentationHero';add.id='visualAddon';story.id='storyFooter';
-  noticeEl.insertAdjacentElement('afterend',hero);
-  $('visuals').insertAdjacentElement('beforebegin',add);
-  $('visuals').insertAdjacentElement('afterend',story);
-  draw=function(){
-    origDraw();
-    var isTheory=view==='business'||view==='workflow'||view==='modeling',eda=view==='eda';
-    filterSection.classList.toggle('hide',isTheory);
-    tableSection.classList.toggle('hide',isTheory);
-    $('stats').classList.toggle('hide',isTheory);
-    var live=mode==='database',count=dataRows().length;
-    var subtitles={overview:'Vị thế danh mục và các chỉ số toàn cảnh',business:'Bối cảnh, KPI và câu hỏi kinh doanh',workflow:'Nguồn dữ liệu, mô hình và chất lượng',eda:'Khảo sát dữ liệu và giả thuyết',pricing:'Phân khúc giá và độ phân tán',competition:'Cạnh tranh theo nhà sản xuất',portfolio:'Cơ cấu sản phẩm & hoạt chất',quality:'Completeness và dữ liệu thiếu',modeling:'Thiết kế dự báo giá, đánh giá và diễn giải'};
-    hero.className='hero-panel';
-    hero.innerHTML='<div><div class="hero-tag">✦ PHARMABIZ · DATA-DRIVEN DECISIONS</div><h2>'+esc(view==='business'?'Business Understanding trước khi phân tích':view==='workflow'?'Dữ liệu đáng tin tạo nên quyết định tốt':view==='modeling'?'From business questions to validated models':'Understand the market. Explore the data.')+'</h2><p>'+esc(subtitles[view]||'Vietnam Pharmaceutical Business Intelligence')+'. '+(live?'Đang sử dụng mẫu bản ghi từ Neon.':'Đang trình diễn dữ liệu giả lập, chưa phải thống kê thị trường thực tế.')+'</p><span class="pill '+(live?'':'amber')+'">'+(live?'● NEON CONNECTED':'○ DEMONSTRATION')+'</span></div><div class="hero-metrics"><div class="hero-metric"><strong>'+fmt(count)+'</strong><small>Bản ghi trong bộ lọc</small></div><div class="hero-metric"><strong>'+fmt(new Set(dataRows().map(function(x){return x.ingredient;})).size)+'</strong><small>Nhóm hoạt chất</small></div></div>';
-    if(isTheory){add.innerHTML='';$('visuals').innerHTML=view==='business'?renderBusiness():view==='workflow'?renderWorkflow():renderModeling();story.innerHTML='';return;}
-    if(eda){add.innerHTML='';$('visuals').innerHTML=renderEDA();story.innerHTML=stories();return;}
-    if(mode==='database'&&!pricedRows().length&&view==='pricing'){$('visuals').innerHTML='<div class="info-band warn">Giá chưa được xác thực từ bảng price_record; vui lòng kiểm tra quan hệ khóa và cột giá trong Neon. Không vẽ biểu đồ giá bằng số 0 giả.</div>';}
-    add.innerHTML=view==='overview'?enrichOverview():view==='pricing'?panel('Observed Price Timeline','Giá trung vị theo mốc quan sát; cần chú ý sự khác nhau giữa các nhóm',priceTrend()):'';
-    story.innerHTML=(view==='overview'||view==='pricing'||view==='competition')?stories():'';
-    if(mode==='database'&&!pricedRows().length){var statboxes=$('stats').querySelectorAll('.stat');if(statboxes.length>=4)statboxes[3].querySelector('strong').textContent='Chưa có';}
-  };
-  draw();
-  fetch('/api/insights',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(d&&d.mode==='database'){schemaInfo=d;draw();}}).catch(function(){});
-  var oldNav=navigate;
-  // Auto-set the speaker's recommended opening slide only if explicitly requested via ?view=business
-  try{var requested=new URLSearchParams(location.search).get('view');if(requested&&nav.some(function(n){return n[0]===requested;}))oldNav(requested);}catch(e){}
+  function navigate(id){if(!views.some(v=>v[0]===id))return;view=id;const v=views.find(v=>v[0]===id);$('crumb').textContent=v[2];$('page-title').innerHTML=esc(v[2])+'<span>.</span>';$('page-kicker').textContent=v[3];$('page-desc').textContent=v[4];document.querySelectorAll('.nav-button').forEach(b=>{b.classList.toggle('active',b.dataset.view===id);b.setAttribute('aria-current',b.dataset.view===id?'page':'false');});$('tooltip').hidden=true;closeMenu();render();const url=new URL(location);url.searchParams.set('view',id);history.replaceState(null,'',url);$('visuals').classList.remove('enter-page');requestAnimationFrame(()=>$('visuals').classList.add('enter-page'));window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'});}
+  function toast(message){clearTimeout(toastTimer);$('toast').textContent=message;$('toast').hidden=false;toastTimer=setTimeout(()=>$('toast').hidden=true,3500);}
+  function closeMenu(){$('sidebar').classList.remove('open');$('backdrop').hidden=true;$('menu').setAttribute('aria-expanded','false');}
+  $('nav').innerHTML=views.map((v,i)=>(i===5?'<div class="nav-divider"></div><div class="nav-caption">RESEARCH & STORY</div>':'')+'<button class="nav-button" data-view="'+v[0]+'"><span class="nav-icon">'+v[1]+'</span><span>'+v[2]+'</span><span class="nav-arrow">↗</span></button>').join('');
+  document.addEventListener('click',e=>{const nav=e.target.closest('[data-view]');if(nav)navigate(nav.dataset.view);const filter=e.target.closest('[data-filter]');if(filter){const key=filter.dataset.key;const id=key==='q'?'search':key;if($(id)){if(id!=='search'&&![...$(id).options].some(o=>o.value===filter.dataset.filter))return;$(id).value=filter.dataset.filter;page=1;load();toast('Đã lọc: '+filter.dataset.filter);}}});
+  $('start').onclick=()=>{$('cover').classList.add('entering');$('start').disabled=true;setTimeout(()=>{$('cover').hidden=true;$('app').hidden=false;$('content').classList.add('enter-page');$('page-title').setAttribute('tabindex','-1');$('page-title').focus({preventScroll:true});$('start').disabled=false;},matchMedia('(prefers-reduced-motion:reduce)').matches?0:620);};
+  $('return-cover').onclick=()=>{$('app').hidden=true;$('cover').hidden=false;$('cover').classList.remove('entering');document.body.classList.remove('presenting');window.scrollTo(0,0);$('start').focus({preventScroll:true});};
+  $('menu').onclick=()=>{const open=!$('sidebar').classList.contains('open');$('sidebar').classList.toggle('open',open);$('backdrop').hidden=!open;$('menu').setAttribute('aria-expanded',String(open));};$('backdrop').onclick=closeMenu;
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();$('tooltip').hidden=true;}if((e.key==='Enter'||e.key===' ')&&e.target.matches('circle[data-filter]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
+  $('refresh').onclick=()=>{load();fetchInventory();};$('search').addEventListener('input',()=>{clearTimeout(timeout);timeout=setTimeout(()=>{page=1;load();},350);});
+  for(const id of ['ingredient','country','kind','unit'])$(id).onchange=()=>{page=1;load();};
+  $('reset').onclick=()=>{clearTimeout(timeout);for(const id of ['search','ingredient','country','kind','unit'])$(id).value='';page=1;load();};
+  $('prev').onclick=()=>{page=Math.max(1,page-1);load();};$('next').onclick=()=>{page++;load();};
+  $('export').onclick=()=>{if(!data?.records?.length)return toast('Chưa có dữ liệu để xuất.');const keys=['id','drug_name','ingredient','strength','dosage_form','manufacturer','country','price_type','unit','price_vnd','snapshot_date','registration_no'];const quote=v=>'"'+String(v??'').replace(/"/g,'""').replace(/^[=+@-]/,"'$&")+'"';const text='\uFEFF'+[keys.join(','),...data.records.map(x=>keys.map(k=>quote(x[k])).join(','))].join('\r\n');const url=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='pharmabiz_records_page_'+page+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Đã xuất '+data.records.length+' bản ghi của trang hiện tại.');};
+  $('present').onclick=()=>{document.body.classList.toggle('presenting');const on=document.body.classList.contains('presenting');$('present').setAttribute('aria-pressed',String(on));toast(on?'Đã bật giao diện thuyết trình.':'Đã trở lại workspace.');};
+  $('back-top').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+  function showTip(target,x,y){$('tooltip').innerHTML='<strong>'+esc(target.dataset.tip)+'</strong>'+esc(target.dataset.value);$('tooltip').hidden=false;const b=$('tooltip').getBoundingClientRect();$('tooltip').style.left=Math.min(innerWidth-b.width-10,Math.max(10,x+12))+'px';$('tooltip').style.top=Math.min(innerHeight-b.height-10,Math.max(10,y+12))+'px';}
+  document.addEventListener('pointermove',e=>{const t=e.target.closest('[data-tip]');if(t)showTip(t,e.clientX,e.clientY);else $('tooltip').hidden=true;});document.addEventListener('focusin',e=>{const t=e.target.closest('[data-tip]');if(t){const b=t.getBoundingClientRect();showTip(t,b.x+b.width/2,b.y+b.height/2);}});document.addEventListener('focusout',()=>$('tooltip').hidden=true);
+  async function fetchInventory(){try{const r=await fetch('/api/insights',{cache:'no-store'});if(r.ok){inventory=await r.json();if(view==='workflow')render();}}catch{}}
+  const requested=new URLSearchParams(location.search).get('view');navigate(views.some(v=>v[0]===requested)?requested:'overview');load();fetchInventory();
 })();

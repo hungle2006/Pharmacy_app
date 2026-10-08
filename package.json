@@ -4,5 +4,12 @@
   "private": true,
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "check": "node --check assets/presentation.js && node --check assets/scene.js && node --check api/analytics.js && node --check api/data.js && node --check api/insights.js"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8"
   }
 }

@@ -1,7 +1,7 @@
 const { neon } = require('@neondatabase/serverless');
 const TABLES=['dav_product','price_record','dav_rxnorm_mapping','disease','medi_relation','rxnorm_concept','rxnorm_scd','rxnorm_scd_component'];
 const qi=x=>'"'+String(x).replace(/"/g,'""')+'"';
-const choice=(columns,arr)=>arr.find(c=>columns.has(c))||null;
+const choice=(columns,arr)=>Array.from(arr).find(c=>columns.has(c))||null;
 const safeNumber=n=>(n===null||n===undefined||n==='')?null:(Number.isFinite(Number(n))?Number(n):null);
 module.exports=async function handler(req,res){
  res.setHeader('Cache-Control','private, no-store');
@@ -38,7 +38,7 @@ module.exports=async function handler(req,res){
   ];
   const priceCol=pcols&&choice(pcols,new Set(['unit_price_vnd','price_vnd','winning_price','bid_price','price','unit_price','declared_price','price_amount']));
   const typeCol=pcols&&choice(pcols,new Set(['price_type','source_type','price_source','type']));
-  const dateCol=pcols&&choice(pcols,new Set(['price_date','effective_date','created_at','updated_at','recorded_at','date']));
+  const dateCol=pcols&&choice(pcols,new Set(['declaration_date','price_date','effective_date','created_at','updated_at','recorded_at','date']));
   const dkey=choice(dcols,new Set(['dav_row_id','product_id','id']));
   const pkey=pcols&&choice(pcols,new Set(['dav_row_id','product_id','dav_product_id']));
   let rows=[],source='dav_product',priced=false;

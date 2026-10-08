@@ -14,9 +14,13 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22"
+      - run: npm ci --ignore-scripts
+      - run: npm test
       - name: Validate JavaScript
         run: |
           node --check assets/presentation.js
+          node --check assets/scene.js
+          node --check api/analytics.js
           node --check api/data.js
           node --check api/insights.js
       - name: Verify expected website assets
@@ -24,4 +28,4 @@ jobs:
           test -s index.html
           test -s assets/visual.css
           grep -q 'assets/presentation.js' index.html
-          grep -q 'api/data' index.html
+          grep -q 'api/analytics' assets/presentation.js
