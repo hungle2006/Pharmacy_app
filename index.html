@@ -55,6 +55,7 @@ function draw(){
 }
 function navigate(id){view=id;$('nav').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.id===id));const n=nav.find(x=>x[0]===id);$('title').textContent=n[2];$('crumb').textContent=n[2];$('desc').textContent=n[3];$('sidebar').classList.remove('show');draw();}
 nav.splice(1,0,['business','◎','Business Understanding','Vấn đề và KPI'],['workflow','⬡','Data Understanding','ETL và kiến trúc'],['eda','▥','Exploratory Data Analysis','Biểu đồ khám phá']);
+nav.push(['modeling','⌁','Modeling & Evaluation','Dự báo và đánh giá']);
 $('nav').innerHTML=nav.map((n,i)=>'<button data-id="'+n[0]+'" class="'+(!i?'active':'')+'"><span class="glyph">'+n[1]+'</span><span><strong>'+n[2]+'</strong><small>'+n[3]+'</small></span></button>').join('');
 $('nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)navigate(b.dataset.id)});
 $('hamburger').onclick=()=>$('sidebar').classList.toggle('show');
