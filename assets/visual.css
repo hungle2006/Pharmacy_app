@@ -48,3 +48,5 @@ th{font-size:12px;color:var(--muted);font-weight:700}td{font-size:13px;color:var
 @media(max-width:1250px){.sidebar{width:248px}.main{margin-left:248px}}
 @media(max-width:760px){.sidebar{width:264px}.main{margin-left:0}.blender-stage{left:48%;top:8%;width:80%;height:70%;opacity:.28}.cover-copy p{max-width:340px}.blender-stage img{filter:none}}
 .presenting .main{margin-left:0}
+.scene-label{color:var(--cover-muted)}.label-one{top:20%}
+@media(max-width:760px){.cover #scene{opacity:.32}}
