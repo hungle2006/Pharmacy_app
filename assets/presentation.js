@@ -108,7 +108,7 @@
     panel('Business Decision Support','Hành động có thể hỗ trợ sau khi mô hình được xác minh','<div class="speaking"><span class="bubble">A</span><div><strong>Price benchmarking</strong><p>Đánh dấu sản phẩm chênh lệch giá trong nhóm thực sự tương đương.</p></div></div><div class="speaking"><span class="bubble">B</span><div><strong>Catalog strategy</strong><p>Nhóm hoạt chất có nhiều nhà cung cấp và phân phối giá rộng để nghiên cứu.</p></div></div><div class="speaking"><span class="bubble">C</span><div><strong>Data monitoring</strong><p>Cảnh báo bản ghi thiếu và bất thường do lỗi chuẩn hóa.</p></div></div>')+'</div>';
   }
   function priceTrend(){
-    var dated=pricedRows().filter(function(r){return /^\\d{4}-\\d{2}/.test(String(r.snapshot_date||''));});
+    var dated=pricedRows().filter(function(r){return /^\d{4}-\d{2}/.test(String(r.snapshot_date||''));});
     var dict={};dated.forEach(function(r){var key=String(r.snapshot_date).slice(0,7);(dict[key]??=[]).push(Number(r.price_vnd));});
     var arr=Object.keys(dict).sort().slice(-10).map(function(key){return {name:key,value:med(dict[key])};});
     return arr.length<2?'<div class="empty">Chưa đủ chuỗi quan sát giá theo tháng để vẽ biểu đồ. Không nội suy dữ liệu thiếu.</div>':lineChart(arr)+note('Giá trung vị của các quan sát có mốc thời gian trong mẫu. Thay đổi thành phần sản phẩm có thể ảnh hưởng xu hướng; đây không phải chỉ số giá chuẩn hóa.');
