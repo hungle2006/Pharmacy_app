@@ -1,81 +1,94 @@
-# PharmaBiz Analytics — Vietnam Pharmaceutical Market Intelligence
+# PharmaBiz Analytics | Pharmaceutical Business Intelligence
 
 **Design and Development of a Business Intelligence Dashboard for Pharmaceutical Pricing and Market Analysis in Vietnam**
 
-Live-deployable dashboard built as static HTML/CSS/JavaScript, with an optional read-only Vercel Function for Neon/PostgreSQL. This is a working **MVP** (not a clinical recommendation system).
+A presentation-ready business intelligence web application with interactive charts, data storytelling, read-only Neon PostgreSQL integration, and a CSV workspace. The deployed website is intentionally *not* a clinical treatment recommendation system.
 
-## Dashboard sections
+## Project links
 
-1. **Market Overview:** total rows, unique ingredients, unique manufacturers, median price, top ingredients and countries.
-2. **Drug Pricing Analytics:** P10, median, P90, and within-group price dispersion.
-3. **Competitor Intelligence:** manufacturers per ingredient and product counts per manufacturer.
-4. **Portfolio Analytics:** dosage forms and therapeutic group coverage.
-5. **Data Quality:** completeness by field and data-governance warnings.
+- GitHub: https://github.com/hungle2006/Pharmacy_app
+- Vercel: https://pharmacyapp-hope-1091.vercel.app/
+- Business Understanding opening: https://pharmacyapp-hope-1091.vercel.app/?view=business
 
-All sections have a shared search + ingredient, country, price-type filters, pagination, **CSV import** and **CSV export**.
+## The analytics story
 
-## Demo vs real data
+This prototype follows the **CRISP-DM** narrative:
 
-The app always labels *synthetic* records **DỮ LIỆU MÔ PHỎNG**. Demo products, manufacturers, and prices are deliberately fictitious; they are not claims about Vietnam's drug market.
+1. **Business Understanding** – stakeholders, business questions, KPI definitions, success criteria and scope.
+2. **Data Understanding** – source inventory from DAV, RxNorm, ICD-10 and MEDI, estimated database counts, grain and join relationships.
+3. **Exploratory Data Analysis** – SVG histogram, donut composition chart, ingredient-level median comparison, descriptive statistics.
+4. **Data Preparation / ETL** – audit → cleaning → mapping → data mart; unit-price harmonization and source lineage.
+5. **Business & Pricing Analytics** – product/category overview, manufacturer competition by catalog count, price median/P10/P90 and comparison groups.
+6. **Data Quality** – missing-value completeness and responsible interpretation.
+7. **Data Storytelling** – derived insight cards and clear disclaimers on sample size and incomplete data.
 
-- Open `index.html` to explore the demo immediately.
-- On Vercel, the UI requests `/api/data`.
-- If `DATABASE_URL` is available and the normalized SQL view exists, the app switches to the database and labels it **DỮ LIỆU DATABASE**.
-- Otherwise the frontend remains in clearly marked demo mode.
-- The browser CSV import is local: your CSV file is not sent to the server.
+This is a business **market intelligence** prototype, not a revenue accounting dashboard. Product listings are not unit sales; manufacturer catalog count is not market share.
 
-## Import your DAV CSV (no server credentials required)
+## Source database
 
-Click **Nhập CSV**. Supported Vietnamese/English headers include:
+Existing Neon project (from the shared screenshot):
+
+- Database: `neondb`
+- Schema: `public`
+- Product registry: `dav_product` (visible columns include `dav_row_id`, `registration_number`, `drug_name`, `active_ingredient_raw`, `strength_raw`)
+- Pricing: `price_record`
+- Relations: `dav_rxnorm_mapping`, `medi_relation`
+- Terminologies: `disease`, `rxnorm_concept`, `rxnorm_scd`, `rxnorm_scd_component`
+
+**The screenshot does not show every column of `price_record` or the join key**. Do not invent column names in migrations. Run `sql/neon_schema_audit.sql` in Neon SQL Editor to inspect actual tables before building a full analytical star schema.
+
+## Connection: Neon → Vercel
+
+1. In Neon select the correct **Pharmacy** project, **production** branch and **neondb** database.
+2. In Vercel → `pharmacy.app` → Settings → Environment Variables, configure an **encrypted**, server-only `DATABASE_URL` for Production (and Preview only if desired). Use a dedicated **read-only** database role. **Do not paste passwords into chat or commit secrets to GitHub.**
+3. Redeploy the Vercel project. The frontend fetches `/api/data` and `/api/insights`.
+4. Verify the UI displays **NEON CONNECTED** rather than **DEMONSTRATION**, and check the backend inventory for real table counts.
+
+The API auto-discovers public schema columns using `information_schema` and provides up to **2,000 sampled** DAV rows. It attempts to join price records only if column names, join keys and numeric price types are recognized. If no validated price join is possible, the UI uses DAV metadata without fabricated prices.
+
+Optional: create the prepared `analytics_drug_prices` view once source mappings and price units are fully validated. `sql/analytics_view_template.sql` is illustrative and should *not* be run verbatim unless schema matches.
+
+### Limitations of the current MVP
+
+- 2,000 rows are a **sample**; browser KPI values must not be reported as global market aggregates. A future SQL data mart needs full-dataset aggregation and server pagination.
+- Price observations from different units, dates, strengths or forms must not be compared directly.
+- Price types (tender, declaration) must remain separated.
+- Clinical indication relations in MEDI are *not* clinical guidance.
+- No account/patient/private data should be exposed through public analytics APIs.
+
+## Useful CSV import (local browser; no Neon credentials needed)
+
+Choose **Nhập CSV**. Accepted headings include:
 
 ```csv
 ten_thuoc,hoat_chat,ham_luong,dang_bao_che,nha_san_xuat,nuoc_san_xuat,gia,loai_gia
-Thuoc A,Hoat chat A,500 mg,Vien nen,Nha san xuat A,Viet Nam,2500,Gia cong bo
-Thuoc B,Hoat chat B,20 mg,Vien nang,Nha san xuat B,Viet Nam,7500,Gia trung thau
+Thuoc A,Hoat chat A,500 mg,Vien nen,DN A,Viet Nam,2500,Gia cong bo
+Thuoc B,Hoat chat B,20 mg,Vien nang,DN B,Viet Nam,7500,Gia trung thau
 ```
 
-The CSV parser supports quotes and semicolon-separated files. CSV price values should already use consistent VND units. The browser loads up to 15,000 rows, but it is *not* a production analytics warehouse.
+CSV values shown here are synthetic placeholders. The import parses in the browser and is not transmitted to the server.
 
-## Connect your existing Neon/PostgreSQL
+## Code layout
 
-1. Inspect and validate your existing DAV database schema.
-2. Create a **read-only view** named `analytics_drug_prices` with the following columns:
+```
+index.html                 Static app, shared filters and dashboard
+assets/visual.css          Responsive business presentation design
+assets/presentation.js     Business understanding, data pipeline, SVG EDA charts
+api/data.js                Read-only products and price sampling from Neon
+api/insights.js            Source table inventory from Neon PostgreSQL
+sql/neon_schema_audit.sql  Safe schema discovery queries
+sql/analytics_view_template.sql  Optional mapping reference
+.github/workflows/validate.yml   Node syntax checks on GitHub
+```
 
-| Column | Required purpose |
-|---|---|
-| `id` | Stable product/price-row ID |
-| `drug_name` | Drug/product name |
-| `ingredient` | Standardized active ingredient |
-| `strength` | Strength/dose |
-| `dosage_form` | Form |
-| `manufacturer` | Manufacturer (not reseller) |
-| `country` | Manufacturing country |
-| `price_vnd` | Comparable price in VND |
-| `price_type` | Declared/tender or other source type |
-| `therapeutic_group` | Grouping from source data |
-| `snapshot_date` | Date of observation |
-| `registration_no` | Product registration number |
+## Presentation outline
 
-An **illustrative** SQL view mapping is in `sql/analytics_view_template.sql`. You **must edit** its source table and source column identifiers to match your database; don't run it verbatim unless your raw schema matches.
+1. Business challenge: fragmented source data and comparison difficulty.
+2. Data sources and unit of analysis: DAV/price_record and mapping sources.
+3. Data profiling and ETL: normalize, deduplicate, validate links, source lineage.
+4. EDA: distributions, portfolio composition, competitive intensity.
+5. Dashboards: KPI definitions, pricing spread and competing products.
+6. Analytical insight and caveats: no revenue without sales, no market share without sales volumes.
+7. Next stage: star schema, temporal price analysis, anomaly detection and a calibrated regression baseline.
 
-3. On **Vercel → Project → Settings → Environment Variables**, create encrypted `DATABASE_URL` for Production. Give it a **read-only DB role** and never use `NEXT_PUBLIC_` in the name.
-4. Redeploy the Vercel project. The backend function `api/data.js` reads at most 5,000 price rows.
-
-### Limitations
-
-- For more than 5,000 rows, current dashboard metrics are calculated on a subset; use SQL aggregate endpoints for full-dataset KPIs.
-- A quantity of product rows is not sales volume or revenue **market share**.
-- Price comparisons require the same unit, dosage form, strength, and comparable date/source.
-- ICD-10 and MEDI joins are intentionally not used to infer appropriate treatments.
-- Never commit real passwords, health records or credentials to this public repository.
-
-## Deployment
-
-This repository is linked to Vercel; pushes to the configured production branch build/deploy automatically. Static UI is served from `index.html`, serverless API from `api/data.js`. No React build is needed in this deployed MVP.
-
-## Next phase
-
-- Add a DAV data mart, normalized unit pricing and source lineage.
-- Replace client-side full-array computations with SQL aggregates + pagination.
-- Add date range comparison, therapeutic classes, anomaly detection and regression baselines.
-- Evaluate ICD–RxNorm–DAV mapping coverage independently from business price KPIs.
+**Research prototype; figures must be checked against the real database before presenting them as market facts.**
