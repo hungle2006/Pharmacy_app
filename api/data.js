@@ -2,7 +2,7 @@ const { neon } = require('@neondatabase/serverless');
 const TABLES=['dav_product','price_record','dav_rxnorm_mapping','disease','medi_relation','rxnorm_concept','rxnorm_scd','rxnorm_scd_component'];
 const qi=x=>'"'+String(x).replace(/"/g,'""')+'"';
 const choice=(columns,arr)=>arr.find(c=>columns.has(c))||null;
-const safeNumber=n=>Number.isFinite(Number(n))?Number(n):null;
+const safeNumber=n=>(n===null||n===undefined||n==='')?null:(Number.isFinite(Number(n))?Number(n):null);
 module.exports=async function handler(req,res){
  res.setHeader('Cache-Control','private, no-store');
  if(req.method!=='GET')return res.status(405).json({error:'METHOD_NOT_ALLOWED'});
