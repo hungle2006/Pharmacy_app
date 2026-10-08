@@ -89,7 +89,7 @@
   function renderEDA(){
     var r=dataRows(),p=pricedRows(),values=p.map(function(x){return Number(x.price_vnd);});
     var byCountry=group(r,'country').sort(function(a,b){return b.items.length-a.items.length;}).slice(0,7).map(function(x){return {name:x.name,value:x.items.length};});
-    var ing=group(p,'ingredient').filter(function(x){return x.items.length>=2;}).sort(function(a,b){return b.items.length-a.items.length;}).slice(0,7).map(function(x){return {name:x.name,value:med(x.items.map(function(y){return Number(y.price_vnd);}));};});
+    var ing=group(p,'ingredient').filter(function(x){return x.items.length>=2;}).sort(function(a,b){return b.items.length-a.items.length;}).slice(0,7).map(function(x){return {name:x.name,value:med(x.items.map(function(y){return Number(y.price_vnd);}))};});
     var numericStat=pricesLen=>pricesLen?('Số quan sát có giá: '+fmt(pricesLen)):'Không có giá hợp lệ';
     return headline('03 / EXPLORATORY DATA ANALYSIS','Khám phá phân bố, chênh lệch và cơ cấu','EDA giúp xác định giả thuyết, không chỉ tạo biểu đồ')+
      '<div class="two">'+panel('Price Distribution · Histogram',numericStat(values.length),histogram(p))+
