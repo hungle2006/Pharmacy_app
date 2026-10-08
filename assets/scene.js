@@ -29,7 +29,7 @@
       for(let j=0;j<120;j++)objects.push({z:(pts[j][2]+pts[j+1][2])/2,kind:'line',p:pts[j],q:pts[j+1],ring});
       for(let j=0;j<4;j++){let u=t*(.2+ring*.04)+j*Math.PI/2+ring;let p=rotate([Math.cos(u)*(1.8+ring*.26),Math.sin(u)*(1.8+ring*.26),0],.8+ring*.52,t*.05+ring*.8,-.25+ring*.4);objects.push({z:p[2],kind:'sphere',p,r:.036+(j===0?.025:0),mint:ring!==1});}
     }
-    mesh.forEach(face=>{const pts=face.points.map(p=>rotate(p,a,b,c)),p=pts[0],q=pts[1],r=pts[2];let ax=q[0]-p[0],ay=q[1]-p[1],az=q[2]-p[2],bx=r[0]-p[0],by=r[1]-p[1],bz=r[2]-p[2];let normal=[ay*bz-az*by,az*bx-ax*bz,ax*by-ay*bx];let len=Math.hypot(...normal)||1;normal=normal.map(v=>v/len);let light=Math.max(0,-normal[0]*.45-normal[1]*.65-normal[2]*.6),shine=Math.pow(Math.max(0,-normal[2]),14)*.13;objects.push({kind:'face',z:pts.reduce((n,p)=>n+p[2],0)/4,pts,light:Math.min(1,.24+light*.69+shine),mint:face.mint});});
+    mesh.forEach(face=>{const pts=face.points.map(p=>rotate(p,a,b,c)),p=pts[0],q=pts[1],r=pts[2];let ax=q[0]-p[0],ay=q[1]-p[1],az=q[2]-p[2],bx=r[0]-p[0],by=r[1]-p[1],bz=r[2]-p[2];let normal=[ay*bz-az*by,az*bx-ax*bz,ax*by-ay*bx];let len=Math.hypot(...normal)||1;normal=normal.map(v=>-v/len);if(normal[0]*-p[0]+normal[1]*-p[1]+normal[2]*(-7.7-p[2])<=0)return;let light=Math.max(0,-normal[0]*.45-normal[1]*.65-normal[2]*.6),shine=Math.pow(Math.max(0,-normal[2]),14)*.13;objects.push({kind:'face',z:pts.reduce((n,p)=>n+p[2],0)/4,pts,light:Math.min(1,.24+light*.69+shine),mint:face.mint});});
     const satellite=[[-1.73,-1.0,.5],[1.55,.92,-.45],[1.3,-1.37,-.8],[-1.4,1.2,.3]];
     satellite.forEach((p,i)=>{p=rotate(p,.05,t*.09+i*.14,0);objects.push({kind:'sphere',z:p[2],p,r:i===0?.21:.14,mint:i%2===0});});
     objects.sort((a,b)=>b.z-a.z).forEach(o=>{
