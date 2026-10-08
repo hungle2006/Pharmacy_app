@@ -62,7 +62,7 @@ async function handler(req, res) {
     const [result, options, mapping] = await Promise.all([
       sql.query(query.text, query.params),
       sql.query(`SELECT json_build_object(
-        'ingredient',(SELECT COALESCE(json_agg(name),'[]') FROM (SELECT DISTINCT active_ingredient_raw AS name FROM public.dav_product WHERE active_ingredient_raw IS NOT NULL AND active_ingredient_raw<>'' ORDER BY name LIMIT 5000) a),
+        'ingredient',(SELECT COALESCE(json_agg(name),'[]') FROM (SELECT DISTINCT active_ingredient_raw AS name FROM public.dav_product WHERE active_ingredient_raw IS NOT NULL AND active_ingredient_raw<>'' ORDER BY name) a),
         'country',(SELECT COALESCE(json_agg(name),'[]') FROM (SELECT DISTINCT country AS name FROM public.dav_product WHERE country IS NOT NULL AND country<>'' ORDER BY name) a),
         'kind',(SELECT COALESCE(json_agg(name),'[]') FROM (SELECT DISTINCT price_type AS name FROM public.price_record WHERE price_type IS NOT NULL AND price_type<>'' ORDER BY name) a),
         'unit',(SELECT COALESCE(json_agg(name),'[]') FROM (SELECT DISTINCT COALESCE(NULLIF(p.unit,''),NULLIF(d.unit,'')) AS name FROM public.dav_product d LEFT JOIN public.price_record p ON p.dav_row_id=d.dav_row_id) a WHERE name IS NOT NULL)
