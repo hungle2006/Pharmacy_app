@@ -97,6 +97,22 @@
      panel('Ingredient-level Median · Comparison','Các nhóm nhiều quan sát có giá hợp lệ',lineChart(ing))+
      '<div class="info-band warn"><strong>! Giải thích EDA:</strong> Giá chưa chuẩn hóa theo đơn vị sản phẩm chỉ phản ánh phân bố trong snapshot. Chưa được coi là tương quan giá/giá trị giữa thuốc khác hàm lượng, dạng bào chế.</div>';
   }
+
+  function renderModeling(){
+    return headline('06 / MODELING & EVALUATION','Roadmap phân tích dự đoán giá thuốc','Thiết kế thí nghiệm ML trước khi huấn luyện mô hình')+
+    '<div class="info-band warn"><strong>Research stage:</strong> Đây là đề xuất mô hình, chưa huấn luyện hoặc công bố chỉ số dự đoán. Chỉ thực hiện sau khi chuẩn hóa giá/đơn vị và nguồn quan sát.</div>'+
+    '<div class="cards3">'+card('01 / TARGET','Biến mục tiêu','Giá trên một đơn vị chuẩn hoặc log(price); tách theo loại giá, dạng bào chế, hàm lượng và thời gian.')+
+    card('02 / FEATURES','Biến giải thích','Hoạt chất, hàm lượng, dạng bào chế, nhà sản xuất, quốc gia, ngày quan sát và loại giá.')+
+    card('03 / BASELINES','Các mô hình','Median baseline → Ridge Regression → Random Forest → Gradient Boosting/XGBoost (nếu dữ liệu đủ).')+'</div>'+
+    '<div class="cards2">'+panel('Experimental Design','Tránh leakage và overclaim','<div class="speaking"><span class="bubble">1</span><div><strong>Split</strong><p>Ưu tiên kiểm thử theo thời gian; nhóm cùng số đăng ký không được bị rò giữa train/test.</p></div></div><div class="speaking"><span class="bubble">2</span><div><strong>Evaluation</strong><p>MAE, RMSE, R² trên tập held-out; báo sai số theo nhóm và chênh lệch phân phối.</p></div></div><div class="speaking"><span class="bubble">3</span><div><strong>Explainability</strong><p>Permutation importance/SHAP chỉ phản ánh liên hệ dự báo, không chứng minh quan hệ nhân quả.</p></div></div>')+
+    panel('Business Decision Support','Hành động có thể hỗ trợ sau khi mô hình được xác minh','<div class="speaking"><span class="bubble">A</span><div><strong>Price benchmarking</strong><p>Đánh dấu sản phẩm chênh lệch giá trong nhóm thực sự tương đương.</p></div></div><div class="speaking"><span class="bubble">B</span><div><strong>Catalog strategy</strong><p>Nhóm hoạt chất có nhiều nhà cung cấp và phân phối giá rộng để nghiên cứu.</p></div></div><div class="speaking"><span class="bubble">C</span><div><strong>Data monitoring</strong><p>Cảnh báo bản ghi thiếu và bất thường do lỗi chuẩn hóa.</p></div></div>')+'</div>';
+  }
+  function priceTrend(){
+    var dated=pricedRows().filter(function(r){return /^\\d{4}-\\d{2}/.test(String(r.snapshot_date||''));});
+    var dict={};dated.forEach(function(r){var key=String(r.snapshot_date).slice(0,7);(dict[key]??=[]).push(Number(r.price_vnd));});
+    var arr=Object.keys(dict).sort().slice(-10).map(function(key){return {name:key,value:med(dict[key])};});
+    return arr.length<2?'<div class="empty">Chưa đủ chuỗi quan sát giá theo tháng để vẽ biểu đồ. Không nội suy dữ liệu thiếu.</div>':lineChart(arr)+note('Giá trung vị của các quan sát có mốc thời gian trong mẫu. Thay đổi thành phần sản phẩm có thể ảnh hưởng xu hướng; đây không phải chỉ số giá chuẩn hóa.');
+  }
   function enrichOverview(){
     var r=dataRows(),p=pricedRows(),groups=group(r,'dosage_form').sort(function(a,b){return b.items.length-a.items.length;}).slice(0,7).map(function(x){return {name:x.name,value:x.items.length};});
     return headline('04 / VISUAL ANALYTICS','Các biểu đồ khám phá bổ sung','Phân phối giá và cơ cấu sản phẩm theo dữ liệu đang được lọc')+
@@ -118,18 +134,18 @@
   $('visuals').insertAdjacentElement('afterend',story);
   draw=function(){
     origDraw();
-    var isTheory=view==='business'||view==='workflow',eda=view==='eda';
+    var isTheory=view==='business'||view==='workflow'||view==='modeling',eda=view==='eda';
     filterSection.classList.toggle('hide',isTheory);
     tableSection.classList.toggle('hide',isTheory);
     $('stats').classList.toggle('hide',isTheory);
     var live=mode==='database',count=dataRows().length;
-    var subtitles={overview:'Vị thế danh mục và các chỉ số toàn cảnh',business:'Bối cảnh, KPI và câu hỏi kinh doanh',workflow:'Nguồn dữ liệu, mô hình và chất lượng',eda:'Khảo sát dữ liệu và giả thuyết',pricing:'Phân khúc giá và độ phân tán',competition:'Cạnh tranh theo nhà sản xuất',portfolio:'Cơ cấu sản phẩm & hoạt chất',quality:'Completeness và dữ liệu thiếu'};
+    var subtitles={overview:'Vị thế danh mục và các chỉ số toàn cảnh',business:'Bối cảnh, KPI và câu hỏi kinh doanh',workflow:'Nguồn dữ liệu, mô hình và chất lượng',eda:'Khảo sát dữ liệu và giả thuyết',pricing:'Phân khúc giá và độ phân tán',competition:'Cạnh tranh theo nhà sản xuất',portfolio:'Cơ cấu sản phẩm & hoạt chất',quality:'Completeness và dữ liệu thiếu',modeling:'Thiết kế dự báo giá, đánh giá và diễn giải'};
     hero.className='hero-panel';
-    hero.innerHTML='<div><div class="hero-tag">✦ PHARMABIZ · DATA-DRIVEN DECISIONS</div><h2>'+esc(view==='business'?'Business Understanding trước khi phân tích':view==='workflow'?'Dữ liệu đáng tin tạo nên quyết định tốt':'Understand the market. Explore the data.')+'</h2><p>'+esc(subtitles[view]||'Vietnam Pharmaceutical Business Intelligence')+'. '+(live?'Đang sử dụng mẫu bản ghi từ Neon.':'Đang trình diễn dữ liệu giả lập, chưa phải thống kê thị trường thực tế.')+'</p><span class="pill '+(live?'':'amber')+'">'+(live?'● NEON CONNECTED':'○ DEMONSTRATION')+'</span></div><div class="hero-metrics"><div class="hero-metric"><strong>'+fmt(count)+'</strong><small>Bản ghi trong bộ lọc</small></div><div class="hero-metric"><strong>'+fmt(new Set(dataRows().map(function(x){return x.ingredient;})).size)+'</strong><small>Nhóm hoạt chất</small></div></div>';
-    if(isTheory){add.innerHTML='';$('visuals').innerHTML=view==='business'?renderBusiness():renderWorkflow();story.innerHTML='';return;}
+    hero.innerHTML='<div><div class="hero-tag">✦ PHARMABIZ · DATA-DRIVEN DECISIONS</div><h2>'+esc(view==='business'?'Business Understanding trước khi phân tích':view==='workflow'?'Dữ liệu đáng tin tạo nên quyết định tốt':view==='modeling'?'From business questions to validated models':'Understand the market. Explore the data.')+'</h2><p>'+esc(subtitles[view]||'Vietnam Pharmaceutical Business Intelligence')+'. '+(live?'Đang sử dụng mẫu bản ghi từ Neon.':'Đang trình diễn dữ liệu giả lập, chưa phải thống kê thị trường thực tế.')+'</p><span class="pill '+(live?'':'amber')+'">'+(live?'● NEON CONNECTED':'○ DEMONSTRATION')+'</span></div><div class="hero-metrics"><div class="hero-metric"><strong>'+fmt(count)+'</strong><small>Bản ghi trong bộ lọc</small></div><div class="hero-metric"><strong>'+fmt(new Set(dataRows().map(function(x){return x.ingredient;})).size)+'</strong><small>Nhóm hoạt chất</small></div></div>';
+    if(isTheory){add.innerHTML='';$('visuals').innerHTML=view==='business'?renderBusiness():view==='workflow'?renderWorkflow():renderModeling();story.innerHTML='';return;}
     if(eda){add.innerHTML='';$('visuals').innerHTML=renderEDA();story.innerHTML=stories();return;}
     if(mode==='database'&&!pricedRows().length&&view==='pricing'){$('visuals').innerHTML='<div class="info-band warn">Giá chưa được xác thực từ bảng price_record; vui lòng kiểm tra quan hệ khóa và cột giá trong Neon. Không vẽ biểu đồ giá bằng số 0 giả.</div>';}
-    add.innerHTML=view==='overview'?enrichOverview():'';
+    add.innerHTML=view==='overview'?enrichOverview():view==='pricing'?panel('Observed Price Timeline','Giá trung vị theo mốc quan sát; cần chú ý sự khác nhau giữa các nhóm',priceTrend()):'';
     story.innerHTML=(view==='overview'||view==='pricing'||view==='competition')?stories():'';
     if(mode==='database'&&!pricedRows().length){var statboxes=$('stats').querySelectorAll('.stat');if(statboxes.length>=4)statboxes[3].querySelector('strong').textContent='Chưa có';}
   };
