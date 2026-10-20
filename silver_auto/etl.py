@@ -107,33 +107,48 @@ def evaluate(source, original):
     return row
 
 def write_outputs(source, bronze_csv, folder, source_sha):
+    """Produce exactly ONE current-state Silver CSV per source.
+
+    Rows requiring review remain in the same CSV with silver_qc_status and
+    silver_qc_flags. No accepted/review/rejected duplicate CSVs are created.
+    """
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
-    raw, active, stats = load_current(source,bronze_csv)
-    enriched = [evaluate(source,r) for r in active]
+    raw, active, stats = load_current(source, bronze_csv)
+    enriched = [evaluate(source, row) for row in active]
     extra = []
-    for r in enriched:
-        for k in r:
-            if k not in raw and k not in extra:extra.append(k)
+    for row in enriched:
+        for column in row:
+            if column not in raw and column not in extra:
+                extra.append(column)
     headers = raw + extra
-    counters = Counter(r["silver_qc_status"] for r in enriched)
-    if counters["REJECTED"] / len(enriched) > 0.05:
+    counts = Counter(row["silver_qc_status"] for row in enriched)
+    if counts["REJECTED"] / len(enriched) > 0.05:
         raise ValueError("Quality gate: more than 5% rejected")
-    outputs = {}
-    for subset,status in (("all",None),("accepted","ACCEPTED"),
-                          ("review","REVIEW_REQUIRED"),("rejected","REJECTED")):
-        path=folder/(subset+".csv")
-        with path.open("w",newline="",encoding="utf-8") as f:
-            writer=csv.DictWriter(f,fieldnames=headers,lineterminator="\n")
-            writer.writeheader()
-            for row in enriched:
-                if status is None or row["silver_qc_status"]==status:writer.writerow(row)
-        outputs[subset+".csv"] = hashlib.sha256(path.read_bytes()).hexdigest()
-    manifest = {"source":source,"bronze_key":BRONZE[source],
-       "bronze_sha256":source_sha,"events":stats["events"],"active_rows":stats["active"],
-       "remove_events":stats["removes"],"accepted":counters["ACCEPTED"],
-       "review":counters["REVIEW_REQUIRED"],"rejected":counters["REJECTED"],
-       "mapping_verified":False,"columns":headers,"output_sha256":outputs,
-       "built_utc":datetime.now(timezone.utc).isoformat()}
-    (folder/"manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf8")
+    filename = "silver.csv"
+    csv_path = folder / filename
+    with csv_path.open("w", newline="", encoding="utf-8") as output:
+        writer = csv.DictWriter(output, fieldnames=headers, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(enriched)
+    digest = hashlib.sha256()
+    with csv_path.open("rb") as file:
+        for part in iter(lambda: file.read(2 ** 20), b""):
+            digest.update(part)
+    manifest = {
+        "source": source,
+        "bronze_key": BRONZE[source],
+        "bronze_sha256": source_sha,
+        "events": stats["events"],
+        "active_rows": stats["active"],
+        "remove_events": stats["removes"],
+        "accepted": counts["ACCEPTED"],
+        "review": counts["REVIEW_REQUIRED"],
+        "rejected": counts["REJECTED"],
+        "mapping_verified": False,
+        "columns": headers,
+        "silver_csv_sha256": digest.hexdigest(),
+        "silver_csv_size": csv_path.stat().st_size,
+        "built_utc": datetime.now(timezone.utc).isoformat(),
+    }
     return manifest

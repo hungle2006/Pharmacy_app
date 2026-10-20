@@ -1,38 +1,38 @@
-# Pharmacy Silver automatic R2 (canonical Bronze CSVs)
+# Pharmacy Silver: exactly one current CSV per source
 
-## Automatic operation
-Existing Bronze GitHub workflow: **Pharmacy weekly Bronze ingestion**
-Bronze R2 keys:
-- bronze/dav.csv
-- bronze/icd10.csv
-- bronze/rxnorm.csv
-- bronze/medi_hps.csv (legacy; skipped until verified newer approved release)
+## Cloudflare R2 output keys
+- silver/dav.csv (only when bronze/dav.csv exists and validates)
+- silver/icd10.csv
+- silver/rxnorm.csv
+- silver/medi_hps.csv (only after a verified new MEDI release is approved)
 
-When Bronze workflow completes (including a partial failure where an independent source may have updated), or every Tuesday at 05:00 UTC (12:00 in Vietnam), or on initial merge to main:
-1. Reuse the existing Bronze GitHub Actions secrets R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY. No new cloud accounts or Google Cloud required.
-2. Download each available canonical Bronze CSV. Skip missing sources, process other sources independently.
-3. Verify every Bronze event row against its __row_hash, replay INSERT/UPDATE/REMOVE to current source state.
-4. Compute SHA-256 of each input object; skip unchanged versions.
-5. Add conservative normalization hints and QC flags. No automated clinical mapping approval.
-6. If quality gate succeeds (nonempty, <5% invalid records), upload all.csv/accepted.csv/review.csv/rejected.csv to immutable
-   silver/v4/{source}/version={bronzeSha24}/. Upload manifest.json last and only then move silver/v4/{source}/latest.json.
-7. If processing fails, leave the source's previous latest.json untouched. GitHub Actions fails with the source name in logs.
+Each file contains the current effective Bronze rows, original fields, the normalized search fields and columns silver_qc_status, silver_qc_flags, and silver_mapping_verified. Review rows stay inside the same file: filter by silver_qc_status == REVIEW_REQUIRED. Clinical mapping is never auto-approved.
 
-The workflow is in .github/workflows/pharmacy-silver-auto.yml, and also supports manual dry-run (Actions > Pharmacy Silver automatic R2 > Run workflow).
-Weekly fallback is in addition to automatic workflow_run after Bronze completion.
+No silver/v4/ or per-version directories, no separate all/accepted/review/rejected copies. Each update overwrites the exact same CSV key in R2. Small JSON status records reside outside the Silver layer in _control/silver/{source}.json for SHA-256/checkpoint tracking. A rerun with unchanged Bronze SHA and unchanged pipeline code skips upload.
 
-**MEDI-2**: no 2020 auto-refresh. To enable ingestion from an independently verified newer MEDI-2 HPS file already present in bronze/medi_hps.csv, set GitHub Actions variable MEDI_HPS_APPROVED_RELEASE to its checked release ID. Newer release ingestion itself must be implemented/verified in Bronze first.
+## Automatic triggers
+GitHub Actions workflow .github/workflows/pharmacy-silver-auto.yml:
+- Immediately after the existing "Pharmacy weekly Bronze ingestion" workflow finishes;
+- Every Tuesday at 05:00 UTC (12:00 Vietnam) as a catch-up;
+- After a Silver code/workflow change is merged to main;
+- Manually on GitHub Actions with a source selector and dry_run option.
 
-**What is NOT automated**: reconstructing official RxNorm SCD/SCDC component relations from the compact five-column Bronze source, mapping DAV to RxNorm with clinical verification, and asserting ICD-10-CM/ICD-10 Việt Nam equivalence. Those need the original evidence/relationship files and manual curation. Legacy raw rebuild scripts are manual-only and not invoked by this automated workflow.
+Reuses the existing R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY secrets. No Google Cloud. Missing DAV Bronze is reported as skipped, not invented; MEDI-2 2020 and unverified releases remain skipped.
 
-**Storage**: each changed input produces a new version. R2 versions are not auto-deleted. Monitor bucket size/free tier and introduce retention only after backup and review.
+## Integrity and retention
+1. Verify per-event __row_hash and replay INSERT/UPDATE/REMOVE to reconstruct current rows.
+2. Refuse to publish empty output or when >5% of rows are invalid by the current syntactic rules.
+3. Upload silver/{source}.csv with SHA256 metadata, verify object length and SHA256 metadata, then commit the tiny _control/silver/{source}.json checkpoint.
+4. After successful verification, --cleanup-legacy deletes only that source's legacy silver/{source}/..., silver/v3/{source}/..., and silver/v4/{source}/... prefixes; **never touches Bronze** or other data sources.
+5. If a source cannot be published, its previous Silver CSV is not deliberately deleted. Uploads overwrite the same R2 object; retaining historical copies is not a feature of this compact storage policy. Keep external backup if historical recovery is required.
 
-## Run locally on R2
-pip install 'boto3>=1.35,<2'
-export R2_ACCOUNT_ID=...
-export R2_ACCESS_KEY_ID=...
-export R2_SECRET_ACCESS_KEY=...
-python -m silver_auto.r2_runner --dry-run
-python -m silver_auto.r2_runner --source dav
+The workflow automatically uses --cleanup-legacy. One CSV per source means per-run history is not retained; for reproducibility check the Bronze cumulative history and GitHub commit SHA. Existing legacy version folders will be deleted irreversibly after compact replacements are verified.
 
-Never store secrets in code or commit them.
+## Manual use
+python -m unittest discover -s tests -p 'test_silver_auto.py' -v
+python -m unittest discover -s tests -p 'test_silver_r2_runner.py' -v
+python -m silver_auto.r2_runner --dry-run --cleanup-legacy
+python -m silver_auto.r2_runner --source rxnorm --cleanup-legacy
+
+## Deliberately not done here
+This pipeline does not fabricate full RxNorm SCD/SCDC semantic relationships from Bronze's five-column terminology CSV, or auto-certify mappings DAV to RxNorm and ICD10CM to WHO ICD10 Vietnam. Original evidence files are required to rebuild those products. 
