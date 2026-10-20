@@ -13,7 +13,7 @@ def write(path, fields, items):
 
 class MappingTests(unittest.TestCase):
  def test_safe_strength(self):
-  self.assertEqual(strength('500 MG'),('5E+2','MG'))
+  self.assertEqual(strength('500 MG'),('500','MG'))
   self.assertEqual(strength('5 MG/5ML'),('1','MG/ML'))
   self.assertIsNone(strength('1.000 MG'))
   self.assertEqual(split_ingredients('A + B; C'),['A','B','C'])
@@ -39,6 +39,8 @@ class MappingTests(unittest.TestCase):
    self.assertEqual(stats['rows']['medi_icd10_mapping'],2)
    with (p/'outputs'/'dav_rxnorm_mapping.csv').open() as f:m=list(csv.DictReader(f))
    self.assertEqual(m[0]['candidate_scd_rxcui'],'103')
+   self.assertEqual(m[0]['candidate_strength'],'500 MG')
+   self.assertTrue(all(r['clinical_verified']=='false' for r in m))
    self.assertEqual(m[0]['clinical_verified'],'false')
    self.assertEqual(m[0]['mapping_status'],'CANDIDATE_REVIEW')
    self.assertEqual(m[1]['candidate_scd_rxcui'],'')

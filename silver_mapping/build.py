@@ -70,10 +70,15 @@ def digest(path):
     return h.hexdigest()
 
 def strength(raw):
+    """Canonical numeric signature with plain decimals, never scientific notation."""
     val,unit=strength_signature(raw)
     if val is None:
         return None
-    return str(val.normalize()),unit
+    return format(val.normalize(), "f"),unit
+
+def display_strength(signature):
+    """User-facing dosage strength (e.g. '500 MG', not "('5E+2', 'MG')")."""
+    return f"{signature[0]} {signature[1]}" if signature else ""
 
 def split_ingredients(raw):
     original=(raw or "").strip()
@@ -225,7 +230,7 @@ def build_all(dav,rxnorm,icd10,output_dir,medi=None):
             "ingredient_components":len(parts),"ingredient_candidates_found":len(selected),
             "candidate_scd_rxcui":final.get("scd_rxcui",""),
             "candidate_scd_name":final.get("scd_name",""),
-            "candidate_strength":str(current_strength or ""),
+            "candidate_strength":display_strength(current_strength),
             "candidate_dose_form":final.get("dose_form_name",""),
             "mapping_status":"CANDIDATE_REVIEW" if final else "UNMATCHED_REVIEW",
             "mapping_method":"EXACT_INGREDIENT_STRENGTH_FORM_TEXT_STRUCTURE" if final else "EVIDENCE_INCOMPLETE",
@@ -263,6 +268,20 @@ def build_all(dav,rxnorm,icd10,output_dir,medi=None):
                 "clinical_verified":"false","source_release":"MEDI-2_HPS_LEGACY_VERSION_UNVERIFIED",
             })
     write("medi_icd10_mapping",medi_records)
+    # Refuse publication if an output is missing or includes clinically auto-verified values.
+    for dataset in OUTPUTS:
+        output_path=out/(dataset+".csv")
+        if not output_path.is_file() or output_path.stat().st_size <= 0:
+            raise ValueError("Empty mapping output: "+dataset)
+        expected=counts[dataset]
+        actual=0
+        with output_path.open("r",encoding="utf-8",newline="") as stream:
+            for record in csv.DictReader(stream):
+                actual+=1
+                if record.get("clinical_verified")!="false":
+                    raise ValueError("Unsafe clinical_verified value: "+dataset)
+        if expected!=actual:
+            raise ValueError(f"Mapping row count mismatch: {dataset} {expected}!={actual}")
     if counts["dav_rxnorm_mapping"]==0 or counts["rxnorm_scd_components"]==0:
         raise ValueError("Required source or structural relations absent; refuse publication")
     if counts["dav_rxnorm_component_evidence"]<counts["dav_rxnorm_mapping"]:
