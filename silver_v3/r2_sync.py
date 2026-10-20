@@ -12,7 +12,11 @@ def connect():
 def main():
  p=argparse.ArgumentParser();p.add_argument('--config',default='silver_v3/bronze_objects.json')
  p.add_argument('--dry-run',action='store_true');args=p.parse_args()
- keys=json.loads(Path(args.config).read_text(encoding='utf8'))['bronze_keys']
+ cfg=json.loads(Path(args.config).read_text(encoding='utf8'))
+ release=cfg.get('medi2_release','')
+ if not release or 'REPLACE_' in release or release.startswith('2020'):
+  raise ValueError('MEDI-2 2020 refresh disabled; require verified newer release')
+ keys=cfg['bronze_keys']
  if set(keys)!=set(INPUTS):raise ValueError('Must configure all six Bronze keys')
  if any(not k.startswith('bronze/') or 'REPLACE_WITH_REAL' in k for k in keys.values()):
   raise ValueError('Configure exact verified bronze/ object keys')
