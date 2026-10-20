@@ -26,7 +26,7 @@ def zipcsv(src,target,keys):
     if len(set(indexes))!=len(rows) or any(not all(i) for i in indexes):raise RuntimeError("Missing/duplicate key")
     rows.sort(key=lambda row:tuple(row[k] for k in keys))
     with gzip.open(target,"wt",encoding="utf-8",newline="") as f:
-        w=csv.DictWriter(f,fieldnames=cols,lineterminator="\\n");w.writeheader();w.writerows(rows)
+        w=csv.DictWriter(f,fieldnames=cols,lineterminator="\n");w.writeheader();w.writerows(rows)
     return cols,rows
 def run(source):
     root=Path(__file__).resolve().parent
