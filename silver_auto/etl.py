@@ -90,10 +90,11 @@ def evaluate(source, original):
     elif source == "icd10":
         code = row.get("code","").strip().upper()
         row["silver_code_canonical"] = code
-        row["silver_name_search_norm"] = text_norm(row.get("name"))
+        diagnosis_name = row.get("name_vi") or row.get("name_en") or row.get("name") or ""
+        row["silver_name_search_norm"] = text_norm(diagnosis_name)
         if not code:flags.append("MISSING_ICD_CODE")
         elif not ICD.fullmatch(code):flags.append("REVIEW_ICD_CODE_FORMAT")
-        if not row.get("name","").strip():flags.append("MISSING_ICD_NAME")
+        if not diagnosis_name.strip():flags.append("MISSING_ICD_NAME")
     elif source == "medi_hps":
         flags.append("MEDI_SOURCE_RELEASE_REQUIRES_CURATED_MAPPING")
     else:raise ValueError(source)
