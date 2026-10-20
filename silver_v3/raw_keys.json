@@ -1,0 +1,9 @@
+{
+  "release": {"medi2": "REPLACE_WITH_VERIFIED_NEWER_RELEASE_NOT_2020"},
+  "bronze_keys": {
+    "dav_csv": "bronze/REPLACE_WITH_RAW_DAV_CSV_KEY",
+    "rxnorm_raw_xlsx": "bronze/REPLACE_WITH_RAW_RXNORM_XLSX_KEY",
+    "icd10_vietnam_raw_xlsx": "bronze/REPLACE_WITH_RAW_ICD10_VIETNAM_XLSX_KEY",
+    "medi2_raw_xlsx": "bronze/REPLACE_WITH_CURRENT_MEDI2_RAW_XLSX_KEY"
+  }
+}

@@ -1,0 +1,79 @@
+name: Pharmacy Silver automatic R2
+on:
+  workflow_run:
+    workflows: ["Pharmacy weekly Bronze ingestion"]
+    types: [completed]
+  schedule:
+    - cron: '0 5 * * 2'
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Bronze source to transform'
+        required: true
+        type: choice
+        default: all
+        options: [all, dav, icd10, rxnorm, medi_hps]
+      dry_run:
+        description: 'Test only, do not write Silver'
+        type: boolean
+        default: true
+  push:
+    branches: [main]
+    paths:
+      - 'silver_auto/**'
+      - '.github/workflows/pharmacy-silver-auto.yml'
+  pull_request:
+    paths:
+      - 'silver_auto/**'
+      - 'silver_v3/quality.py'
+      - 'tests/test_silver_auto.py'
+      - '.github/workflows/pharmacy-silver-auto.yml'
+permissions:
+  contents: read
+concurrency:
+  group: pharmacy-silver-auto-r2
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'boto3>=1.35,<2'
+      - name: Verify pipeline logic
+        run: |
+          python -m unittest discover -s tests -p 'test_silver_auto.py' -v
+          python -m unittest discover -s tests -p 'test_silver_r2_runner.py' -v
+          python -m unittest discover -s tests -p 'test_quality.py' -v
+          python -m compileall -q silver_auto silver_v3
+  sync:
+    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install R2 client
+        run: python -m pip install 'boto3>=1.35,<2'
+      - name: Process changed Bronze CSVs
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: pharmacy-data-lake
+          MEDI_HPS_APPROVED_RELEASE: ${{ vars.MEDI_HPS_APPROVED_RELEASE }}
+          SELECTED_SOURCE: ${{ inputs.source || 'all' }}
+          MANUAL_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ] && [ "$MANUAL_DRY_RUN" = 'true' ]; then
+            python -m silver_auto.r2_runner --source "$SELECTED_SOURCE" --dry-run
+          else
+            python -m silver_auto.r2_runner --source "$SELECTED_SOURCE"
+          fi

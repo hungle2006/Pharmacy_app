@@ -1,0 +1,11 @@
+{
+  "bronze_keys": {
+    "dav_component": "bronze/REPLACE_WITH_REAL_DAV_NORMALIZED_XLSX_KEY",
+    "dav_mapping": "bronze/REPLACE_WITH_REAL_DAV_RXNORM_MAPPING_XLSX_KEY",
+    "dav_evidence": "bronze/REPLACE_WITH_REAL_DAV_RXNORM_EVIDENCE_XLSX_KEY",
+    "rxnorm_clean": "bronze/REPLACE_WITH_REAL_RXNORM_OUTPUT_XLSX_KEY",
+    "icd10_vi": "bronze/REPLACE_WITH_REAL_ICD10_VI_NORMALIZED_XLSX_KEY",
+    "medi2": "bronze/REPLACE_WITH_REAL_MEDI2_NORMALIZED_XLSX_KEY"
+  },
+  "medi2_release": "REPLACE_WITH_VERIFIED_NEWER_RELEASE_NOT_2020"
+}

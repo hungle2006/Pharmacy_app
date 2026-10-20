@@ -1,0 +1,1 @@
+"""Pharmacy Silver v3: read-only audit of source normalization outputs."""
