@@ -5,14 +5,6 @@ on:
       - 'silver_v3/**'
       - 'tests/**'
       - '.github/workflows/pharmacy-silver-quality.yml'
-  workflow_dispatch:
-    inputs:
-      publish:
-        description: 'Publish QC CSV to R2 after manual approval'
-        type: boolean
-        default: false
-  schedule:
-    - cron: '15 3 * * 1'
 permissions:
   contents: read
 concurrency:
@@ -29,33 +21,3 @@ jobs:
       - run: pip install 'boto3>=1.35,<2'
       - run: python -m unittest discover -s tests -v
       - run: python -m compileall -q silver_v3
-  r2-refresh:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    needs: unittest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install 'boto3>=1.35,<2'
-      - name: Verify exact Bronze keys
-        run: |
-          python - <<'PY'
-          import json
-          d=json.load(open('silver_v3/bronze_objects.json'))['bronze_keys']
-          assert not any('REPLACE_WITH_REAL' in v for v in d.values()), 'Configure real Bronze object keys'
-          PY
-      - name: Audit Bronze and optionally publish
-        env:
-          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET: pharmacy-data-lake
-          MANUAL_PUBLISH: ${{ inputs.publish }}
-        run: |
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$MANUAL_PUBLISH" = "true" ]; then
-            python -m silver_v3.r2_sync
-          else
-            python -m silver_v3.r2_sync --dry-run
-          fi
