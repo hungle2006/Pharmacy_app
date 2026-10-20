@@ -42,9 +42,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: python -m pip install 'boto3>=1.35,<2'
       - name: Verify pipeline logic
         run: |
           python -m unittest discover -s tests -p 'test_silver_auto.py' -v
+          python -m unittest discover -s tests -p 'test_silver_r2_runner.py' -v
           python -m unittest discover -s tests -p 'test_quality.py' -v
           python -m compileall -q silver_auto silver_v3
   sync:
