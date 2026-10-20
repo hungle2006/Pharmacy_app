@@ -101,7 +101,13 @@ def bootstrap(s3):
 
 def execute(source, s3):
     if source == "medi":
-        # Preserve prior policy: monitor release only, never download MEDI-2 2020.
+        # Bootstrap only when the owner has explicitly uploaded the legacy file to R2.
+        # The 2020 dataset is never fetched again on its own.
+        if not exists(s3, CANONICAL["medi_hps"]) and exists(s3, "MEDI-2_HPS.xlsx"):
+            with tempfile.TemporaryDirectory() as t:
+                csv_path = Path(t) / "medi_hps.csv"
+                fields, count = excel_to_csv(s3, "MEDI-2_HPS.xlsx", csv_path)
+                merge_snapshot(s3, "medi_hps", csv_path, keys=fields, minimum=1)
         response = __import__("requests").get(medi_watch.URL, timeout=45)
         response.raise_for_status()
         result = medi_watch.inspect(response.text)
