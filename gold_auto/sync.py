@@ -172,10 +172,13 @@ def write_gold(paths,fingerprints,db_url):
                 for name,query in STATEMENTS:
                     cur.execute(query,{"source_sha":fingerprints[SQL_SOURCES[name]]["sha256"]})
                     results["changed_"+name]=max(cur.rowcount,0)
-                cur.execute("SELECT COUNT(*) FROM public.dav_product WHERE silver_source_sha=%s",
-                            (fingerprints["dav"]["sha256"],))
-                if cur.fetchone()[0] < results["stage_dav"]:
-                    raise ValueError("Gold reconciliation: DAV count smaller than Silver active rows")
+                # A genuinely identical existing row is not rewritten, so its old
+                # silver_source_sha may differ. Reconcile by stable DAV identity.
+                cur.execute("""SELECT COUNT(*) FROM gold_stg_dav s
+                               JOIN public.dav_product d
+                                 ON d.dav_row_id=s.dav_row_id""")
+                if cur.fetchone()[0] != results["stage_dav"]:
+                    raise ValueError("Gold reconciliation: DAV source keys are missing")
         # Commit if all statements succeeded; connection closes after COMMIT.
     return results
 
