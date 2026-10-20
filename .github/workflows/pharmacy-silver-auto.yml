@@ -22,6 +22,7 @@ on:
     paths:
       - 'silver_auto/**'
       - 'silver_mapping/**'
+      - 'gold_auto/**'
       - '.github/workflows/pharmacy-silver-auto.yml'
   pull_request:
     paths:
@@ -29,6 +30,8 @@ on:
       - 'silver_v3/quality.py'
       - 'silver_mapping/**'
       - 'tests/test_silver_mapping.py'
+      - 'gold_auto/**'
+      - 'tests/test_gold_auto.py'
       - 'tests/test_silver_auto.py'
       - '.github/workflows/pharmacy-silver-auto.yml'
 permissions:
@@ -108,4 +111,39 @@ jobs:
             python -m silver_mapping.r2_runner --dry-run
           else
             python -m silver_mapping.r2_runner
+          fi
+
+  gold:
+    name: Incremental Neon Gold UPSERT
+    # Disabled until GOLD_DATABASE_URL is set and GOLD_SYNC_ENABLED=true.
+    # This avoids accidental writes to the database serving the dashboard.
+    if: github.event_name != 'pull_request' && vars.GOLD_SYNC_ENABLED == 'true'
+    needs: [validate, sync, mapping]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PostgreSQL and R2 client
+        run: python -m pip install 'psycopg[binary]>=3.2,<4' 'boto3>=1.35,<2'
+      - name: Extend only existing Gold tables and UPSERT changed data
+        env:
+          GOLD_DATABASE_URL: ${{ secrets.GOLD_DATABASE_URL }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: pharmacy-data-lake
+          MANUAL_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ -z "$GOLD_DATABASE_URL" ]; then
+            echo "::error::Set a Neon database connection in GitHub Secret GOLD_DATABASE_URL"
+            exit 1
+          fi
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$MANUAL_DRY_RUN" = "true" ]; then
+            python -m gold_auto.sync --dry-run
+          else
+            python -m gold_auto.sync
           fi
