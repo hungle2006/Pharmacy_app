@@ -121,9 +121,9 @@ class GoldIntegrationTest(unittest.TestCase):
     "mapping":[
       {"dav_row_id":"1","candidate_scd_rxcui":"103",
        "candidate_scd_name":"acetaminophen 500 MG Oral Tablet",
-       "mapping_status":"CANDIDATE_REVIEW","review_reason":"RXNREL_NOT_VALIDATED"},
+       "mapping_status":"CANDIDATE_REVIEW","review_reason":"RXNREL_NOT_VALIDATED","clinical_verified":"false"},
       {"dav_row_id":"2","candidate_scd_rxcui":"",
-       "mapping_status":"UNMATCHED_REVIEW","review_reason":"NO_MATCH"}],
+       "mapping_status":"UNMATCHED_REVIEW","review_reason":"NO_MATCH","clinical_verified":"false"}],
     "evidence":[
       {"dav_row_id":"1","component_order":"1","component_raw":"acetaminophen",
        "ingredient_candidate_rxcui":"100","ingredient_candidate_name":"acetaminophen",
@@ -140,6 +140,11 @@ class GoldIntegrationTest(unittest.TestCase):
    paths={k:csv_file(tmp,k,values) for k,values in fixtures.items()}
    checks={k:{"sha256":"test-sha256-"+k} for k in fixtures}
    first=write_gold(paths,checks,url)
+   # Simulate an unchanged preexisting Gold product with missing source checksum.
+   # A correct run must not force an unnecessary UPDATE just for metadata.
+   with psycopg.connect(url) as con:
+    with con.cursor() as cursor:
+     cursor.execute("UPDATE public.dav_product SET silver_source_sha=NULL WHERE dav_row_id='2'")
    second=write_gold(paths,checks,url)
    with psycopg.connect(url) as conn:
     with conn.cursor() as cur:

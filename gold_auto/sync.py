@@ -29,7 +29,7 @@ HEADERS={
            "dav_dosage_form","dav_package","dav_unit","dav_manufacturer","dav_country"},
     "rxnorm":{"rxcui","display_name","tty","sab"},
     "icd":{"silver_code_canonical","name_vi","name_en","model","silver_qc_status","silver_qc_flags","source"},
-    "mapping":{"dav_row_id","candidate_scd_rxcui","candidate_scd_name","mapping_status","review_reason"},
+    "mapping":{"dav_row_id","candidate_scd_rxcui","candidate_scd_name","mapping_status","review_reason","clinical_verified"},
     "evidence":{"dav_row_id","component_order","component_raw","ingredient_search_name",
                 "ingredient_candidate_rxcui","ingredient_candidate_name","ingredient_candidate_tty",
                 "candidate_count","match_method","evidence_status","review_reason","clinical_verified"},
@@ -151,7 +151,7 @@ def stage_checks(cur):
         cur.execute(sql.SQL("SELECT 1 FROM {} GROUP BY {} HAVING COUNT(*)>1 LIMIT 1").format(
             sql.Identifier(table),ids))
         if cur.fetchone():raise ValueError("Duplicate Silver identity "+table)
-    for table in ("gold_stg_evidence","gold_stg_scd","gold_stg_medi"):
+    for table in ("gold_stg_mapping","gold_stg_evidence","gold_stg_scd","gold_stg_medi"):
         cur.execute(sql.SQL("SELECT COUNT(*) FROM {} WHERE clinical_verified IS DISTINCT FROM 'false'").format(
             sql.Identifier(table)))
         if cur.fetchone()[0]:raise ValueError("Source contains unverified clinical approval: "+table)
@@ -172,10 +172,13 @@ def write_gold(paths,fingerprints,db_url):
                 for name,query in STATEMENTS:
                     cur.execute(query,{"source_sha":fingerprints[SQL_SOURCES[name]]["sha256"]})
                     results["changed_"+name]=max(cur.rowcount,0)
-                cur.execute("SELECT COUNT(*) FROM public.dav_product WHERE silver_source_sha=%s",
-                            (fingerprints["dav"]["sha256"],))
-                if cur.fetchone()[0] < results["stage_dav"]:
-                    raise ValueError("Gold reconciliation: DAV count smaller than Silver active rows")
+                # A genuinely identical existing row is not rewritten, so its old
+                # silver_source_sha may differ. Reconcile by stable DAV identity.
+                cur.execute("""SELECT COUNT(*) FROM gold_stg_dav s
+                               JOIN public.dav_product d
+                                 ON d.dav_row_id=s.dav_row_id""")
+                if cur.fetchone()[0] != results["stage_dav"]:
+                    raise ValueError("Gold reconciliation: DAV source keys are missing")
         # Commit if all statements succeeded; connection closes after COMMIT.
     return results
 
