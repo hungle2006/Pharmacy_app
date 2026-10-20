@@ -14,6 +14,11 @@ from silver_auto.etl import BRONZE, write_outputs
 
 BUCKET = os.getenv("R2_BUCKET","pharmacy-data-lake")
 PREFIX = "silver/v4"
+def pipeline_revision():
+    paths=[Path(__file__),Path(__file__).with_name("etl.py"),Path(__file__).parent.parent/"silver_v3"/"quality.py"]
+    h=hashlib.sha256()
+    for p in paths:h.update(p.read_bytes())
+    return h.hexdigest()[:16]
 def missing(exc):
     from botocore.exceptions import ClientError
     return isinstance(exc,ClientError) and exc.response.get("Error",{}).get("Code") in ("404","NotFound","NoSuchKey")
@@ -34,6 +39,7 @@ def client():
       aws_secret_access_key=os.environ["R2_SECRET_ACCESS_KEY"])
 def process(s3,source,base,dry_run):
     key=BRONZE[source]
+    revision=pipeline_revision()
     if source=="medi_hps":
         release=os.getenv("MEDI_HPS_APPROVED_RELEASE","").strip()
         if not release or release=="2020" or release.startswith("2020"):
@@ -50,8 +56,8 @@ def process(s3,source,base,dry_run):
     pointer_key=f"{PREFIX}/{source}/latest.json"
     latest=get_json(s3,pointer_key)
     expected_sha=head.get("Metadata",{}).get("sha256","")
-    if latest and expected_sha and latest.get("bronze_sha256")==expected_sha:
-        return {"source":source,"state":"unchanged","version":expected_sha[:24]}
+    if latest and expected_sha and latest.get("bronze_sha256")==expected_sha and latest.get("pipeline_revision")==revision:
+        return {"source":source,"state":"unchanged","version":latest.get("version","")}
     with tempfile.TemporaryDirectory(dir=base) as d:
         root=Path(d);bronze=root/"bronze.csv";s3.download_file(BUCKET,key,str(bronze))
         source_sha=hashlib.sha256(bronze.read_bytes()).hexdigest()
@@ -61,13 +67,13 @@ def process(s3,source,base,dry_run):
             raise RuntimeError("Bronze object changed or integrity metadata invalid while reading: "+key)
         if after_sha and after_sha!=source_sha:
             raise RuntimeError("Bronze object updated during Silver processing; retry next run: "+key)
-        version=source_sha[:24]
+        version=hashlib.sha256((source_sha+":"+revision).encode()).hexdigest()[:24]
         prefix=f"{PREFIX}/{source}/version={version}/"
-        if latest and latest.get("bronze_sha256")==source_sha:
+        if latest and latest.get("bronze_sha256")==source_sha and latest.get("pipeline_revision")==revision:
             return {"source":source,"state":"unchanged","version":version}
         # A prior run may have uploaded the full version but failed before moving latest.
         previous=get_json(s3,prefix+"manifest.json")
-        if previous and previous.get("bronze_sha256")==source_sha:
+        if previous and previous.get("bronze_sha256")==source_sha and previous.get("pipeline_revision")==revision:
             ready=True
             for name in previous.get("output_sha256",{}):
                 try:s3.head_object(Bucket=BUCKET,Key=prefix+name)
@@ -76,13 +82,15 @@ def process(s3,source,base,dry_run):
                     raise
             if ready and len(previous.get("output_sha256",{}))==4:
                 if not dry_run:
-                    latest={"source":source,"version":version,"bronze_sha256":source_sha,
+                    latest={"source":source,"version":version,"bronze_sha256":source_sha,"pipeline_revision":revision,
                             "prefix":prefix,"manifest":prefix+"manifest.json"}
                     s3.put_object(Bucket=BUCKET,Key=pointer_key,
                                   Body=json.dumps(latest).encode(),ContentType="application/json")
                 return {"source":source,"state":"dry_run" if dry_run else "recovered","version":version}
         out=root/"silver"
         manifest=write_outputs(source,bronze,out,source_sha)
+        manifest["pipeline_revision"]=revision
+        (out/"manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf8")
         if dry_run:
             return {"source":source,"state":"dry_run","version":version,
                     "rows":manifest["active_rows"],"review":manifest["review"]}
@@ -100,7 +108,7 @@ def process(s3,source,base,dry_run):
         if after["ContentLength"]!=(out/"manifest.json").stat().st_size:
             raise RuntimeError("Manifest upload verification failed")
         # Update only the pointer for this source, after data/manifest verified.
-        latest={"source":source,"version":version,"bronze_sha256":source_sha,
+        latest={"source":source,"version":version,"bronze_sha256":source_sha,"pipeline_revision":revision,
                 "prefix":prefix,"manifest":prefix+"manifest.json"}
         s3.put_object(Bucket=BUCKET,Key=pointer_key,
                       Body=json.dumps(latest).encode(),ContentType="application/json")
