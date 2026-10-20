@@ -6,6 +6,7 @@ import argparse
 import csv
 import html
 import json
+import random
 import re
 import sys
 import time
@@ -17,7 +18,7 @@ from urllib.parse import unquote, urlparse
 import requests
 
 DEFAULT_BASE_URL = "https://06dichvucong.dav.gov.vn"
-DEFAULT_PAGE_SIZE = 100
+DEFAULT_PAGE_SIZE = 50
 SERVICE_PATH = "/api/services/app/quanLyGiaThuoc/GetListCongBoPublicPaging"
 LANDING_PATH = "/congbogiathuoc/index"
 CSV_COLUMNS = [
@@ -121,7 +122,7 @@ def make_payload(skip: int, size: int, sorting: str | None = None) -> dict[str, 
 
 
 def get_page(session: requests.Session, base_url: str, skip: int, size: int,
-             sorting: str | None = None, retries: int = 4) -> dict[str, Any]:
+             sorting: str | None = None, retries: int = 7) -> dict[str, Any]:
     api_url = base_url.rstrip("/") + SERVICE_PATH
     last_error: Exception | None = None
     for attempt in range(1, retries + 1):
@@ -138,7 +139,15 @@ def get_page(session: requests.Session, base_url: str, skip: int, size: int,
             last_error = exc
             print(f"[DAV] Loi mang/JSON o skipCount={skip}, lan {attempt}/{retries}: {exc}")
             if attempt < retries:
-                time.sleep(min(2 ** attempt, 15))
+                # Respect overloaded public server instead of hammering on 504/429.
+                retry_after = response.headers.get("Retry-After") if "response" in locals() else None
+                try:
+                    pause = float(retry_after) if retry_after else min(3 * (2 ** (attempt - 1)), 90)
+                except ValueError:
+                    pause = min(3 * (2 ** (attempt - 1)), 90)
+                pause = min(pause, 120) + random.uniform(0, 0.8)
+                print(f"[DAV] Cho {pause:.1f}s truoc khi thu lai...", flush=True)
+                time.sleep(pause)
     raise DAVError(f"Request that bai o skipCount={skip}: {last_error}")
 
 
@@ -348,7 +357,7 @@ def main() -> None:
     parser.add_argument("--output-dir", default="output_dav")
     parser.add_argument("--page-size", type=int, default=DEFAULT_PAGE_SIZE)
     parser.add_argument("--max-rows", type=int)
-    parser.add_argument("--delay", type=float, default=0.3)
+    parser.add_argument("--delay", type=float, default=1.0)
     parser.add_argument("--sorting", default=None, help="Truong sap xep API (VD: 'id ASC' hoac 'ngayTiepNhan DESC')")
     args = parser.parse_args()
     try:
