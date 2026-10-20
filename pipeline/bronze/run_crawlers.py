@@ -47,7 +47,7 @@ def run(source):
     with tempfile.TemporaryDirectory() as t:
         wd=Path(t);out=wd/"out";out.mkdir()
         if source=="dav":
-            subprocess.run([sys.executable,str(root/"crawl_dav.py"),"--output-dir",str(out),"--sorting","id ASC"],check=True)
+            subprocess.run([sys.executable,str(root/"crawl_dav.py"),"--output-dir",str(out)],check=True)
             raw=list(out.glob("dav_gia_thuoc_raw_*.jsonl"))
             clean=list(out.glob("dav_gia_ban_buon_20*.csv"))
             keys=["dav_row_id"]
