@@ -27,6 +27,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
       - name: Build image
         run: |
+          cp silver/Dockerfile Dockerfile
           gcloud builds submit . --tag "${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/pharmacy/silver:${{ github.sha }}"
       - name: Deploy job
         run: |
