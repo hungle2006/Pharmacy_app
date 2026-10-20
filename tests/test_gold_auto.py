@@ -81,6 +81,12 @@ class GoldIntegrationTest(unittest.TestCase):
     cur.execute("""INSERT INTO dav_rxnorm_mapping
      (mapping_id,dav_row_id,selected_scd_rxcui,mapping_status,accepted_for_serving)
      VALUES ('legacy-mapping','1','103','VERIFIED_SCD',1)""")
+    cur.execute("""INSERT INTO rxnorm_scd (scd_rxcui,scd_name,component_count,
+     matched_component_count,component_status)
+     VALUES ('103','Previously curated SCD',1,1,'ALL_COMPONENTS_EXACT')""")
+    cur.execute("""INSERT INTO rxnorm_scd_component
+     (scd_component_id,scd_rxcui,component_order,ingredient_name,relation_status)
+     VALUES ('old:1','103',1,'Prior curator ingredient','EXACT_SCDC_NAME')""")
    db.commit()
   with tempfile.TemporaryDirectory() as tmp:
    fixtures={
@@ -152,6 +158,11 @@ class GoldIntegrationTest(unittest.TestCase):
      self.assertEqual(cur.fetchone()[0],2)
      cur.execute("SELECT COUNT(*) FROM public.rxnorm_scd_component")
      self.assertEqual(cur.fetchone()[0],1)
+     cur.execute("SELECT scd_name FROM public.rxnorm_scd WHERE scd_rxcui='103'")
+     self.assertEqual(cur.fetchone()[0],'Previously curated SCD')
+     cur.execute("""SELECT ingredient_name,relation_status FROM public.rxnorm_scd_component
+      WHERE scd_rxcui='103' AND component_order=1""")
+     self.assertEqual(cur.fetchone(),('Prior curator ingredient','EXACT_SCDC_NAME'))
      cur.execute("SELECT COUNT(*) FROM public.medi_relation")
      self.assertEqual(cur.fetchone()[0],1)
      cur.execute("SELECT disease_icd_code FROM medi_relation")
