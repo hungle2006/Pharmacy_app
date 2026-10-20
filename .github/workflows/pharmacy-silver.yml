@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Validation only (true recommended)"
+        description: "Validation only (uncheck only after approval)"
         type: boolean
         default: true
   schedule:
@@ -17,7 +17,7 @@ concurrency:
 jobs:
   deploy-and-run:
     runs-on: ubuntu-latest
-    if: vars.GCP_PROJECT_ID != '' && vars.GCP_WIF_PROVIDER != '' && vars.GCP_DEPLOY_SA != ''
+    if: vars.GCP_PROJECT_ID != '' && vars.GCP_REGION != '' && vars.GCP_WIF_PROVIDER != '' && vars.GCP_DEPLOY_SA != '' && vars.GCP_RUN_SA != '' && vars.R2_ENDPOINT != ''
     steps:
       - uses: actions/checkout@v4
       - uses: google-github-actions/auth@v2
@@ -39,7 +39,7 @@ jobs:
             --set-secrets "AWS_ACCESS_KEY_ID=r2-access-key:latest,AWS_SECRET_ACCESS_KEY=r2-secret-key:latest"
       - name: Execute
         env:
-          DRY_RUN: ${{ github.event_name == 'schedule' && 'false' || inputs.dry_run }}
+          DRY_RUN: ${{ github.event_name == 'schedule' && 'true' || inputs.dry_run }}
         run: |
           gcloud run jobs execute pharmacy-silver --region "${{ vars.GCP_REGION }}" \
             --update-env-vars "DRY_RUN=$DRY_RUN" --wait
