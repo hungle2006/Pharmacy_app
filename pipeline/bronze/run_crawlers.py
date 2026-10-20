@@ -1,5 +1,5 @@
 """Automated source crawl with immutable compressed snapshots and change reports."""
-import argparse,csv,gzip,hashlib,io,json,os,subprocess,sys,tempfile
+import argparse,csv,gzip,hashlib,io,json,os,subprocess,sys,tempfile,shutil
 from pathlib import Path
 from botocore.exceptions import ClientError
 import boto3
@@ -18,6 +18,13 @@ def upload(s,key,p):
     s.upload_file(str(p),BUCKET,key,ExtraArgs={"Metadata":{"sha256":digest(p)}})
     if s.head_object(Bucket=BUCKET,Key=key)["ContentLength"]!=p.stat().st_size:raise RuntimeError("Upload size mismatch")
 def save(s,key,item):s.put_object(Bucket=BUCKET,Key=key,Body=json.dumps(item,ensure_ascii=False).encode(),ContentType="application/json")
+def gz_writer(target):
+    """Reproducible gzip stream: stable SHA for identical content across runs."""
+    output=target.open("wb")
+    compressed=gzip.GzipFile(filename="", mode="wb", fileobj=output, mtime=0)
+    writer=io.TextIOWrapper(compressed, encoding="utf-8", newline="")
+    return output, compressed, writer
+
 def zipcsv(src,target,keys):
     with src.open(encoding="utf-8-sig",newline="") as f:
         r=csv.DictReader(f);cols=r.fieldnames;rows=list(r)
@@ -25,8 +32,14 @@ def zipcsv(src,target,keys):
     indexes=[tuple(row[k] for k in keys) for row in rows]
     if len(set(indexes))!=len(rows) or any(not all(i) for i in indexes):raise RuntimeError("Missing/duplicate key")
     rows.sort(key=lambda row:tuple(row[k] for k in keys))
-    with gzip.open(target,"wt",encoding="utf-8",newline="") as f:
-        w=csv.DictWriter(f,fieldnames=cols,lineterminator="\n");w.writeheader();w.writerows(rows)
+    output,compressed,f=gz_writer(target)
+    try:
+        w=csv.DictWriter(f,fieldnames=cols,lineterminator="\\n")
+        w.writeheader()
+        w.writerows(rows)
+    finally:
+        f.close()
+        output.close()
     return cols,rows
 def run(source):
     root=Path(__file__).resolve().parent
@@ -58,14 +71,21 @@ def run(source):
         updated=[dict(operation="UPDATE",**row) for k,row in curr.items() if k in before and before[k]!=row]
         missing=[dict(operation="MISSING_UNVERIFIED",**row) for k,row in before.items() if k not in curr]
         delta=wd/"delta.csv.gz"
-        with gzip.open(delta,"wt",encoding="utf-8",newline="") as f:
-            wr=csv.DictWriter(f,fieldnames=["operation"]+cols);wr.writeheader();wr.writerows(added+updated+missing)
+        output,compressed,f=gz_writer(delta)
+        try:
+            wr=csv.DictWriter(f,fieldnames=["operation"]+cols,lineterminator="\\n")
+            wr.writeheader()
+            wr.writerows(added+updated+missing)
+        finally:
+            f.close()
+            output.close()
         rawpaths=[]
         for i,p in enumerate(raw):
-            data=p.read_bytes()
-            if not data:raise RuntimeError("Empty raw file")
+            if not p.stat().st_size:raise RuntimeError("Empty raw file")
             new=wd/f"raw{i}.gz"
-            with gzip.open(new,"wb",compresslevel=6) as f:f.write(data)
+            with p.open("rb") as inp,new.open("wb") as outf:
+                with gzip.GzipFile(filename="",mode="wb",fileobj=outf,mtime=0,compresslevel=6) as gz:
+                    shutil.copyfileobj(inp,gz)
             rawpaths.append(new)
         hashes=[digest(p) for p in rawpaths]
         snap_sha=digest(snap)
