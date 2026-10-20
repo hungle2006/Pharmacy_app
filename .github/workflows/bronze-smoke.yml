@@ -10,7 +10,7 @@ permissions:
 jobs:
   bronze-python:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout PR code
         uses: actions/checkout@v4
@@ -26,3 +26,5 @@ jobs:
         run: python -m unittest discover -s tests -p 'bronze_pipeline.test.py' -v
       - name: Verify 4 upstream public endpoints (read-only)
         run: python pipeline/bronze/healthcheck_sources.py
+      - name: Download and convert current RxNorm RRF (no R2 writes)
+        run: python pipeline/bronze/live_rxnorm_conversion_check.py
