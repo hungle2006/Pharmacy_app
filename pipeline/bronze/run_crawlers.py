@@ -34,7 +34,7 @@ def zipcsv(src,target,keys):
     rows.sort(key=lambda row:tuple(row[k] for k in keys))
     output,compressed,f=gz_writer(target)
     try:
-        w=csv.DictWriter(f,fieldnames=cols,lineterminator="\\n")
+        w=csv.DictWriter(f,fieldnames=cols,lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
     finally:
@@ -73,7 +73,7 @@ def run(source):
         delta=wd/"delta.csv.gz"
         output,compressed,f=gz_writer(delta)
         try:
-            wr=csv.DictWriter(f,fieldnames=["operation"]+cols,lineterminator="\\n")
+            wr=csv.DictWriter(f,fieldnames=["operation"]+cols,lineterminator="\n")
             wr.writeheader()
             wr.writerows(added+updated+missing)
         finally:
