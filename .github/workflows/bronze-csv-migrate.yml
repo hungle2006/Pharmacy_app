@@ -1,0 +1,30 @@
+name: Migrate legacy Bronze to four cumulative CSV files
+on:
+  push:
+    branches: [feature/bronze-compact-csv]
+    paths:
+      - .github/workflows/bronze-csv-migrate.yml
+permissions:
+  contents: read
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: pharmacy-bronze-csv-migration
+      cancel-in-progress: false
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET: pharmacy-data-lake
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r pipeline/bronze/requirements.txt
+      - name: Validate cumulative CSV unit tests
+        run: python -m unittest discover -s tests -p 'test_compact_csv.py' -v
+      - name: Convert old data and safely delete replaced Bronze raw objects
+        run: python -u pipeline/bronze/run_compact.py --migrate
