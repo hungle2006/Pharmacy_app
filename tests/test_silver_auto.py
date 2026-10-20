@@ -27,7 +27,8 @@ class SilverAutoTest(unittest.TestCase):
   report=write_outputs('dav',self.root/'bronze.csv',self.root/'out','hash')
   self.assertEqual(report['active_rows'],1)
   self.assertEqual(report['accepted'],1)
-  with (self.root/'out/all.csv').open(encoding='utf8',newline='') as f:
+  self.assertEqual(len(list((self.root/'out').glob('*.csv'))),1)
+  with (self.root/'out/silver.csv').open(encoding='utf8',newline='') as f:
    row=list(csv.DictReader(f))[0]
   self.assertEqual(row['silver_drug_name_norm'],'thuoc dau')
  def test_icd10_vietnam_uses_actual_source_headers(self):
@@ -54,6 +55,6 @@ class SilverAutoTest(unittest.TestCase):
   bronze(self.root/'in.csv',[(raw,'INSERT')])
   rep=write_outputs('dav',self.root/'in.csv',self.root/'out','hash')
   self.assertEqual(rep['review'],1)
-  with (self.root/'out/review.csv').open() as f:r=list(csv.DictReader(f))[0]
+  with (self.root/'out/silver.csv').open() as f:r=list(csv.DictReader(f))[0]
   self.assertEqual(r['silver_mapping_verified'],'false')
 if __name__=="__main__":unittest.main()
