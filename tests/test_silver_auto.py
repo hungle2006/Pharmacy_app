@@ -30,6 +30,15 @@ class SilverAutoTest(unittest.TestCase):
   with (self.root/'out/all.csv').open(encoding='utf8',newline='') as f:
    row=list(csv.DictReader(f))[0]
   self.assertEqual(row['silver_drug_name_norm'],'thuoc dau')
+ def test_icd10_vietnam_uses_actual_source_headers(self):
+  from silver_auto.etl import evaluate
+  row={'model':'disease','id':'A00','code':'A00',
+       'name_vi':'Bệnh tả','name_en':'Cholera'}
+  cleaned=evaluate('icd10',row)
+  self.assertEqual(cleaned['silver_qc_status'],'ACCEPTED')
+  self.assertEqual(cleaned['silver_name_search_norm'],'benh ta')
+  chapter=evaluate('icd10',{'model':'chapter','id':'I','code':'I','name_vi':'Bệnh truyền nhiễm'})
+  self.assertEqual(chapter['silver_qc_status'],'REVIEW_REQUIRED')
  def test_corruption_fails_closed(self):
   raw={'dav_row_id':'X','dav_drug_name':'Sample','dav_active_ingredient_raw':'X',
        'dav_strength':'50 MG','dav_dosage_form':'Tablet'}
