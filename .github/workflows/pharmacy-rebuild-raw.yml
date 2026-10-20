@@ -1,0 +1,40 @@
+name: Pharmacy Rebuild Raw Sources
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Write staging outputs into R2 (requires approved source keys)'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '30 3 * * 1'
+permissions:
+  contents: read
+concurrency:
+  group: pharmacy-rebuild-raw
+  cancel-in-progress: false
+jobs:
+  rebuild:
+    if: vars.PHARMACY_RAW_PIPELINE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install 'boto3>=1.35,<2' 'openpyxl>=3.1,<4'
+      - run: python -m unittest discover -s tests -v
+      - name: Rebuild from pinned Bronze source releases
+        env:
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: pharmacy-data-lake
+          MANUAL_PUBLISH: ${{ inputs.publish }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ] && [ "$MANUAL_PUBLISH" = 'true' ]; then
+            python -m silver_v3.raw_r2 --publish
+          else
+            python -m silver_v3.raw_r2
+          fi
