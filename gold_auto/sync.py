@@ -151,7 +151,7 @@ def stage_checks(cur):
         cur.execute(sql.SQL("SELECT 1 FROM {} GROUP BY {} HAVING COUNT(*)>1 LIMIT 1").format(
             sql.Identifier(table),ids))
         if cur.fetchone():raise ValueError("Duplicate Silver identity "+table)
-    for table in ("gold_stg_evidence","gold_stg_scd","gold_stg_medi"):
+    for table in ("gold_stg_mapping","gold_stg_evidence","gold_stg_scd","gold_stg_medi"):
         cur.execute(sql.SQL("SELECT COUNT(*) FROM {} WHERE clinical_verified IS DISTINCT FROM 'false'").format(
             sql.Identifier(table)))
         if cur.fetchone()[0]:raise ValueError("Source contains unverified clinical approval: "+table)
