@@ -1,0 +1,66 @@
+name: Pharmacy four source bronze
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Source
+        type: choice
+        required: true
+        options: [all, dav, icd10, rxnorm, medi]
+  schedule:
+    - cron: '19 2 * * 2'
+      timezone: 'Asia/Ho_Chi_Minh'
+    - cron: '31 2 8 * *'
+      timezone: 'Asia/Ho_Chi_Minh'
+permissions:
+  contents: read
+concurrency:
+  group: pharmacy-bronze-ingestion
+  cancel-in-progress: false
+jobs:
+  bronze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET: pharmacy-data-lake
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r pipeline/bronze/requirements.txt
+      - name: Check R2 credentials
+        if: github.event.inputs.source != 'medi'
+        run: |
+          test -n "$R2_ACCOUNT_ID" && test -n "$R2_ACCESS_KEY_ID" && test -n "$R2_SECRET_ACCESS_KEY" || { echo '::error::R2 Secrets are missing'; exit 1; }
+      - name: Run scheduled jobs
+        env:
+          SOURCE: ${{ github.event.inputs.source }}
+          EVENT: ${{ github.event_name }}
+          CRON: ${{ github.event.schedule }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT" == "schedule" && "$CRON" == '19 2 * * 2' ]]; then
+            tasks=(dav icd10 medi)
+          elif [[ "$EVENT" == "schedule" ]]; then
+            tasks=(rxnorm)
+          elif [[ "$SOURCE" == "all" ]]; then
+            tasks=(dav icd10 rxnorm medi)
+          else
+            tasks=("$SOURCE")
+          fi
+          failed=0
+          for task in "${tasks[@]}"; do
+            echo "::group::$task"
+            case "$task" in
+              dav|icd10) python pipeline/bronze/run_crawlers.py --source "$task" || failed=1 ;;
+              rxnorm) python pipeline/bronze/rxnorm_pipeline.py --upload-r2 || failed=1 ;;
+              medi) python pipeline/bronze/medi_watch.py || failed=1 ;;
+            esac
+            echo "::endgroup::"
+          done
+          exit "$failed"
