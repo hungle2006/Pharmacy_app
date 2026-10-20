@@ -1,14 +1,9 @@
 name: Pharmacy weekly Bronze ingestion
 on:
-  push:
-    branches:
-      - feature/bronze-four-source-automation
-    paths:
-      - .github/workflows/pharmacy-data-lake.yml
   workflow_dispatch:
     inputs:
       source:
-        description: Source to ingest (all = DAV, ICD-10, RxNorm, MEDI watch)
+        description: Source to ingest
         type: choice
         required: true
         default: all
@@ -18,13 +13,38 @@ on:
       timezone: 'Asia/Ho_Chi_Minh'
 permissions:
   contents: read
-concurrency:
-  group: pharmacy-bronze-ingestion
-  cancel-in-progress: false
 jobs:
-  bronze:
+  select-sources:
+    runs-on: ubuntu-latest
+    outputs:
+      sources: ${{ steps.pick.outputs.sources }}
+    steps:
+      - id: pick
+        env:
+          TARGET: ${{ inputs.source }}
+        shell: bash
+        run: |
+          if [[ -z "$TARGET" || "$TARGET" == "all" ]]; then
+            echo 'sources=["dav","icd10","rxnorm","medi"]' >> "$GITHUB_OUTPUT"
+          else
+            case "$TARGET" in
+              dav|icd10|rxnorm|medi) printf 'sources=["%s"]\n' "$TARGET" >> "$GITHUB_OUTPUT" ;;
+              *) echo "::error::Unknown source $TARGET"; exit 1 ;;
+            esac
+          fi
+
+  ingest:
+    name: "Bronze · ${{ matrix.source }}"
+    needs: select-sources
+    strategy:
+      fail-fast: false
+      matrix:
+        source: ${{ fromJSON(needs.select-sources.outputs.sources) }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    concurrency:
+      group: pharmacy-bronze-${{ matrix.source }}
+      cancel-in-progress: false
     env:
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
       R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
@@ -35,34 +55,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: python -m pip install -r pipeline/bronze/requirements.txt
-      - name: Validate Python modules
-        run: python -m compileall -q pipeline/bronze
-      - name: Require R2 repository secrets
+      - name: Verify R2 secrets
+        if: matrix.source != 'medi'
+        shell: bash
         run: |
-          test -n "$R2_ACCOUNT_ID" && test -n "$R2_ACCESS_KEY_ID" && test -n "$R2_SECRET_ACCESS_KEY" || { echo '::error::R2 secrets missing'; exit 1; }
-      - name: Ingest or check source
+          if [[ -z "$R2_ACCOUNT_ID" || -z "$R2_ACCESS_KEY_ID" || -z "$R2_SECRET_ACCESS_KEY" ]]; then
+            echo "::error::R2 repository secrets are missing"
+            exit 1
+          fi
+      - name: Run selected source
         env:
-          SOURCE: ${{ github.event.inputs.source }}
-          EVENT: ${{ github.event_name }}
+          SOURCE: ${{ matrix.source }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$EVENT" == "push" || "$EVENT" == "schedule" || "$SOURCE" == "all" || -z "$SOURCE" ]]; then
-            tasks=(dav icd10 rxnorm medi)
-          else
-            tasks=("$SOURCE")
-          fi
-          failed=0
-          for task in "${tasks[@]}"; do
-            echo "::group::$task"
-            case "$task" in
-              dav|icd10) python -u pipeline/bronze/run_crawlers.py --source "$task" || failed=1 ;;
-              rxnorm) python -u pipeline/bronze/rxnorm_pipeline.py || failed=1 ;;
-              medi) python -u pipeline/bronze/medi_watch.py || failed=1 ;;
-              *) echo "::error::Unsupported source $task"; failed=1 ;;
-            esac
-            echo "::endgroup::"
-          done
-          exit "$failed"
+          case "$SOURCE" in
+            dav|icd10) python -u pipeline/bronze/run_crawlers.py --source "$SOURCE" ;;
+            rxnorm) python -u pipeline/bronze/rxnorm_pipeline.py ;;
+            medi) python -u pipeline/bronze/medi_watch.py ;;
+          esac
