@@ -21,11 +21,14 @@ on:
     branches: [main]
     paths:
       - 'silver_auto/**'
+      - 'silver_mapping/**'
       - '.github/workflows/pharmacy-silver-auto.yml'
   pull_request:
     paths:
       - 'silver_auto/**'
       - 'silver_v3/quality.py'
+      - 'silver_mapping/**'
+      - 'tests/test_silver_mapping.py'
       - 'tests/test_silver_auto.py'
       - '.github/workflows/pharmacy-silver-auto.yml'
 permissions:
@@ -42,13 +45,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install 'boto3>=1.35,<2'
+      - run: python -m pip install 'boto3>=1.35,<2' 'openpyxl>=3.1,<4'
       - name: Verify pipeline logic
         run: |
           python -m unittest discover -s tests -p 'test_silver_auto.py' -v
           python -m unittest discover -s tests -p 'test_silver_r2_runner.py' -v
           python -m unittest discover -s tests -p 'test_quality.py' -v
-          python -m compileall -q silver_auto silver_v3
+          python -m unittest discover -s tests -p 'test_silver_mapping.py' -v
+          python -m compileall -q silver_auto silver_v3 silver_mapping
   sync:
     if: github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
     needs: validate
@@ -76,4 +80,32 @@ jobs:
             python -m silver_auto.r2_runner --source "$SELECTED_SOURCE" --dry-run --cleanup-legacy
           else
             python -m silver_auto.r2_runner --source "$SELECTED_SOURCE" --cleanup-legacy
+          fi
+
+  mapping:
+    name: Pharmacy terminology and clinical candidate mappings
+    if: github.event_name != 'pull_request'
+    needs: [validate, sync]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install terminology mapping dependencies
+        run: python -m pip install 'boto3>=1.35,<2' 'openpyxl>=3.1,<4'
+      - name: Build and publish conservative mappings
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: pharmacy-data-lake
+          MANUAL_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ] && [ "$MANUAL_DRY_RUN" = 'true' ]; then
+            python -m silver_mapping.r2_runner --dry-run
+          else
+            python -m silver_mapping.r2_runner
           fi
