@@ -38,6 +38,9 @@ def process(s3,source,base,dry_run):
         release=os.getenv("MEDI_HPS_APPROVED_RELEASE","").strip()
         if not release or release=="2020" or release.startswith("2020"):
             return {"source":source,"state":"skipped","reason":"MEDI newer release not approved"}
+        provenance=get_json(s3,"_control/compact/medi_hps.json")
+        if not provenance or provenance.get("release") != release:
+            return {"source":source,"state":"skipped","reason":"MEDI Bronze release provenance not verified"}
     try:head=s3.head_object(Bucket=BUCKET,Key=key)
     except Exception as exc:
         if missing(exc):
