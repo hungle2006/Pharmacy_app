@@ -1,16 +1,20 @@
-name: Pharmacy four source bronze
+name: Pharmacy weekly Bronze ingestion
 on:
+  push:
+    branches:
+      - feature/bronze-four-source-automation
+    paths:
+      - .github/workflows/pharmacy-data-lake.yml
   workflow_dispatch:
     inputs:
       source:
-        description: Source
+        description: Source to ingest (all = DAV, ICD-10, RxNorm, MEDI watch)
         type: choice
         required: true
+        default: all
         options: [all, dav, icd10, rxnorm, medi]
   schedule:
     - cron: '19 2 * * 2'
-      timezone: 'Asia/Ho_Chi_Minh'
-    - cron: '31 2 8 * *'
       timezone: 'Asia/Ho_Chi_Minh'
 permissions:
   contents: read
@@ -31,24 +35,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install -r pipeline/bronze/requirements.txt
-      - name: Check R2 credentials
-        if: github.event.inputs.source != 'medi'
+      - name: Install Python dependencies
+        run: python -m pip install -r pipeline/bronze/requirements.txt
+      - name: Validate Python modules
+        run: python -m compileall -q pipeline/bronze
+      - name: Require R2 repository secrets
         run: |
-          test -n "$R2_ACCOUNT_ID" && test -n "$R2_ACCESS_KEY_ID" && test -n "$R2_SECRET_ACCESS_KEY" || { echo '::error::R2 Secrets are missing'; exit 1; }
-      - name: Run scheduled jobs
+          test -n "$R2_ACCOUNT_ID" && test -n "$R2_ACCESS_KEY_ID" && test -n "$R2_SECRET_ACCESS_KEY" || { echo '::error::R2 secrets missing'; exit 1; }
+      - name: Ingest or check source
         env:
           SOURCE: ${{ github.event.inputs.source }}
           EVENT: ${{ github.event_name }}
-          CRON: ${{ github.event.schedule }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$EVENT" == "schedule" && "$CRON" == '19 2 * * 2' ]]; then
-            tasks=(dav icd10 medi)
-          elif [[ "$EVENT" == "schedule" ]]; then
-            tasks=(rxnorm)
-          elif [[ "$SOURCE" == "all" ]]; then
+          if [[ "$EVENT" == "push" || "$EVENT" == "schedule" || "$SOURCE" == "all" || -z "$SOURCE" ]]; then
             tasks=(dav icd10 rxnorm medi)
           else
             tasks=("$SOURCE")
@@ -57,9 +58,10 @@ jobs:
           for task in "${tasks[@]}"; do
             echo "::group::$task"
             case "$task" in
-              dav|icd10) python pipeline/bronze/run_crawlers.py --source "$task" || failed=1 ;;
-              rxnorm) python pipeline/bronze/rxnorm_pipeline.py --upload-r2 || failed=1 ;;
-              medi) python pipeline/bronze/medi_watch.py || failed=1 ;;
+              dav|icd10) python -u pipeline/bronze/run_crawlers.py --source "$task" || failed=1 ;;
+              rxnorm) python -u pipeline/bronze/rxnorm_pipeline.py || failed=1 ;;
+              medi) python -u pipeline/bronze/medi_watch.py || failed=1 ;;
+              *) echo "::error::Unsupported source $task"; failed=1 ;;
             esac
             echo "::endgroup::"
           done
