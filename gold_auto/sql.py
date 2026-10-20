@@ -234,7 +234,7 @@ ON CONFLICT (scd_rxcui) DO UPDATE SET
  dose_form_rxcui=EXCLUDED.dose_form_rxcui,dose_form_name=EXCLUDED.dose_form_name,
  component_count=EXCLUDED.component_count,matched_component_count=EXCLUDED.matched_component_count,
  evidence_method=EXCLUDED.evidence_method,silver_source_sha=EXCLUDED.silver_source_sha
-WHERE COALESCE(rxnorm_scd.component_status,'') NOT ILIKE '%%VERIFIED%%'
+WHERE COALESCE(rxnorm_scd.component_status,'') IN ('','REVIEW','TEXT_INFERRED_REVIEW')
   AND (rxnorm_scd.scd_name,rxnorm_scd.dose_form_name,
        rxnorm_scd.component_count,rxnorm_scd.matched_component_count)
  IS DISTINCT FROM
@@ -272,7 +272,7 @@ ON CONFLICT (scd_rxcui,component_order) DO UPDATE SET
  ingredient_rxcui=EXCLUDED.ingredient_rxcui,ingredient_name=EXCLUDED.ingredient_name,
  strength_text=EXCLUDED.strength_text,component_raw=EXCLUDED.component_raw,
  evidence_method=EXCLUDED.evidence_method,silver_source_sha=EXCLUDED.silver_source_sha
-WHERE COALESCE(rxnorm_scd_component.relation_status,'') NOT ILIKE '%%VERIFIED%%'
+WHERE COALESCE(rxnorm_scd_component.relation_status,'') IN ('','REVIEW','TEXT_INFERRED_REVIEW','UNRESOLVED_REVIEW')
   AND (rxnorm_scd_component.scdc_rxcui,rxnorm_scd_component.ingredient_rxcui,
        rxnorm_scd_component.strength_text,rxnorm_scd_component.component_raw)
  IS DISTINCT FROM
@@ -304,7 +304,8 @@ ON CONFLICT (dav_row_id) DO UPDATE SET
  candidate_scd_name=EXCLUDED.candidate_scd_name,
  review_reason=EXCLUDED.review_reason,
  silver_source_sha=EXCLUDED.silver_source_sha
-WHERE (dav_rxnorm_mapping.suggested_scd_rxcui,dav_rxnorm_mapping.silver_mapping_status,
+WHERE COALESCE(dav_rxnorm_mapping.accepted_for_serving,0)<>1
+  AND (dav_rxnorm_mapping.suggested_scd_rxcui,dav_rxnorm_mapping.silver_mapping_status,
        dav_rxnorm_mapping.candidate_scd_name,dav_rxnorm_mapping.review_reason)
  IS DISTINCT FROM
       (EXCLUDED.suggested_scd_rxcui,EXCLUDED.silver_mapping_status,
