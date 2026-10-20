@@ -17,6 +17,11 @@ on:
         description: 'Test only, do not write Silver'
         type: boolean
         default: true
+  push:
+    branches: [main]
+    paths:
+      - 'silver_auto/**'
+      - '.github/workflows/pharmacy-silver-auto.yml'
   pull_request:
     paths:
       - 'silver_auto/**'
