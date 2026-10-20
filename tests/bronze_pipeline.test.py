@@ -55,6 +55,32 @@ class BronzeSmoke(unittest.TestCase):
         self.assertEqual(status["versions_after_medi2"], [3])
         self.assertEqual(len(status["candidate_hps_links"]), 1)
 
+    def test_dav_retries_transient_504(self):
+        import requests
+        from crawl_dav import get_page, make_payload
+
+        class Response:
+            status_code = 200
+            def json(self):
+                return {"result": {"items": [{"id": 1}], "totalCount": 1}}
+            def raise_for_status(self):
+                return None
+
+        class Session:
+            def __init__(self):
+                self.calls = 0
+            def post(self, *args, **kwargs):
+                self.calls += 1
+                if self.calls == 1:
+                    raise requests.exceptions.HTTPError("504 Gateway Time-out")
+                return Response()
+
+        session = Session()
+        with patch("crawl_dav.time.sleep", return_value=None):
+            result = get_page(session, "https://example.org", 0, 50, retries=2)
+        self.assertEqual(len(result["items"]), 1)
+        self.assertEqual(session.calls, 2)
+
     def test_nlm_licensed_free_release_selection(self):
         html = '''
         <a href="https://download.nlm.nih.gov/umls/kss/rxnorm/RxNorm_full_prescribe_01052026.zip">Jan</a>
