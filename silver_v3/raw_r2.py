@@ -31,7 +31,7 @@ def main():
   raw=Path(tmp)/'raw';raw.mkdir()
   files={}
   for name in expected:
-   f=raw/Path(keys[name]).name
+   f=raw/(name+Path(keys[name]).suffix)
    s3.download_file(bucket,keys[name],str(f));files[name]=f
   out=Path(tmp)/'rebuilt'
   subprocess.run([sys.executable,'-m','silver_v3.rebuild_raw',
