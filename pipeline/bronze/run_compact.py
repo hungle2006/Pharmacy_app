@@ -102,7 +102,9 @@ def bootstrap(s3):
 def execute(source, s3):
     if source == "medi":
         # Preserve prior policy: monitor release only, never download MEDI-2 2020.
-        result = medi_watch.inspect(__import__("requests").get(medi_watch.URL, timeout=45).text)
+        response = __import__("requests").get(medi_watch.URL, timeout=45)
+        response.raise_for_status()
+        result = medi_watch.inspect(response.text)
         print(json.dumps({"source": "medi", "status": "version_check_only", **result}))
         if result["versions_after_medi2"] or result["candidate_hps_links"]:
             print("::warning::MEDI newer release candidate found; review manually before ingest")
