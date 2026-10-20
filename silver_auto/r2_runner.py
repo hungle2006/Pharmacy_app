@@ -47,15 +47,40 @@ def process(s3,source,base,dry_run):
             return {"source":source,"state":"skipped","reason":"Bronze canonical CSV missing","key":key}
         raise
     if head.get("ContentLength",0)<=0:raise ValueError("Empty Bronze R2 object "+key)
+    pointer_key=f"{PREFIX}/{source}/latest.json"
+    latest=get_json(s3,pointer_key)
+    expected_sha=head.get("Metadata",{}).get("sha256","")
+    if latest and expected_sha and latest.get("bronze_sha256")==expected_sha:
+        return {"source":source,"state":"unchanged","version":expected_sha[:24]}
     with tempfile.TemporaryDirectory(dir=base) as d:
         root=Path(d);bronze=root/"bronze.csv";s3.download_file(BUCKET,key,str(bronze))
         source_sha=hashlib.sha256(bronze.read_bytes()).hexdigest()
+        after_source=s3.head_object(Bucket=BUCKET,Key=key)
+        after_sha=after_source.get("Metadata",{}).get("sha256","")
+        if expected_sha and expected_sha!=source_sha:
+            raise RuntimeError("Bronze object changed or integrity metadata invalid while reading: "+key)
+        if after_sha and after_sha!=source_sha:
+            raise RuntimeError("Bronze object updated during Silver processing; retry next run: "+key)
         version=source_sha[:24]
         prefix=f"{PREFIX}/{source}/version={version}/"
-        pointer_key=f"{PREFIX}/{source}/latest.json"
-        latest=get_json(s3,pointer_key)
         if latest and latest.get("bronze_sha256")==source_sha:
             return {"source":source,"state":"unchanged","version":version}
+        # A prior run may have uploaded the full version but failed before moving latest.
+        previous=get_json(s3,prefix+"manifest.json")
+        if previous and previous.get("bronze_sha256")==source_sha:
+            ready=True
+            for name in previous.get("output_sha256",{}):
+                try:s3.head_object(Bucket=BUCKET,Key=prefix+name)
+                except Exception as exc:
+                    if missing(exc):ready=False;break
+                    raise
+            if ready and len(previous.get("output_sha256",{}))==4:
+                if not dry_run:
+                    latest={"source":source,"version":version,"bronze_sha256":source_sha,
+                            "prefix":prefix,"manifest":prefix+"manifest.json"}
+                    s3.put_object(Bucket=BUCKET,Key=pointer_key,
+                                  Body=json.dumps(latest).encode(),ContentType="application/json")
+                return {"source":source,"state":"dry_run" if dry_run else "recovered","version":version}
         out=root/"silver"
         manifest=write_outputs(source,bronze,out,source_sha)
         if dry_run:
