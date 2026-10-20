@@ -72,7 +72,5 @@ jobs:
         run: |
           set -euo pipefail
           case "$SOURCE" in
-            dav|icd10) python -u pipeline/bronze/run_crawlers.py --source "$SOURCE" ;;
-            rxnorm) python -u pipeline/bronze/rxnorm_pipeline.py ;;
-            medi) python -u pipeline/bronze/medi_watch.py ;;
+            dav|icd10|rxnorm|medi) python -u pipeline/bronze/run_compact.py --source "$SOURCE" ;;
           esac
