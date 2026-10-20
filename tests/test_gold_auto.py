@@ -121,9 +121,9 @@ class GoldIntegrationTest(unittest.TestCase):
     "mapping":[
       {"dav_row_id":"1","candidate_scd_rxcui":"103",
        "candidate_scd_name":"acetaminophen 500 MG Oral Tablet",
-       "mapping_status":"CANDIDATE_REVIEW","review_reason":"RXNREL_NOT_VALIDATED"},
+       "mapping_status":"CANDIDATE_REVIEW","review_reason":"RXNREL_NOT_VALIDATED","clinical_verified":"false"},
       {"dav_row_id":"2","candidate_scd_rxcui":"",
-       "mapping_status":"UNMATCHED_REVIEW","review_reason":"NO_MATCH"}],
+       "mapping_status":"UNMATCHED_REVIEW","review_reason":"NO_MATCH","clinical_verified":"false"}],
     "evidence":[
       {"dav_row_id":"1","component_order":"1","component_raw":"acetaminophen",
        "ingredient_candidate_rxcui":"100","ingredient_candidate_name":"acetaminophen",
