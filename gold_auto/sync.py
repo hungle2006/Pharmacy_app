@@ -29,7 +29,7 @@ HEADERS={
            "dav_dosage_form","dav_package","dav_unit","dav_manufacturer","dav_country"},
     "rxnorm":{"rxcui","display_name","tty","sab"},
     "icd":{"silver_code_canonical","name_vi","name_en","model","silver_qc_status","silver_qc_flags","source"},
-    "mapping":{"dav_row_id","candidate_scd_rxcui","candidate_scd_name","mapping_status","review_reason"},
+    "mapping":{"dav_row_id","candidate_scd_rxcui","candidate_scd_name","mapping_status","review_reason","clinical_verified"},
     "evidence":{"dav_row_id","component_order","component_raw","ingredient_search_name",
                 "ingredient_candidate_rxcui","ingredient_candidate_name","ingredient_candidate_tty",
                 "candidate_count","match_method","evidence_status","review_reason","clinical_verified"},
