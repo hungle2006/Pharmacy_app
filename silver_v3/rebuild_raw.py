@@ -79,5 +79,7 @@ def main():
   '--dav-product',davdir/'dav_product_normalized_v2.csv',
   '--dav-component',davdir/'dav_component_normalized_v2.csv',
   '--rxnorm-scd',scd,'--rxnorm-clean',cleaned,'--output-dir',out/'dav_rxnorm')
+ from .excel_exports import build_compat
+ print('Workbook export counts:',build_compat(out))
  print('Done. Review outputs before any clinical mapping approval.')
 if __name__=='__main__':main()
