@@ -73,7 +73,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ] && [ "$MANUAL_DRY_RUN" = 'true' ]; then
-            python -m silver_auto.r2_runner --source "$SELECTED_SOURCE" --dry-run
+            python -m silver_auto.r2_runner --source "$SELECTED_SOURCE" --dry-run --cleanup-legacy
           else
-            python -m silver_auto.r2_runner --source "$SELECTED_SOURCE"
+            python -m silver_auto.r2_runner --source "$SELECTED_SOURCE" --cleanup-legacy
           fi
