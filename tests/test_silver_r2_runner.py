@@ -20,6 +20,10 @@ class FakeR2:
   self.objects[key]=(Path(path).read_bytes(),(ExtraArgs or {}).get('Metadata',{}))
  def put_object(self,Bucket,Key,Body,**kwargs):
   self.objects[Key]=(Body if isinstance(Body,bytes) else Body.encode(),{})
+ def list_objects_v2(self,Bucket,Prefix,MaxKeys=1000,**kwargs):
+  return {'Contents':[{'Key':k} for k in self.objects if k.startswith(Prefix)],'IsTruncated':False}
+ def delete_object(self,Bucket,Key):
+  self.objects.pop(Key,None)
 def example():
  raw={'dav_row_id':'1','dav_drug_name':'Thuốc mẫu',
    'dav_active_ingredient_raw':'paracetamol','dav_strength':'500 MG',
@@ -37,11 +41,22 @@ class TestR2Runner(unittest.TestCase):
   with tempfile.TemporaryDirectory() as td:
    a=process(s,'dav',td,False)
    self.assertEqual(a['state'],'published')
-   pointer=json.loads(s.objects['silver/v4/dav/latest.json'][0])
-   self.assertEqual(pointer['prefix'],a['prefix'])
-   self.assertIn(a['prefix']+'manifest.json',s.objects)
+   manifest=json.loads(s.objects['_control/silver/dav.json'][0])
+   self.assertEqual(manifest['silver_key'],'silver/dav.csv')
+   self.assertIn('silver/dav.csv',s.objects)
+   self.assertEqual(len([k for k in s.objects if k.startswith('silver/')]),1)
    b=process(s,'dav',td,False)
    self.assertEqual(b['state'],'unchanged')
+ def test_replaces_in_place_and_cleans_legacy_after_verification(self):
+  s=FakeR2()
+  s.objects['bronze/dav.csv']=(example(),{})
+  s.objects['silver/v4/dav/version=old/all.csv']=(b'old',{})
+  s.objects['silver/dav/sha256=old/snapshot.csv.gz']=(b'old',{})
+  with tempfile.TemporaryDirectory() as td:
+   first=process(s,'dav',td,False,True)
+   self.assertEqual(first['legacy_removed'],2)
+   self.assertEqual(sorted(k for k in s.objects if k.startswith('silver/')),['silver/dav.csv'])
+   self.assertEqual(process(s,'dav',td,False,True)['state'],'unchanged')
  def test_dry_run_never_publishes(self):
   s=FakeR2();s.objects['bronze/dav.csv']=(example(),{})
   with tempfile.TemporaryDirectory() as td:
