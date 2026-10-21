@@ -99,3 +99,26 @@
 @media(max-width:760px){.cover-cta{align-items:stretch;gap:9px}.cover-lookup-btn{min-height:46px;padding:12px 15px;font-size:12px}.lookup-intro{padding:20px 19px;border-radius:15px}.lookup-intro h2{font-size:23px}.lookup-intro p{font-size:13px}.lookup-search-form{gap:9px}.lookup-search-box{min-height:50px;padding:0 11px}.lookup-search-box input{font-size:14px}.lookup-search-box kbd{display:none}.lookup-submit{padding:0 14px;font-size:13px;gap:6px}.lookup-toolbar{align-items:flex-start}.lookup-tabs{width:100%;display:grid;grid-template-columns:1fr 1fr}.lookup-tabs button{padding:9px 5px;font-size:12px}.lookup-current-toggle{padding:2px 0}.lookup-results-heading{padding:16px}.lookup-item{padding:16px}.lookup-item-name{font-size:15px}.lookup-item-bottom{align-items:flex-start;gap:6px}.lookup-item-bottom>b{font-size:12px}.lookup-detail-panel{padding:18px}.lookup-fields{grid-template-columns:1fr 1fr}.lookup-field{padding:10px}.lookup-detail-title{font-size:19px}}
 @media(max-width:390px){.lookup-search-form{flex-wrap:wrap}.lookup-search-box{flex-basis:100%}.lookup-submit{width:100%;min-height:42px}.lookup-tabs button span{display:none}.lookup-field{grid-column:span 2}}
 @media(prefers-reduced-motion:reduce){.lookup-skeleton span{animation:none}}
+
+/* RxNorm to DAV reverse lookup (read-only provenance-aware matches). */
+.lookup-reverse{margin-top:24px;padding-top:19px;border-top:1px solid var(--border)}
+.lookup-reverse-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.lookup-reverse-heading strong{font-size:15px;color:var(--ink)}
+.lookup-reverse-heading span{font-size:12px;color:var(--accent);font-weight:800}
+.lookup-reverse-note{color:var(--muted);font-size:12px;line-height:1.65;margin:7px 0 14px}
+.lookup-reverse-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.lookup-reverse-tabs button{font-size:11px;color:var(--muted);font-weight:700;padding:8px 10px;border:1px solid var(--border);background:var(--surface-soft);border-radius:8px}
+.lookup-reverse-tabs button[aria-pressed=true]{background:var(--white);border-color:var(--accent);color:var(--accent)}
+.lookup-reverse-item{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:7px;width:100%;background:var(--white);color:var(--ink);padding:13px 12px;border:1px solid var(--border);border-radius:10px;margin:9px 0;transition:background .18s,border-color .18s}
+.lookup-reverse-item:hover{background:var(--surface-soft);border-color:var(--accent)}
+.lookup-reverse-item>span:first-child{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:7px}
+.lookup-reverse-item small{color:var(--muted);font-size:11px}
+.lookup-reverse-item>strong{font-size:14px;font-weight:750;overflow-wrap:anywhere}
+.lookup-reverse-item .lookup-item-sub{font-size:12px}
+.lookup-reverse-bottom{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;font-size:11px;line-height:1.5;color:var(--muted)}
+.lookup-reverse-bottom b{color:var(--accent);font-size:12px;white-space:nowrap}
+.lookup-reverse-pagination{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;font-size:12px;color:var(--muted)}
+.lookup-reverse-pagination button,.lookup-back-to-rx{background:var(--surface-soft);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-weight:750;font-size:12px}
+.lookup-reverse-pagination button:hover:not(:disabled),.lookup-back-to-rx:hover{border-color:var(--accent);color:var(--accent)}
+.lookup-back-to-rx{margin-bottom:12px;display:inline-block}
+@media(max-width:760px){.lookup-reverse-item{padding:12px}.lookup-reverse-bottom{flex-wrap:wrap}.lookup-reverse-bottom b{white-space:normal}}
