@@ -114,3 +114,52 @@ test('both APIs fail closed without Neon connection credentials',async()=>{
     else process.env.DATABASE_URL=prior;
   }
 });
+
+test('Drug lookup returns one product per card with the newest price, while preserving observation mode',async()=>{
+  const db=new PGlite();
+  try{
+    await db.exec([
+      "CREATE TABLE dav_product (dav_row_id text primary key,drug_name text,",
+      "active_ingredient_raw text,strength_raw text,dosage_form_raw text,manufacturer text,",
+      "country text,registration_number text,source text,catalog_duplicate_status text,",
+      "catalog_equivalent_to text,unit text,package text);",
+      "CREATE TABLE price_record (price_id text primary key,dav_row_id text,price_vnd bigint,",
+      "currency text,price_type text,declaration_date date,unit text,package text);",
+      "INSERT INTO dav_product (dav_row_id,drug_name,source) VALUES",
+      "('A','Drug A','SILVER_R2'),('B','Drug B','SILVER_R2');",
+      "INSERT INTO price_record (price_id,dav_row_id,price_vnd,currency,declaration_date)",
+      "VALUES ('old','A',1000,'VND','2024-01-01'),",
+      "('new','A',2000,'VND','2026-10-21');"
+    ].join(' '));
+    const obs=data.buildQuery({pageSize:'10'});
+    const product=data.buildQuery({mode:'products',pageSize:'10',currentOnly:'true'});
+    const observationCount=await db.query(obs.countSql,obs.countParams);
+    const productCount=await db.query(product.countSql,product.countParams);
+    assert.equal(Number(observationCount.rows[0].total_rows),3);
+    assert.equal(Number(productCount.rows[0].total_rows),2);
+    const onePerDrug=await db.query(product.rowsSql,product.params);
+    assert.equal(onePerDrug.rows.length,2);
+    assert.equal(onePerDrug.rows[0].id,'A');
+    assert.equal(onePerDrug.rows[0].price_id,'new');
+    assert.equal(onePerDrug.rows[1].id,'B');
+    assert.equal(onePerDrug.rows[1].price_vnd,null);
+  }finally{await db.close();}
+});
+
+test('Drug Lookup workspace is wired into navigation and usable on phones',()=>{
+  const fs=require('node:fs');
+  const html=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
+  const app=fs.readFileSync(require('node:path').join(__dirname,'../assets/presentation.js'),'utf8');
+  const lookup=fs.readFileSync(require('node:path').join(__dirname,'../assets/drug-lookup.js'),'utf8');
+  const css=fs.readFileSync(require('node:path').join(__dirname,'../assets/drug-lookup.css'),'utf8');
+  for(const id of ['start-lookup','lookup-panel','lookup-form','lookup-search','lookup-results',
+    'lookup-details','lookup-tab-dav','lookup-tab-rx','lookup-prev','lookup-next'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(app,/\['lookup','⌕','Tra cứu thuốc'/);
+  assert.match(app,/pharmabiz:lookup-view/);
+  assert.match(lookup,/mode','products'/);
+  assert.match(lookup,/\/api\/rxnorm\?/);
+  assert.match(css,/@media\(max-width:760px\)/);
+  assert.match(html,/assets\/drug-lookup\.css/);
+  assert.match(html,/assets\/drug-lookup\.js/);
+});
