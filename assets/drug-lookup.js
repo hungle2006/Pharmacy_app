@@ -156,6 +156,25 @@
       '<p class="lookup-warning">Mã ứng viên chưa được xác minh lâm sàng. Không sử dụng kết quả này để kê đơn hoặc tự điều trị.</p></section>';
     if(raw.catalog_duplicate_status&&raw.catalog_duplicate_status!=='LEGACY_UNRESOLVED')
       details.insertAdjacentHTML('beforeend','<p class="lookup-warning">Sản phẩm cũ đang được đánh dấu nghi trùng với bản Silver; dữ liệu giá và mapping lịch sử chưa bị xóa.</p>');
+    const eligible=raw.price_type==='EXPECTED_WHOLESALE_PRICE_VAT'&&
+      String(raw.unit||'').trim().toLocaleLowerCase('vi-VN')==='viên'&&
+      Boolean(p.active_ingredient_raw);
+    details._mlRow=eligible?{
+      ingredient:String(p.active_ingredient_raw),
+      strength:String(p.strength_raw||'UNKNOWN'),
+      dosage_form:String(p.dosage_form_raw||'UNKNOWN'),
+      manufacturer:String(raw.manufacturer||'UNKNOWN'),
+      country:String(raw.country||'UNKNOWN'),
+      package:String(raw.package||'UNKNOWN'),
+      price_type:'EXPECTED_WHOLESALE_PRICE_VAT',unit:'viên'
+    }:null;
+    details.insertAdjacentHTML('beforeend',
+      '<section class="lookup-ml"><div class="eyebrow">AI PRICE ESTIMATION</div>'+
+      '<h4>Dự đoán giá bằng AI</h4>'+
+      (eligible?'<p>Giá bán buôn dự kiến có VAT, tính theo mỗi viên. AI dự đoán từ dữ liệu Gold và có sai số.</p>'+
+      '<button type="button" id="lookup-predict-btn">Ước lượng giá AI ↗</button>'+
+      '<div id="lookup-predict-out" role="status" aria-live="polite"></div>':
+      '<p>Model hiện chỉ hỗ trợ thuốc có loại giá bán buôn dự kiến (VAT) và đơn vị viên. Các loại giá, hộp hoặc lọ khác chưa được huấn luyện.</p>')+'</section>');
     bindClose();
   }
   // Each RxNorm term can be explored in the opposite direction without
@@ -297,6 +316,30 @@
       details.innerHTML='<div class="lookup-detail-empty"><h3>Không tải được chi tiết</h3><p>'+esc(e.message||'Lỗi kết nối')+'</p></div>';
     }
   }
+  details.addEventListener('click',async event=>{
+    const button=event.target.closest('#lookup-predict-btn');
+    if(!button||!details._mlRow)return;
+    const output=$('lookup-predict-out');
+    const request=state.detailRequestId;
+    button.disabled=true;
+    output.textContent='Đang yêu cầu Render dự đoán…';
+    try{
+      const response=await fetch('/api/predict-price',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(details._mlRow)
+      });
+      const result=await response.json();
+      if(request!==state.detailRequestId||!output.isConnected)return;
+      if(!response.ok)throw Error(result.notice||result.detail||'Model chưa sẵn sàng');
+      output.innerHTML='<strong>'+esc(price(result.predicted_price_vnd))+' / viên</strong>'+
+        '<small>Model '+esc(result.model_version||'—')+
+        ' · MAE kiểm thử '+esc(price(result.test_mae_vnd))+
+        '</small><p>Đây là dự đoán giá kê khai, không phải giá bán thực tế hoặc lời khuyên điều trị.</p>';
+    }catch(e){
+      if(request===state.detailRequestId&&output.isConnected)
+        output.textContent='Chưa dự đoán được: '+String(e.message||'Lỗi kết nối')+'. Nếu Render đang ngủ, thử lại sau khi khởi động.';
+    }finally{if(button.isConnected)button.disabled=false;}
+  });
   $('lookup-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(state.debounce);state.page=1;search();});
   $('lookup-search').addEventListener('input',()=>{
     clearTimeout(state.debounce);
