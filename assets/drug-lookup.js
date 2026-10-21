@@ -156,9 +156,9 @@
       '<p class="lookup-warning">Mã ứng viên chưa được xác minh lâm sàng. Không sử dụng kết quả này để kê đơn hoặc tự điều trị.</p></section>';
     if(raw.catalog_duplicate_status&&raw.catalog_duplicate_status!=='LEGACY_UNRESOLVED')
       details.insertAdjacentHTML('beforeend','<p class="lookup-warning">Sản phẩm cũ đang được đánh dấu nghi trùng với bản Silver; dữ liệu giá và mapping lịch sử chưa bị xóa.</p>');
-    const eligible=raw.price_type==='EXPECTED_WHOLESALE_PRICE_VAT'&&
-      String(raw.unit||'').trim().toLocaleLowerCase('vi-VN')==='viên'&&
-      Boolean(p.active_ingredient_raw);
+    const eligible=Boolean(p.active_ingredient_raw)&&
+      Boolean(String(raw.price_type||'').trim())&&
+      Boolean(String(raw.unit||'').trim());
     details._mlRow=eligible?{
       ingredient:String(p.active_ingredient_raw),
       strength:String(p.strength_raw||'UNKNOWN'),
@@ -166,15 +166,15 @@
       manufacturer:String(raw.manufacturer||'UNKNOWN'),
       country:String(raw.country||'UNKNOWN'),
       package:String(raw.package||'UNKNOWN'),
-      price_type:'EXPECTED_WHOLESALE_PRICE_VAT',unit:'viên'
+      price_type:String(raw.price_type).trim(),unit:String(raw.unit).trim()
     }:null;
     details.insertAdjacentHTML('beforeend',
       '<section class="lookup-ml"><div class="eyebrow">AI PRICE ESTIMATION</div>'+
       '<h4>Dự đoán giá bằng AI</h4>'+
-      (eligible?'<p>Giá bán buôn dự kiến có VAT, tính theo mỗi viên. AI dự đoán từ dữ liệu Gold và có sai số.</p>'+
+      (eligible?'<p>Dự đoán theo loại giá '+esc(raw.price_type)+' · đơn vị '+esc(raw.unit)+'. Chỉ các phân khúc đã vượt kiểm định mới có kết quả. Giá có sai số.</p>'+
       '<button type="button" id="lookup-predict-btn">Ước lượng giá AI ↗</button>'+
       '<div id="lookup-predict-out" role="status" aria-live="polite"></div>':
-      '<p>Model hiện chỉ hỗ trợ thuốc có loại giá bán buôn dự kiến (VAT) và đơn vị viên. Các loại giá, hộp hoặc lọ khác chưa được huấn luyện.</p>')+'</section>');
+      '<p>Thiếu thông tin hoạt chất, loại giá hoặc đơn vị tính nên chưa thể dự đoán an toàn.</p>')+'</section>');
     bindClose();
   }
   // Each RxNorm term can be explored in the opposite direction without
@@ -330,11 +330,16 @@
       });
       const result=await response.json();
       if(request!==state.detailRequestId||!output.isConnected)return;
-      if(!response.ok)throw Error(result.notice||result.detail||'Model chưa sẵn sàng');
-      output.innerHTML='<strong>'+esc(price(result.predicted_price_vnd))+' / viên</strong>'+
+      if(!response.ok){
+        const reason=String(result.notice||result.detail||'Model chưa sẵn sàng');
+        if(reason.includes('SEGMENT_NOT_APPROVED'))throw Error('Chưa có model đạt chuẩn cho loại giá và đơn vị của thuốc này');
+        throw Error(reason);
+      }
+      output.innerHTML='<strong>'+esc(price(result.predicted_price_vnd))+' / '+esc(result.unit||details._mlRow.unit)+'</strong>'+
         '<small>Model '+esc(result.model_version||'—')+
         ' · MAE kiểm thử '+esc(price(result.test_mae_vnd))+
-        '</small><p>Đây là dự đoán giá kê khai, không phải giá bán thực tế hoặc lời khuyên điều trị.</p>';
+        '</small>'+(result.data_coverage_warning?'<p class="lookup-warning">'+esc(result.data_coverage_warning)+'</p>':'')+
+        '<p>Đây là dự đoán giá kê khai, không phải giá bán thực tế hoặc lời khuyên điều trị.</p>';
     }catch(e){
       if(request===state.detailRequestId&&output.isConnected)
         output.textContent='Chưa dự đoán được: '+String(e.message||'Lỗi kết nối')+'. Nếu Render đang ngủ, thử lại sau khi khởi động.';
