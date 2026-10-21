@@ -4,7 +4,7 @@ name: Train Pharmacy Price Model
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, feature/future-drug-price-forecast-20261021]
     paths:
       - 'ml_price/**'
       - '.github/workflows/train-price-model.yml'
