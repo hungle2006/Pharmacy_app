@@ -78,3 +78,9 @@ The browser's main `/api/analytics` dashboard calculates aggregate metrics on **
 Both APIs use server-side `DATABASE_URL`, explicit SQL `ORDER BY`, bounded page sizes, safe query parameters and no new database tables or R2 copies. Counts reflect **product × price observations**, not necessarily unique products. The frontend CSV button on the main dashboard continues to export **the current dashboard page** rather than claiming to export all matching records. Full exports would require a separate controlled batch/streaming endpoint.
 
 Tests in `tests/gold-data-pagination.test.js` exercise 2,105 PostgreSQL rows, including page 21 and 22, parameter safety, and the RxNorm query using PGlite.
+
+## Tra cứu thuốc trên PharmaBiz
+
+Mở [PharmaBiz](https://pharmacyapp-data.vercel.app/) rồi chọn **Tra cứu thuốc** ngay ở trang giới thiệu hoặc menu bên trái. Tab **Thuốc Việt Nam** tìm theo tên thuốc, hoạt chất, số đăng ký hoặc nhà sản xuất. Mặc định chỉ dùng dữ liệu DAV hiện tại từ Silver; có thể bỏ chọn để tra cả Gold lịch sử. Mỗi kết quả biểu diễn **một DAV ID** và giá quan sát mới nhất nếu có. Chọn một thuốc để xem hàm lượng, dạng bào chế, thông tin đăng ký, ứng viên RxNorm và bằng chứng thành phần. Tab **RxNorm** tra cứu bằng tên thuật ngữ hoặc RxCUI.
+
+Giao diện hoạt động trực tiếp qua `/api/data?mode=products` và `/api/rxnorm`, có tìm kiếm và phân trang trên toàn bộ Neon Gold; không tạo bản sao, không giới hạn 2.000 dòng. Mọi RxCUI ứng viên chưa xét duyệt được phân biệt rõ với mapping chấp nhận trong Gold. **Không dùng mapping chưa được xác minh để tư vấn điều trị.** Giao diện đáp ứng điện thoại và chế độ sáng/tối; các dashboard phân tích cũ vẫn hoạt động.
