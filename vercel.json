@@ -12,7 +12,7 @@
     "api/rxnorm.js": {
       "maxDuration": 30
     },
-    "api/predict-price.js": {
+    "api/forecast-price.js": {
       "maxDuration": 30
     }
   },
