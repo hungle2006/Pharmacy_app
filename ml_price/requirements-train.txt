@@ -5,3 +5,4 @@ scikit-learn==1.6.1
 SQLAlchemy==2.0.40
 psycopg2-binary==2.9.10
 boto3==1.36.0
+fastapi==0.115.12
