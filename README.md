@@ -84,3 +84,5 @@ Tests in `tests/gold-data-pagination.test.js` exercise 2,105 PostgreSQL rows, in
 Mở [PharmaBiz](https://pharmacyapp-data.vercel.app/) rồi chọn **Tra cứu thuốc** ngay ở trang giới thiệu hoặc menu bên trái. Tab **Thuốc Việt Nam** tìm theo tên thuốc, hoạt chất, số đăng ký hoặc nhà sản xuất. Mặc định chỉ dùng dữ liệu DAV hiện tại từ Silver; có thể bỏ chọn để tra cả Gold lịch sử. Mỗi kết quả biểu diễn **một DAV ID** và giá quan sát mới nhất nếu có. Chọn một thuốc để xem hàm lượng, dạng bào chế, thông tin đăng ký, ứng viên RxNorm và bằng chứng thành phần. Tab **RxNorm** tra cứu bằng tên thuật ngữ hoặc RxCUI.
 
 Giao diện hoạt động trực tiếp qua `/api/data?mode=products` và `/api/rxnorm`, có tìm kiếm và phân trang trên toàn bộ Neon Gold; không tạo bản sao, không giới hạn 2.000 dòng. Mọi RxCUI ứng viên chưa xét duyệt được phân biệt rõ với mapping chấp nhận trong Gold. **Không dùng mapping chưa được xác minh để tư vấn điều trị.** Giao diện đáp ứng điện thoại và chế độ sáng/tối; các dashboard phân tích cũ vẫn hoạt động.
+
+Truy cập trực tiếp mục tra cứu mà không qua trang giới thiệu: https://pharmacyapp-data.vercel.app/?view=lookup
