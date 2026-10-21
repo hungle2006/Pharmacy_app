@@ -2,7 +2,7 @@
 
 **Design and Development of a Business Intelligence Dashboard for Pharmaceutical Pricing and Market Analysis in Vietnam**
 
-Production: https://pharmacyapp-murex.vercel.app/
+Production: https://pharmacyapp-data.vercel.app/
 
 ## Experience
 
@@ -62,3 +62,19 @@ npm run build
 ```
 
 `src/scene3d.js` loads the exported GLB with Three.js, uses a procedural studio environment, pauses rendering when hidden, and respects reduced motion. Browsers without WebGL show a CPU-rendered Blender poster with CSS float/parallax animation; a lightweight canvas remains as the final image-load fallback. Three.js is bundled locally during the Vercel build; no third-party runtime CDN is required. Timeline windows end at the latest month in the filtered data; absent months are not filled. The P10/P90 analysis card summarizes the observed distribution and does not imply unit-normalized market prices.
+
+
+## Paginated complete Gold data and RxNorm endpoints
+
+The browser's main `/api/analytics` dashboard calculates aggregate metrics on **all matching Neon Gold records** and displays 12 paginated observations at a time. The independent legacy `/api/data` endpoint formerly sampled `LIMIT 2000` rows and did not drive the dashboard. It now reads **all Gold rows by paginating in SQL**; no total-record cap or in-memory download of the database.
+
+- `GET /api/data?page=1&pageSize=100` — default 100 rows, maximum 200 per request. Returns `records`, `page`, `pageSize`, `totalRows`, `totalPages`, `hasNextPage`, `hasPreviousPage`, `sampled:false`.
+- `GET /api/data?page=21&pageSize=100` — retrieves beyond the previous 2,000-row cutoff.
+- `GET /api/data?q=paracetamol&ingredient=...&country=...&kind=...&unit=...` — fully parameterized filters across the Gold source, including unpriced products.
+- `GET /api/data?currentOnly=true` — current Silver DAV product records only. Without this option **both** historic and current DAV rows are included (no silent loss). Legacy probable-duplicate flags `catalog_duplicate_status` and `catalog_equivalent_to` accompany results, but do not delete or hide original price history.
+- `GET /api/rxnorm?q=acetaminophen&page=1&pageSize=25` — read-only canonical RxNorm terminology + SCD text metadata, with 100-row page cap and a full result count.
+- `GET /api/rxnorm?dav_row_id=100024` — DAV product's recorded, accepted or suggested SCD and component evidence; unverified RxCUI candidates are never presented as clinically validated mappings.
+
+Both APIs use server-side `DATABASE_URL`, explicit SQL `ORDER BY`, bounded page sizes, safe query parameters and no new database tables or R2 copies. Counts reflect **product × price observations**, not necessarily unique products. The frontend CSV button on the main dashboard continues to export **the current dashboard page** rather than claiming to export all matching records. Full exports would require a separate controlled batch/streaming endpoint.
+
+Tests in `tests/gold-data-pagination.test.js` exercise 2,105 PostgreSQL rows, including page 21 and 22, parameter safety, and the RxNorm query using PGlite.
