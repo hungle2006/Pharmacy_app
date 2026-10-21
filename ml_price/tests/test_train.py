@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from ml_price.constants import FEATURES
-from ml_price.train import clean_data, time_split, group_median_baseline, train
+from ml_price.train import clean_data, time_split, group_median_baseline, predict_vnd, train
 
 class TestPriceML(unittest.TestCase):
     def sample(self,n=400):
@@ -50,8 +50,24 @@ class TestPriceML(unittest.TestCase):
             self.assertEqual(report["currency"],"VND")
             self.assertEqual(report["unit"],"viên")
             self.assertEqual(report["features"],FEATURES)
+            self.assertIn(report["target_transform"], ("log1p", "identity"))
+            self.assertEqual(set(report["validation_mae_vnd"]), {"log_rmse", "vnd_mae"})
             self.assertTrue((Path(directory)/"price_model.cbm").exists())
             self.assertEqual(json.loads((Path(directory)/"metadata.json").read_text())["status"],report["status"])
+    def test_prediction_target_transforms(self):
+        class ConstantModel:
+            def __init__(self, value):
+                self.value = value
+            def predict(self, features):
+                return np.full(len(features), self.value)
+
+        features = pd.DataFrame({"x": [1, 2]})
+        np.testing.assert_allclose(predict_vnd(ConstantModel(np.log1p(500)), features, "log1p"), [500, 500])
+        np.testing.assert_allclose(predict_vnd(ConstantModel(500), features, "identity"), [500, 500])
+        np.testing.assert_allclose(predict_vnd(ConstantModel(-7), features, "identity"), [0, 0])
+        with self.assertRaises(ValueError):
+            predict_vnd(ConstantModel(100), features, "unknown")
+
     def test_small_dataset_fails_closed(self):
         with self.assertRaises(ValueError):
             time_split(clean_data(self.sample(20)))
