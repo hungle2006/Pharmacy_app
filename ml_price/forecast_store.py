@@ -8,7 +8,7 @@ from tempfile import gettempdir
 
 import boto3
 from catboost import CatBoostRegressor
-from ml_price.forecast import FEATURES, HORIZONS
+from ml_price.forecast_schema import FEATURES, HORIZONS
 from ml_price.upload_forecast import LATEST_KEY
 
 class ForecastStore:
