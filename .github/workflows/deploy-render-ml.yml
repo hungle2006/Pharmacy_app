@@ -1,0 +1,62 @@
+name: Deploy PharmaBiz ML API to Render
+
+# Deploy code from main ONLY after the live Neon training + ML tests succeed.
+# GitHub Actions is an explicit backup for Render's Git auto-deploy integration.
+on:
+  workflow_run:
+    workflows:
+      - Train Pharmacy Price Model
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pharmabiz-render-ml-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy-render:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check Render deploy hook secret
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RENDER_DEPLOY_HOOK_URL}" ]; then
+            echo "::error::Missing Actions repository secret RENDER_DEPLOY_HOOK_URL. Copy the Deploy Hook from the Render service Settings page into GitHub Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          python - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+          uri = urlsplit(os.environ["RENDER_DEPLOY_HOOK_URL"])
+          if uri.scheme != "https" or uri.hostname != "api.render.com" or not uri.path.startswith("/deploy/"):
+              raise SystemExit("::error::Invalid Render deploy hook URL: must be an HTTPS Render Deploy Hook")
+          PY
+      - name: Ask Render to deploy latest main commit
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          set -euo pipefail
+          # Do not print the hook URL: it contains a secret authorization key.
+          code="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+            --connect-timeout 10 --max-time 40 --request POST "${RENDER_DEPLOY_HOOK_URL}")"
+          if [ "${code}" != "200" ] && [ "${code}" != "202" ]; then
+            echo "::error::Render rejected deploy hook (HTTP ${code})"
+            exit 1
+          fi
+          echo "Render accepted the deploy request (HTTP ${code})."
+          echo "### PharmaBiz Render deployment" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Render accepted the deploy hook (HTTP ${code})." >> "${GITHUB_STEP_SUMMARY}"
+          echo "Check the Render service's Deploys page for the final Live status." >> "${GITHUB_STEP_SUMMARY}"
