@@ -107,8 +107,17 @@ def predict_price(payload: PriceFeatures, x_api_key: str | None = Header(default
     if store.model is None or store.metadata is None:
         raise HTTPException(status_code=503, detail="NO_APPROVED_MODEL")
     row = {name: (getattr(payload, name) or "UNKNOWN").strip() or "UNKNOWN" for name in FEATURES}
-    log_price = float(store.model.predict(pd.DataFrame([row], columns=FEATURES))[0])
-    estimated = max(0, round(math.expm1(min(log_price, 40))))
+    output = float(store.model.predict(pd.DataFrame([row], columns=FEATURES))[0])
+    transform = store.metadata.get("target_transform", "log1p")
+    if transform == "log1p":
+        estimated_vnd = math.expm1(min(output, 40))
+    elif transform == "identity":
+        estimated_vnd = output
+    else:
+        raise HTTPException(status_code=503, detail="UNSUPPORTED_MODEL_TRANSFORM")
+    if not math.isfinite(estimated_vnd):
+        raise HTTPException(status_code=503, detail="INVALID_MODEL_OUTPUT")
+    estimated = max(0, round(estimated_vnd))
     return {
         "predicted_price_vnd": estimated, "currency": "VND",
         "unit": SEGMENT_UNIT, "price_type": SEGMENT_PRICE_TYPE,
