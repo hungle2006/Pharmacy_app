@@ -1,0 +1,48 @@
+name: Train Pharmacy Price Model
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 0' # Sunday 10:00 Asia/Ho_Chi_Minh
+permissions:
+  contents: read
+concurrency:
+  group: pharmacy-price-training
+  cancel-in-progress: false
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: ml_price/requirements-train.txt
+      - name: Install pinned ML requirements
+        run: python -m pip install -r ml_price/requirements-train.txt
+      - name: Verify ML tests without Neon credentials
+        run: python -m unittest discover -s tests -p 'test_ml_price.py' -v
+      - name: Train from live Neon Gold and evaluate against group-median baseline
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.NEON_DATABASE_URL }}
+        run: python -m ml_price.train
+      - name: Save training report for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pharma-price-training-${{ github.run_number }}
+          path: models/price/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publish only approved model to private Cloudflare R2
+        env:
+          ML_R2_ENDPOINT: ${{ secrets.ML_R2_ENDPOINT || secrets.R2_ENDPOINT }}
+          ML_R2_BUCKET: ${{ secrets.ML_R2_BUCKET || secrets.R2_BUCKET }}
+          ML_R2_ACCESS_KEY_ID: ${{ secrets.ML_R2_ACCESS_KEY_ID || secrets.R2_ACCESS_KEY_ID }}
+          ML_R2_SECRET_ACCESS_KEY: ${{ secrets.ML_R2_SECRET_ACCESS_KEY || secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          for var in ML_R2_ENDPOINT ML_R2_BUCKET ML_R2_ACCESS_KEY_ID ML_R2_SECRET_ACCESS_KEY; do
+            if [ -z "${!var}" ]; then echo "Missing GitHub secret: $var" >&2; exit 1; fi
+          done
+          python -m ml_price.upload
