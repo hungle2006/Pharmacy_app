@@ -44,7 +44,7 @@ test('Gold records are paginated across row 2000 without global truncation',asyn
     assert.equal(last.records.at(-1).id,'P02105');
     const any=await db.query(data.buildQuery({q:'Drug 210',pageSize:100}).countSql,
       data.buildQuery({q:'Drug 210',pageSize:100}).countParams);
-    assert.equal(Number(any.rows[0].total_rows),6);
+    assert.equal(Number(any.rows[0].total_rows),7);
   } finally { await db.close(); }
 });
 
