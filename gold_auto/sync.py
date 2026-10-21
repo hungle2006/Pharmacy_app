@@ -181,6 +181,28 @@ def write_gold(paths,fingerprints,db_url):
                                  ON d.dav_row_id=s.dav_row_id""")
                 if cur.fetchone()[0] != results["stage_dav"]:
                     raise ValueError("Gold reconciliation: DAV source keys are missing")
+                # Release gate: explain mapping NULLs rather than filling unknown RxCUI.
+                cur.execute("""SELECT COUNT(*) FROM public.dav_rxnorm_mapping
+                               WHERE silver_mapping_status IS NULL
+                                  OR candidate_evidence_status IS NULL
+                                  OR review_reason IS NULL""")
+                results["unexplained_mapping_rows"]=cur.fetchone()[0]
+                if results["unexplained_mapping_rows"]:
+                    raise ValueError("Gold quality gate: mapping rows without provenance/status")
+                cur.execute("""SELECT COUNT(*) FROM public.dav_rxnorm_mapping
+                               WHERE ingredient_component_total IS NOT NULL
+                                 AND ingredient_component_matched > ingredient_component_total""")
+                if cur.fetchone()[0]:
+                    raise ValueError("Gold quality gate: ingredient candidate counts inconsistent")
+                cur.execute("""SELECT COUNT(*) FROM public.dav_rxnorm_mapping
+                               WHERE suggested_scd_rxcui IS NULL""")
+                results["missing_scd_candidate_explained"]=cur.fetchone()[0]
+                cur.execute("""SELECT COUNT(*) FROM public.dav_product
+                               WHERE catalog_duplicate_status='POSSIBLE_SAME_PRODUCT_REVIEW'""")
+                results["potential_legacy_product_aliases"]=cur.fetchone()[0]
+                cur.execute("""SELECT COUNT(*) FROM public.dav_product
+                               WHERE catalog_duplicate_status='AMBIGUOUS_MULTIPLE_SILVER_ROWS_REVIEW'""")
+                results["ambiguous_legacy_aliases"]=cur.fetchone()[0]
         # Commit if all statements succeeded; connection closes after COMMIT.
     return results
 
