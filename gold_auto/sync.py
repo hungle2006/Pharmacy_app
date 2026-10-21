@@ -45,7 +45,9 @@ DEPENDENCIES={"mapping":"dav_rxnorm_mapping","evidence":"dav_rxnorm_component_ev
 SQL_SOURCES={"dav_product":"dav","price_record":"dav",
              "disease":"icd","rxnorm_concept":"rxnorm","rxnorm_scd":"scd",
              "rxnorm_scd_component":"scd","dav_rxnorm_mapping":"mapping",
-             "dav_rxnorm_evidence":"evidence","medi_relation":"medi"}
+             "dav_rxnorm_evidence":"evidence","medi_relation":"medi",
+             "dav_rxnorm_mapping_legacy_enrichment":"mapping",
+             "dav_catalog_legacy_equivalence":"dav"}
 
 def revision():
     h=hashlib.sha256()
