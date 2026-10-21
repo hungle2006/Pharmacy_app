@@ -1,0 +1,25 @@
+# Render Blueprint: private ML artifacts stored in Cloudflare R2.
+services:
+  - type: web
+    name: pharmabiz-price-ml
+    runtime: python
+    plan: free
+    region: singapore
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install -r ml_price/requirements-serve.txt
+    startCommand: uvicorn ml_price.serve:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: ML_API_KEY
+        sync: false
+      - key: ML_R2_ENDPOINT
+        sync: false
+      - key: ML_R2_BUCKET
+        sync: false
+      - key: ML_R2_ACCESS_KEY_ID
+        sync: false
+      - key: ML_R2_SECRET_ACCESS_KEY
+        sync: false
