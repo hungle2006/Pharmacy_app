@@ -54,6 +54,16 @@ ALIASES = {
     "paracetamol": "acetaminophen",
     "vitamin c": "ascorbic acid",
     "acid ascorbic": "ascorbic acid",
+    # Conservative spelling-only terminology candidates from DAV names.
+    # All uses stay CANDIDATE_REVIEW, never VERIFIED.
+    "methylprednisolon": "methylprednisolone",
+    "metronidazol": "metronidazole",
+    "hydroclorothiazid": "hydrochlorothiazide",
+    "hydrochlorothiazid": "hydrochlorothiazide",
+    "amoxicilin": "amoxicillin",
+    "clotrimazol": "clotrimazole",
+    "prednisolon": "prednisolone",
+    "glimepirid": "glimepiride",
 }
 def rows(path):
     with Path(path).open(encoding="utf-8-sig",newline="") as handle:
@@ -158,6 +168,8 @@ def lookup_ingredient(part,index):
     if not matches and key in ALIASES:
         matches=index.get(search_norm(ALIASES[key]),{})
         method="CURATED_LANGUAGE_ALIAS_REVIEW"
+    if not key:
+        return [],"MISSING_SOURCE_INGREDIENT","MISSING_SOURCE_INGREDIENT"
     if not matches:
         return [],"UNMATCHED_REVIEW","NO_RXNORM_INGREDIENT_EXACT_MATCH"
     sorted_matches=sorted(matches.values(),key=lambda x:(x["ingredient_rxcui"],x["ingredient_tty"]))
@@ -201,6 +213,7 @@ def build_all(dav,rxnorm,icd10,output_dir,medi=None):
                 "review_reason":reason,"clinical_verified":"false"})
             if len(matches)==1:selected.append(matches[0])
             if reason:problems.append(reason)
+        if not original.strip():problems.append("MISSING_SOURCE_INGREDIENT")
         if len(parts)>1:problems.append("MULTI_INGREDIENT_REQUIRES_COMPLETE_COMPONENT_SET")
         if "/" in original:problems.append("POSSIBLE_AMBIGUOUS_SEPARATOR")
         current_strength=strength(davrow.get("dav_strength",""))
