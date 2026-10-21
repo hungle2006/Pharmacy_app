@@ -24,9 +24,25 @@ jobs:
       - name: Verify ML tests without Neon credentials
         run: python -m unittest discover -s ml_price/tests -p 'test_*.py' -v
       - name: Train from live Neon Gold and evaluate against group-median baseline
+        id: training
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.NEON_DATABASE_URL }}
-        run: python -m ml_price.train
+        run: |
+          python -m ml_price.train
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          report = json.loads(Path("models/price/metadata.json").read_text(encoding="utf-8"))
+          approved = report["status"] == "approved"
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"approved={str(approved).lower()}\\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
+              out.write(f"### Pharmacy Price ML: {report['status']}\\n")
+              out.write(f"- Selected model: {report['selected_candidate']}\\n")
+              out.write(f"- Test MAE: {report['metrics']['mae_vnd']} VND; baseline MAE: {report['baseline_metrics']['mae_vnd']} VND\\n")
+              out.write("- R2 publish: " + ("eligible" if approved else "skipped (quality gate)") + "\\n")
+          PY
       - name: Save training report for review
         if: always()
         uses: actions/upload-artifact@v4
@@ -36,7 +52,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Publish only approved model to private Cloudflare R2
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.training.outputs.approved == 'true'
         env:
           ML_R2_ENDPOINT: ${{ secrets.ML_R2_ENDPOINT || secrets.R2_ENDPOINT }}
           ML_R2_BUCKET: ${{ secrets.ML_R2_BUCKET || secrets.R2_BUCKET }}
