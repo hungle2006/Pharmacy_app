@@ -1,0 +1,101 @@
+/* PharmaBiz Gold Drug Lookup — designed to fit the existing light/dark workspace */
+.cover-cta{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.cover-lookup-btn{min-height:49px;padding:12px 22px;border-radius:10px;border:1px solid #89cab47d;background:#ffffff12;color:var(--cover-text,#fff);font-size:14px;font-weight:750;letter-spacing:.1px;backdrop-filter:blur(8px)}
+.cover-lookup-btn:hover{background:#83d8b12b;border-color:#8cddbb}
+.lookup{margin:2px 0 24px}
+.lookup-intro{display:flex;align-items:center;justify-content:space-between;gap:22px;padding:28px 30px;border:1px solid var(--border);border-radius:20px;background:linear-gradient(118deg,var(--white) 0%,var(--surface-soft) 100%);position:relative;overflow:hidden}
+.lookup-intro:after{content:'✳';position:absolute;right:10%;top:-85px;font-size:240px;line-height:1;color:var(--accent);opacity:.045;pointer-events:none}
+.lookup-kicker{font-size:11px;font-weight:800;letter-spacing:1.55px;color:var(--accent)}
+.lookup-intro h2{font-size:27px;line-height:1.35;letter-spacing:-.9px;margin:9px 0 8px;color:var(--ink)}
+.lookup-intro h2 span{color:var(--accent)}
+.lookup-intro p{color:var(--muted);line-height:1.7;max-width:670px;margin:0;font-size:14px}
+.lookup-live{display:flex;align-items:center;gap:12px;align-self:flex-start;flex:none;font-size:11px;font-weight:800;color:var(--accent);border:1px solid var(--border);background:var(--white);padding:11px 14px;border-radius:999px;white-space:nowrap}
+.lookup-search-form{display:flex;align-items:stretch;gap:12px;margin:20px 0 12px}
+.lookup-search-box{min-width:0;flex:1;display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:12px;background:var(--white);padding:0 15px;min-height:56px;box-shadow:var(--shadow)}
+.lookup-search-box>span{color:var(--accent);font-size:28px;line-height:1}
+.lookup-search-box input{min-width:0;flex:1;background:transparent;color:var(--ink);outline:0;border:0;font-size:15px;padding:14px 0}
+.lookup-search-box input:focus-visible{outline:0}
+.lookup-search-box:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.lookup-search-box input::placeholder{color:var(--muted);opacity:.82}
+.lookup-search-box kbd{border:1px solid var(--border);border-radius:5px;color:var(--muted);padding:2px 7px;font-size:12px;font-family:inherit}
+.lookup-submit{display:inline-flex;align-items:center;justify-content:center;gap:22px;background:var(--accent);color:#fff;padding:0 25px;border-radius:11px;font-weight:750;white-space:nowrap}
+:root[data-theme=dark] .lookup-submit{color:#0d251b}
+.lookup-submit:hover{filter:brightness(1.08)}
+.lookup-submit span{font-size:20px;line-height:1}
+.lookup-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.lookup-tabs{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--border);background:var(--surface-soft);border-radius:11px}
+.lookup-tabs button{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:750;background:transparent;color:var(--muted);white-space:nowrap}
+.lookup-tabs button[aria-pressed=true]{background:var(--white);color:var(--accent);box-shadow:0 1px 7px #00000013}
+.lookup-tabs button span{font-weight:550;margin-left:3px;opacity:.75;font-size:11px}
+.lookup-current-toggle{display:inline-flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none}
+.lookup-current-toggle input{width:16px;height:16px;accent-color:var(--accent)}
+.lookup-message{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px;min-height:22px;margin:14px 1px 12px}
+.lookup-message:before{content:'';height:7px;width:7px;flex:none;border-radius:50%;background:#71d0a4}
+.lookup-message[data-kind=error]:before{background:#b5764a}
+.lookup-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);align-items:start;gap:18px}
+.lookup-results-column,.lookup-detail-panel{min-width:0;background:var(--white);border:1px solid var(--border);border-radius:15px;overflow:hidden}
+.lookup-results-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:20px 22px 15px;border-bottom:1px solid var(--border)}
+.lookup-results-heading h3{font-size:16px;margin:0 0 5px;font-weight:800}
+.lookup-results-heading p{font-size:12px;color:var(--muted);margin:0}
+.lookup-count{font-size:12px;font-weight:800;background:var(--surface-soft);border:1px solid var(--border);color:var(--accent);padding:5px 9px;border-radius:6px}
+.lookup-results{min-height:240px;max-height:670px;overflow-y:auto;scrollbar-width:thin}
+.lookup-item{display:flex;width:100%;flex-direction:column;text-align:left;padding:17px 22px;gap:8px;background:transparent;color:var(--ink);border-bottom:1px solid var(--border);transition:background .15s}
+.lookup-item:last-child{border-bottom:0}
+.lookup-item:hover,.lookup-item.is-selected{background:var(--surface-soft)}
+.lookup-item.is-selected{box-shadow:inset 3px 0 0 var(--accent)}
+.lookup-item-header,.lookup-item-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.lookup-item-header>small{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lookup-item-name{font-size:16px;line-height:1.4;font-weight:800;color:var(--ink);overflow-wrap:anywhere}
+.lookup-item-sub{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.lookup-item-bottom{font-size:12px;color:var(--muted);line-height:1.5}
+.lookup-item-bottom>b{color:var(--accent);font-weight:800;white-space:nowrap;font-size:13px}
+.lookup-pill{font-size:11px;font-weight:750;display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;border:1px solid transparent}
+.lookup-pill-mint{background:#12926918;border-color:#2bba8052;color:var(--accent)}
+.lookup-pill-amber{background:#b8812717;border-color:#ad8a3355;color:#a47629}
+:root[data-theme=dark] .lookup-pill-amber{color:#e4bf78}
+.lookup-pill-muted{background:var(--surface-soft);border-color:var(--border);color:var(--muted)}
+.lookup-pagination{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px 20px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+.lookup-pagination button,.lookup-detail-close,.lookup-retry{background:var(--surface-soft);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--ink);font-size:12px;font-weight:700}
+.lookup-pagination button:hover:not(:disabled),.lookup-detail-close:hover,.lookup-retry:hover{border-color:var(--accent);color:var(--accent)}
+.lookup-detail-panel{position:sticky;top:85px;min-height:370px;padding:23px 24px;max-height:calc(100vh - 112px);overflow-y:auto;scrollbar-width:thin}
+.lookup-detail-empty{min-height:310px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:30px 12px;color:var(--muted)}
+.lookup-detail-empty h3{font-size:17px;color:var(--ink);margin:0}
+.lookup-detail-empty p{max-width:310px;font-size:13px;line-height:1.8;margin:0}
+.lookup-detail-icon{display:flex;align-items:center;justify-content:center;border-radius:20px;width:65px;height:65px;background:var(--surface-soft);font-size:35px;color:var(--accent);margin-bottom:10px}
+.lookup-detail-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lookup-detail-top .eyebrow{font-size:11px}
+.lookup-detail-close{flex:none}
+.lookup-detail-title{font-size:21px;font-weight:800;letter-spacing:-.5px;margin:16px 0 12px;line-height:1.4;overflow-wrap:anywhere}
+.lookup-badges{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-bottom:23px}
+.lookup-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0;border-top:1px solid var(--border);border-left:1px solid var(--border);border-radius:9px;overflow:hidden}
+.lookup-field{padding:12px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-width:0}
+.lookup-field dt{font-size:11px;color:var(--muted);margin-bottom:6px}
+.lookup-field dd{margin:0;font-size:13px;color:var(--ink);font-weight:650;line-height:1.6;overflow-wrap:anywhere}
+.lookup-mapping{margin-top:25px;border-top:1px solid var(--border);padding-top:20px}
+.lookup-mapping h4{font-size:14px;color:var(--ink);margin:12px 0 8px}
+.lookup-mapping-note,.lookup-muted{font-size:13px;color:var(--muted);line-height:1.65}
+.lookup-scd{display:flex;flex-direction:column;gap:5px;padding:13px;background:var(--surface-soft);border:1px solid var(--border);border-radius:9px}
+.lookup-scd span{font-size:12px;font-weight:750;color:var(--accent)}
+.lookup-scd strong{font-size:13px;overflow-wrap:anywhere}
+.lookup-scd small{color:var(--muted);font-size:12px}
+.lookup-coverage{font-size:12px;color:var(--accent);font-weight:700}
+.lookup-evidence{border:1px solid var(--border);border-radius:9px;padding:12px;margin:9px 0}
+.lookup-evidence>div{display:flex;align-items:flex-start;flex-wrap:wrap;justify-content:space-between;gap:8px}
+.lookup-evidence strong{font-size:12px;flex:1;min-width:100px;overflow-wrap:anywhere}
+.lookup-evidence p{font-size:12px;color:var(--muted);line-height:1.7;margin:8px 0 0;overflow-wrap:anywhere}
+.lookup-warning{font-size:12px;color:var(--muted);line-height:1.7;background:var(--surface-soft);border-left:3px solid #c49b5f;border-radius:4px;padding:12px;margin-top:15px}
+.lookup-disclaimer{font-size:12px;color:var(--muted);margin:17px 5px;line-height:1.7}
+.lookup-empty-result{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;padding:55px 18px;min-height:235px}
+.lookup-empty-result>span{font-size:40px;color:var(--accent)}
+.lookup-empty-result strong{font-size:15px;color:var(--ink)}
+.lookup-empty-result p{font-size:13px;color:var(--muted);line-height:1.65;max-width:350px;margin:0}
+.lookup-examples{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:7px}
+.lookup-examples button{padding:9px 12px;border:1px solid var(--border);background:var(--surface-soft);color:var(--accent);border-radius:8px;font-size:12px}
+.lookup-skeleton{padding:15px;display:grid;gap:10px}
+.lookup-skeleton span{display:block;height:94px;background:linear-gradient(100deg,var(--surface-soft),var(--white),var(--surface-soft));background-size:200% 100%;animation:lookupPulse 1.4s linear infinite;border-radius:10px}
+@keyframes lookupPulse{to{background-position-x:-200%}}
+@media(max-width:1180px){.lookup-intro{padding:22px}.lookup-intro h2{font-size:24px}.lookup-layout{grid-template-columns:minmax(0,1fr) minmax(300px,.95fr)}.lookup-item{padding:15px}.lookup-detail-panel{padding:18px}}
+@media(max-width:980px){.lookup-layout{grid-template-columns:minmax(0,1fr)}.lookup-results{max-height:none}.lookup-detail-panel{position:static;max-height:none}.lookup-detail-empty{min-height:180px}.lookup-live{display:none}}
+@media(max-width:760px){.cover-cta{align-items:stretch;gap:9px}.cover-lookup-btn{min-height:46px;padding:12px 15px;font-size:12px}.lookup-intro{padding:20px 19px;border-radius:15px}.lookup-intro h2{font-size:23px}.lookup-intro p{font-size:13px}.lookup-search-form{gap:9px}.lookup-search-box{min-height:50px;padding:0 11px}.lookup-search-box input{font-size:14px}.lookup-search-box kbd{display:none}.lookup-submit{padding:0 14px;font-size:13px;gap:6px}.lookup-toolbar{align-items:flex-start}.lookup-tabs{width:100%;display:grid;grid-template-columns:1fr 1fr}.lookup-tabs button{padding:9px 5px;font-size:12px}.lookup-current-toggle{padding:2px 0}.lookup-results-heading{padding:16px}.lookup-item{padding:16px}.lookup-item-name{font-size:15px}.lookup-item-bottom{align-items:flex-start;gap:6px}.lookup-item-bottom>b{font-size:12px}.lookup-detail-panel{padding:18px}.lookup-fields{grid-template-columns:1fr 1fr}.lookup-field{padding:10px}.lookup-detail-title{font-size:19px}}
+@media(max-width:390px){.lookup-search-form{flex-wrap:wrap}.lookup-search-box{flex-basis:100%}.lookup-submit{width:100%;min-height:42px}.lookup-tabs button span{display:none}.lookup-field{grid-column:span 2}}
+@media(prefers-reduced-motion:reduce){.lookup-skeleton span{animation:none}}
