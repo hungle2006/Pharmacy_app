@@ -36,6 +36,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Publish only approved model to private Cloudflare R2
+        if: github.ref == 'refs/heads/main'
         env:
           ML_R2_ENDPOINT: ${{ secrets.ML_R2_ENDPOINT || secrets.R2_ENDPOINT }}
           ML_R2_BUCKET: ${{ secrets.ML_R2_BUCKET || secrets.R2_BUCKET }}
