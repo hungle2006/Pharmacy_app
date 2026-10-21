@@ -33,16 +33,17 @@ function buildQuery(query={}) {
       clauses.push(expr+' = '+bind(query[name].trim().slice(0,160)));
   }
   if(query.currentOnly==='true') clauses.push("d.source = 'SILVER_R2'");
+  const productMode=query.mode==='products';
   const from=[
     'FROM public.dav_product d',
     'LEFT JOIN public.price_record p ON p.dav_row_id=d.dav_row_id',
     clauses.length?'WHERE '+clauses.join(' AND '):''
   ].join(' ');
-  const countSql='SELECT COUNT(*)::bigint AS total_rows '+from;
+  const countSql=(productMode?'SELECT COUNT(DISTINCT d.dav_row_id)::bigint AS total_rows ':'SELECT COUNT(*)::bigint AS total_rows ')+from;
   const countParams=params.slice();
   const limit=bind(pageSize),offset=bind((page-1)*pageSize);
   const rowsSql=[
-    'SELECT d.dav_row_id AS id, d.drug_name,',
+    (productMode?'SELECT DISTINCT ON (d.dav_row_id) d.dav_row_id AS id, d.drug_name,':'SELECT d.dav_row_id AS id, d.drug_name,'),
     "NULLIF(d.active_ingredient_raw,'') AS ingredient,",
     "NULLIF(d.strength_raw,'') AS strength,",
     "NULLIF(d.dosage_form_raw,'') AS dosage_form,",
@@ -60,7 +61,7 @@ function buildQuery(query={}) {
     'ORDER BY d.dav_row_id ASC, p.declaration_date DESC NULLS LAST, p.price_id ASC NULLS LAST',
     'LIMIT '+limit+' OFFSET '+offset
   ].join(' ');
-  return {page,pageSize,countSql,countParams,rowsSql,params,offset:(page-1)*pageSize};
+  return {page,pageSize,productMode,countSql,countParams,rowsSql,params,offset:(page-1)*pageSize};
 }
 
 async function handler(req,res) {
@@ -85,12 +86,12 @@ async function handler(req,res) {
     }));
     return res.status(200).json({
       mode:'database',source:'Neon Gold · dav_product × price_record',
-      scope:'full_gold_paginated',sampled:false,
+      scope:'full_gold_paginated',sampled:false,grain:query.productMode?'product':'price_observation',
       page:query.page,pageSize:query.pageSize,totalRows,totalPages,
       hasNextPage:query.page<totalPages,
       hasPreviousPage:query.page>1&&totalPages>0,
       priced:records.some(x=>x.price_vnd!==null),records,
-      notice:'Neon Gold phân trang trên toàn bộ dữ liệu, không giới hạn tổng 2.000 dòng. Mỗi dòng là một quan sát thuốc × giá; sản phẩm nghi trùng được giữ và gắn cờ.'
+      notice:query.productMode?'Danh mục theo từng mã sản phẩm DAV; hiển thị giá quan sát mới nhất nếu có. Bản ghi nghi trùng được gắn cờ, không tự xóa.':'Neon Gold phân trang trên toàn bộ dữ liệu, không giới hạn tổng 2.000 dòng. Mỗi dòng là một quan sát thuốc × giá; sản phẩm nghi trùng được giữ và gắn cờ.'
     });
   } catch(e) {
     console.error('PharmaBiz Gold pagination failed',e?.name||'unknown',e?.code||'');
