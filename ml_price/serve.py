@@ -14,6 +14,7 @@ from catboost import CatBoostRegressor
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 from ml_price.constants import FEATURES, SEGMENT_PRICE_TYPE, SEGMENT_UNIT
+from ml_price.baseline import predict_with_priors, blend_predictions
 
 class PriceFeatures(BaseModel):
     ingredient: str = Field(min_length=1, max_length=300)
@@ -117,11 +118,21 @@ def predict_price(payload: PriceFeatures, x_api_key: str | None = Header(default
         raise HTTPException(status_code=503, detail="UNSUPPORTED_MODEL_TRANSFORM")
     if not math.isfinite(estimated_vnd):
         raise HTTPException(status_code=503, detail="INVALID_MODEL_OUTPUT")
+    coverage = None
+    if "blend_weights" in store.metadata:
+        if "baseline_priors" not in store.metadata:
+            raise HTTPException(status_code=503, detail="MISSING_HYBRID_PRIORS")
+        frame = pd.DataFrame([row], columns=FEATURES)
+        baseline, levels = predict_with_priors(frame, store.metadata["baseline_priors"])
+        estimated_vnd = float(blend_predictions(baseline, [estimated_vnd], levels, store.metadata["blend_weights"])[0])
+        coverage = int(levels[0])
     estimated = max(0, round(estimated_vnd))
     return {
         "predicted_price_vnd": estimated, "currency": "VND",
         "unit": SEGMENT_UNIT, "price_type": SEGMENT_PRICE_TYPE,
         "model_version": store.current_version,
+        "reference_level": coverage,
+        "data_coverage_warning": "Chưa có lịch sử hoạt chất trong tập train; dự đoán không đủ tin cậy." if coverage == 0 else None,
         "test_mae_vnd": store.metadata.get("metrics", {}).get("mae_vnd"),
         "note": "Dự đoán giá kê khai bán buôn dự kiến có VAT theo viên, không phải báo giá bán lẻ hay lời khuyên điều trị."
     }

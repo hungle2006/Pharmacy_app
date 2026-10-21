@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from ml_price.constants import FEATURES
 from ml_price.train import clean_data, time_split, group_median_baseline, predict_vnd, train
+from ml_price.baseline import build_priors, predict_with_priors, blend_predictions
 
 class TestPriceML(unittest.TestCase):
     def sample(self,n=400):
@@ -52,6 +53,8 @@ class TestPriceML(unittest.TestCase):
             self.assertEqual(report["features"],FEATURES)
             self.assertIn(report["target_transform"], ("log1p", "identity"))
             self.assertEqual(set(report["validation_mae_vnd"]), {"log_rmse", "vnd_mae"})
+            self.assertEqual(set(report["blend_weights"]), {"0", "1", "2", "3"})
+            self.assertIn("baseline_priors", report)
             self.assertTrue((Path(directory)/"price_model.cbm").exists())
             self.assertEqual(json.loads((Path(directory)/"metadata.json").read_text())["status"],report["status"])
     def test_prediction_target_transforms(self):
@@ -67,6 +70,23 @@ class TestPriceML(unittest.TestCase):
         np.testing.assert_allclose(predict_vnd(ConstantModel(-7), features, "identity"), [0, 0])
         with self.assertRaises(ValueError):
             predict_vnd(ConstantModel(100), features, "unknown")
+
+    def test_persisted_priors_reproduce_train_only_baseline(self):
+        df=clean_data(self.sample())
+        tr,va,te=time_split(df)
+        priors=build_priors(tr)
+        observed, levels=predict_with_priors(te[FEATURES],priors)
+        expected=group_median_baseline(tr,te)
+        np.testing.assert_allclose(observed,expected)
+        self.assertEqual(len(levels),len(te))
+        np.testing.assert_allclose(blend_predictions(observed, observed*2, levels,
+                                  {"0":0.0,"1":0.5,"2":1.0,"3":0.25}),
+                                  observed * (1 + np.asarray([{"0":0.0,"1":0.5,"2":1.0,"3":0.25}[str(int(v))] for v in levels])))
+        novel=te[FEATURES].iloc[[0]].copy()
+        novel.loc[:, "ingredient"]="NOT_SEEN_IN_TRAIN"
+        fallback,novel_levels=predict_with_priors(novel,priors)
+        self.assertEqual(novel_levels[0],0)
+        self.assertAlmostEqual(fallback[0],priors["fallback"])
 
     def test_small_dataset_fails_closed(self):
         with self.assertRaises(ValueError):

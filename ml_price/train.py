@@ -10,6 +10,7 @@ from catboost import CatBoostRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from ml_price.constants import FEATURES, SEGMENT_PRICE_TYPE, SEGMENT_UNIT
+from ml_price.baseline import build_priors, predict_with_priors, blend_predictions
 
 SQL = """
 SELECT d.dav_row_id, d.registration_number,
@@ -104,10 +105,12 @@ def predict_vnd(model, features, target_transform):
 def train(raw, directory="models/price"):
     df = clean_data(raw)
     train_df, val_df, test_df = time_split(df)
-    # Choose a candidate using ONLY validation data. Never tune to the test set.
-    # Log-RMSE can underpredict rare expensive drugs, so also try a direct
-    # VND-MAE objective suited to the deployment quality gate.
+    # Train-only priors, with validation-selected weights per evidence level.
+    priors = build_priors(train_df)
+    val_base, val_levels = predict_with_priors(val_df[FEATURES], priors)
+    test_base, test_levels = predict_with_priors(test_df[FEATURES], priors)
     candidates = []
+    grid = (0.0, 0.1, 0.25, 0.5, 0.75, 1.0)
     for name, target_transform, objective in (
         ("log_rmse", "log1p", "RMSE"),
         ("vnd_mae", "identity", "MAE"),
@@ -121,12 +124,33 @@ def train(raw, directory="models/price"):
                   eval_set=(val_df[FEATURES], y_val),
                   early_stopping_rounds=60, use_best_model=True)
         val_pred = predict_vnd(model, val_df[FEATURES], target_transform)
-        val_mae = float(mean_absolute_error(val_df.price_vnd, val_pred))
-        candidates.append((val_mae, name, target_transform, model))
+        weights = {}
+        for level in range(4):
+            mask = val_levels == level
+            if not mask.any():
+                weights[str(level)] = 0.0
+                continue
+            y = val_df.price_vnd.to_numpy()[mask]
+            original = val_base[mask]
+            prior_error = float(mean_absolute_error(y, original))
+            ranked = sorted(
+                (float(mean_absolute_error(y, (1-w)*original + w*val_pred[mask])), w)
+                for w in grid
+            )
+            best_mae, best_weight = ranked[0]
+            # Do not trust tiny sample-specific wins. Baseline is the safe default.
+            weights[str(level)] = best_weight if len(y) >= 30 and best_mae < 0.995 * prior_error else 0.0
+        blended = blend_predictions(val_base, val_pred, val_levels, weights)
+        val_mae = float(mean_absolute_error(val_df.price_vnd, blended))
+        candidates.append((val_mae, name, target_transform, model, weights))
     candidates.sort(key=lambda item: item[0])
-    _, selected_name, target_transform, model = candidates[0]
-    prediction = predict_vnd(model, test_df[FEATURES], target_transform)
+    _, selected_name, target_transform, model, weights = candidates[0]
+    raw_prediction = predict_vnd(model, test_df[FEATURES], target_transform)
+    prediction = blend_predictions(test_base, raw_prediction, test_levels, weights)
     baseline = group_median_baseline(train_df, test_df)
+    # Protect consistency of persisted priors and existing benchmark.
+    if not np.allclose(baseline, test_base, atol=1e-7):
+        raise RuntimeError("Persisted baseline mismatches quality gate")
     result = scores(test_df.price_vnd, prediction)
     base = scores(test_df.price_vnd, baseline)
     gain = (base["mae_vnd"] - result["mae_vnd"]) / max(1., base["mae_vnd"])
@@ -140,7 +164,10 @@ def train(raw, directory="models/price"):
         "features": FEATURES,
         "target_transform": target_transform,
         "selected_candidate": selected_name,
-        "validation_mae_vnd": {name: round(mae, 2) for mae, name, _, _ in candidates},
+        "validation_mae_vnd": {name: round(mae, 2) for mae, name, _, _, _ in candidates},
+        "blend_weights": weights,
+        "test_baseline_coverage": {str(i): int(np.sum(test_levels == i)) for i in range(4)},
+        "baseline_priors": priors,
         "target": "Positive observed expected wholesale price including VAT, VND per viên",
         "n_initial_rows": int(len(raw)), "n_distinct_products": int(len(df)),
         "n_train": int(len(train_df)), "n_validation": int(len(val_df)), "n_test": int(len(test_df)),
@@ -156,7 +183,9 @@ def train(raw, directory="models/price"):
     folder.mkdir(parents=True, exist_ok=True)
     model.save_model(str(folder / "price_model.cbm"))
     (folder / "metadata.json").write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps(info, ensure_ascii=False, indent=2))
+    # Never flood CI logs with private per-product training priors.
+    public_report = {key: value for key, value in info.items() if key != "baseline_priors"}
+    print(json.dumps(public_report, ensure_ascii=False, indent=2))
     return info
 
 if __name__ == "__main__":
