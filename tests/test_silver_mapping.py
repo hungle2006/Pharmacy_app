@@ -50,6 +50,20 @@ class MappingTests(unittest.TestCase):
    self.assertEqual(med[1]['candidate_icd10_vi_code'],'')
    for name in OUTPUTS:
     self.assertTrue((p/'outputs'/(name+'.csv')).exists())
+ def test_review_only_spelling_alias_and_missing_source_are_explained(self):
+  from silver_mapping.build import lookup_ingredient
+  from silver_v3.legacy_tools.rxnorm_normalize import search_norm
+  matches={search_norm('methylprednisolone'):{
+   '6902':{'ingredient_rxcui':'6902','ingredient_name':'methylprednisolone','ingredient_tty':'IN'}}}
+  found,method,reason=lookup_ingredient('Methylprednisolon 4mg',matches)
+  self.assertEqual(len(found),1)
+  self.assertEqual(found[0]['ingredient_rxcui'],'6902')
+  self.assertIn('ALIAS_REVIEW',method)
+  self.assertEqual(reason,'STRENGTH_EMBEDDED_IN_INGREDIENT')
+  found,method,reason=lookup_ingredient('',matches)
+  self.assertEqual(found,[])
+  self.assertEqual(method,'MISSING_SOURCE_INGREDIENT')
+  self.assertEqual(reason,'MISSING_SOURCE_INGREDIENT')
  def test_unmatched_is_not_fabricated(self):
   with tempfile.TemporaryDirectory() as td:
    p=Path(td)
