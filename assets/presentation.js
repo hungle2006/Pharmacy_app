@@ -142,5 +142,5 @@
     element.innerHTML='<span>'+(active.length?'Phạm vi đang lọc:':'Toàn bộ danh mục')+'</span>'+active.map(([id,l])=>'<button data-remove-filter="'+id+'" aria-label="Bỏ lọc '+esc(l)+'">'+l+': '+esc(displayName($(id).value))+' ×</button>').join('')+'<span>· '+fmt(data.summary.products)+' sản phẩm · '+esc(data.summary.date_from||'—')+' → '+esc(data.summary.date_to||'—')+'</span>';
   }
 
-  const requested=new URLSearchParams(location.search).get('view');navigate(views.some(v=>v[0]===requested)?requested:'overview');load();fetchInventory();
+  const requested=new URLSearchParams(location.search).get('view');navigate(views.some(v=>v[0]===requested)?requested:'overview');if(requested==='lookup'){$('cover').hidden=true;$('app').hidden=false;$('page-title').setAttribute('tabindex','-1');}load();fetchInventory();
 })();
