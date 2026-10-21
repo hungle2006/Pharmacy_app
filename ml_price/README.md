@@ -70,7 +70,7 @@ API `POST /api/predict-price` ở Vercel sẽ chuyển yêu cầu sang Render, g
 
 ```bash
 pip install -r ml_price/requirements-train.txt
-python -m unittest discover -s tests -p 'test_ml_price.py' -v
+python -m unittest discover -s ml_price/tests -p 'test_*.py' -v
 # Chỉ chạy huấn luyện thật khi có quyền kết nối Neon SELECT:
 python -m ml_price.train
 ```

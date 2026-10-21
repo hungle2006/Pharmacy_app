@@ -22,7 +22,7 @@ jobs:
       - name: Install pinned ML requirements
         run: python -m pip install -r ml_price/requirements-train.txt
       - name: Verify ML tests without Neon credentials
-        run: python -m unittest discover -s tests -p 'test_ml_price.py' -v
+        run: python -m unittest discover -s ml_price/tests -p 'test_*.py' -v
       - name: Train from live Neon Gold and evaluate against group-median baseline
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.NEON_DATABASE_URL }}
