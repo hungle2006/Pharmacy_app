@@ -25,6 +25,7 @@
   const badge=(label,kind='muted')=>'<span class="lookup-pill lookup-pill-'+kind+'">'+esc(label)+'</span>';
   function setMode(mode) {
     state.mode=mode==='rx'?'rx':'dav';
+    $('lookup-search').value='';
     state.page=1;
     state.selection=null;
     $('lookup-tab-dav').setAttribute('aria-pressed',String(state.mode==='dav'));
