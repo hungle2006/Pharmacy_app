@@ -1,0 +1,35 @@
+name: Validate Pharmacy Price ML
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ml_price/**'
+      - 'api/predict-price.js'
+      - '.github/workflows/train-price-model.yml'
+      - '.github/workflows/validate-ml.yml'
+      - 'render.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'ml_price/**'
+      - 'api/predict-price.js'
+      - '.github/workflows/train-price-model.yml'
+      - '.github/workflows/validate-ml.yml'
+      - 'render.yaml'
+permissions:
+  contents: read
+jobs:
+  model-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: ml_price/requirements-train.txt
+      - run: python -m pip install -r ml_price/requirements-train.txt
+      - run: python -m unittest discover -s ml_price/tests -p 'test_*.py' -v
+      - run: python -m py_compile ml_price/train.py ml_price/serve.py ml_price/upload.py
+      - run: node --check api/predict-price.js
