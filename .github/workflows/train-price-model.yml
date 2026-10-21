@@ -1,4 +1,6 @@
 name: Train Pharmacy Price Model
+# The workflow name is preserved so GitHub -> Render deploy automation can
+# continue to trigger on successful main-branch runs.
 on:
   workflow_dispatch:
   push:
@@ -7,16 +9,16 @@ on:
       - 'ml_price/**'
       - '.github/workflows/train-price-model.yml'
   schedule:
-    - cron: '0 3 * * 0' # Sunday 10:00 Asia/Ho_Chi_Minh
+    - cron: '0 3 * * 0' # Sunday 10:00 Vietnam
 permissions:
   contents: read
 concurrency:
-  group: pharmacy-price-training
+  group: pharmacy-future-price-forecast
   cancel-in-progress: false
 jobs:
   train:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,72 +26,54 @@ jobs:
           python-version: '3.11'
           cache: pip
           cache-dependency-path: ml_price/requirements-train.txt
-      - name: Install pinned ML requirements
+      - name: Install training dependencies
         run: python -m pip install -r ml_price/requirements-train.txt
-      - name: Verify ML tests without Neon credentials
-        run: python -m unittest discover -s ml_price/tests -p 'test_*.py' -v
-      - name: Train from live Neon Gold and evaluate against group-median baseline
-        id: training
+      - name: Test forecast logic and API without production credentials
+        run: |
+          python -m unittest discover -s ml_price/tests -p 'test_*.py' -v
+          python -m py_compile ml_price/forecast.py ml_price/forecast_store.py ml_price/serve.py
+          node --check api/forecast-price.js
+          node --check assets/drug-lookup.js
+      - name: Backtest actual future-price declarations on Neon Gold
+        id: backtest
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.NEON_DATABASE_URL }}
         run: |
-          python -m ml_price.train
+          python -m ml_price.forecast
           python - <<'PY'
-          import json
-          import os
+          import json,os
           from pathlib import Path
-          report = json.loads(Path("models/price/metadata.json").read_text(encoding="utf-8"))
-          approved = report["status"] == "approved"
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-              out.write(f"approved={str(approved).lower()}\n")
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
-              out.write(f"### Pharmacy Price ML: {report['status']}\n")
-              out.write(f"- Selected model: {report['selected_candidate']}\n")
-              out.write(f"- Test MAE: {report['metrics']['mae_vnd']} VND; baseline MAE: {report['baseline_metrics']['mae_vnd']} VND\n")
-              out.write("- R2 publish: " + ("eligible" if approved else "skipped (quality gate)") + "\n")
+          r=json.loads(Path("models/forecast/report.json").read_text(encoding="utf-8"))
+          with open(os.environ["GITHUB_OUTPUT"],"a",encoding="utf-8") as f:
+              f.write("approved="+str(bool(r.get("approved_horizons"))).lower()+"\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as f:
+              f.write("## Future medicine price forecasting\n")
+              f.write("Status: **"+r["status"]+"**\n\n")
+              f.write("Labeled future price pairs: "+str(r["candidate_pairs"])+"\n\n")
+              for h,details in r["horizons"].items():
+                  f.write("- "+h+" months: "+details["status"]+" | MAE "+
+                          str(details.get("mae_vnd","N/A"))+" VND | baseline "+
+                          str(details.get("baseline_mae_vnd","N/A"))+" VND\n")
+              f.write("\nPublishing only horizons that pass the backtest.\n")
           PY
-      - name: Save training report for review
+      - name: Save forecast backtest report for review
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pharma-price-training-${{ github.run_number }}
-          path: models/price/
+          name: pharmacy-future-forecast-${{ github.run_number }}
+          path: models/forecast/report.json
+          retention-days: 30
           if-no-files-found: warn
-          retention-days: 14
-      - name: Publish only approved model to private Cloudflare R2
-        if: github.ref == 'refs/heads/main' && steps.training.outputs.approved == 'true'
+      - name: Publish only approved FUTURE forecast model to Cloudflare R2
+        if: github.ref == 'refs/heads/main' && steps.backtest.outputs.approved == 'true'
         env:
           ML_R2_ENDPOINT: ${{ secrets.ML_R2_ENDPOINT || secrets.R2_ENDPOINT }}
           ML_R2_BUCKET: ${{ secrets.ML_R2_BUCKET || secrets.R2_BUCKET }}
           ML_R2_ACCESS_KEY_ID: ${{ secrets.ML_R2_ACCESS_KEY_ID || secrets.R2_ACCESS_KEY_ID }}
           ML_R2_SECRET_ACCESS_KEY: ${{ secrets.ML_R2_SECRET_ACCESS_KEY || secrets.R2_SECRET_ACCESS_KEY }}
         run: |
+          set -euo pipefail
           for var in ML_R2_ENDPOINT ML_R2_BUCKET ML_R2_ACCESS_KEY_ID ML_R2_SECRET_ACCESS_KEY; do
-            if [ -z "${!var}" ]; then echo "Missing GitHub secret: $var" >&2; exit 1; fi
+            if [ -z "${!var}" ]; then echo "::error::Missing GitHub secret $var" >&2; exit 1; fi
           done
-          python -m ml_price.upload
-      - name: Train all sufficiently sampled price types and units independently
-        id: catalog
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.NEON_DATABASE_URL }}
-        run: python -m ml_price.train_catalog
-      - name: Archive all segment evaluations, including rejected models
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pharma-price-segments-${{ github.run_number }}
-          path: models/price/catalog.json
-          if-no-files-found: warn
-          retention-days: 14
-      - name: Publish approved segment catalog to R2
-        if: github.ref == 'refs/heads/main' && steps.catalog.outcome == 'success'
-        env:
-          ML_R2_ENDPOINT: ${{ secrets.ML_R2_ENDPOINT || secrets.R2_ENDPOINT }}
-          ML_R2_BUCKET: ${{ secrets.ML_R2_BUCKET || secrets.R2_BUCKET }}
-          ML_R2_ACCESS_KEY_ID: ${{ secrets.ML_R2_ACCESS_KEY_ID || secrets.R2_ACCESS_KEY_ID }}
-          ML_R2_SECRET_ACCESS_KEY: ${{ secrets.ML_R2_SECRET_ACCESS_KEY || secrets.R2_SECRET_ACCESS_KEY }}
-        run: |
-          for var in ML_R2_ENDPOINT ML_R2_BUCKET ML_R2_ACCESS_KEY_ID ML_R2_SECRET_ACCESS_KEY; do
-            if [ -z "${!var}" ]; then echo "Missing GitHub secret: $var" >&2; exit 1; fi
-          done
-          python -m ml_price.upload_catalog
+          python -m ml_price.upload_forecast

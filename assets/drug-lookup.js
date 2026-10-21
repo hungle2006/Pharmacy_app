@@ -158,7 +158,9 @@
       details.insertAdjacentHTML('beforeend','<p class="lookup-warning">Sản phẩm cũ đang được đánh dấu nghi trùng với bản Silver; dữ liệu giá và mapping lịch sử chưa bị xóa.</p>');
     const eligible=Boolean(p.active_ingredient_raw)&&
       Boolean(String(raw.price_type||'').trim())&&
-      Boolean(String(raw.unit||'').trim());
+      Boolean(String(raw.unit||'').trim())&&
+      Number(raw.price_vnd)>0&&
+      /^\d{4}-\d{2}-\d{2}$/.test(String(raw.snapshot_date||''));
     details._mlRow=eligible?{
       ingredient:String(p.active_ingredient_raw),
       strength:String(p.strength_raw||'UNKNOWN'),
@@ -166,15 +168,20 @@
       manufacturer:String(raw.manufacturer||'UNKNOWN'),
       country:String(raw.country||'UNKNOWN'),
       package:String(raw.package||'UNKNOWN'),
-      price_type:String(raw.price_type).trim(),unit:String(raw.unit).trim()
+      price_type:String(raw.price_type).trim(),unit:String(raw.unit).trim(),
+      latest_price_vnd:Number(raw.price_vnd),latest_price_date:String(raw.snapshot_date)
     }:null;
     details.insertAdjacentHTML('beforeend',
-      '<section class="lookup-ml"><div class="eyebrow">AI PRICE ESTIMATION</div>'+
-      '<h4>Dự đoán giá bằng AI</h4>'+
-      (eligible?'<p>Dự đoán theo loại giá '+esc(raw.price_type)+' · đơn vị '+esc(raw.unit)+'. Chỉ các phân khúc đã vượt kiểm định mới có kết quả. Giá có sai số.</p>'+
-      '<button type="button" id="lookup-predict-btn">Ước lượng giá AI ↗</button>'+
-      '<div id="lookup-predict-out" role="status" aria-live="polite"></div>':
-      '<p>Thiếu thông tin hoạt chất, loại giá hoặc đơn vị tính nên chưa thể dự đoán an toàn.</p>')+'</section>');
+      '<section class="lookup-ml"><div class="eyebrow">AI FUTURE PRICE FORECAST</div>'+
+      '<h4>Dự báo giá thuốc trong tương lai</h4>'+
+      (eligible?'<p>Giá DAV hiện có: <strong>'+esc(price(raw.price_vnd))+' / '+esc(raw.unit)+'</strong> · Ngày kê khai '+esc(raw.snapshot_date)+'.</p>'+
+      '<p>Ước tính giá kê khai có thể xuất hiện trong tương lai dựa vào biến động lịch sử. Chỉ hiển thị khi thời hạn đã vượt kiểm định.</p>'+
+      '<div class="lookup-forecast-horizons" style="display:flex;gap:8px;flex-wrap:wrap">'+
+      '<button type="button" data-forecast-horizon="3">Dự báo 3 tháng ↗</button>'+
+      '<button type="button" data-forecast-horizon="6">6 tháng ↗</button>'+
+      '<button type="button" data-forecast-horizon="12">12 tháng ↗</button></div>'+
+      '<div id="lookup-forecast-out" role="status" aria-live="polite"></div>':
+      '<p>Chưa có giá kê khai dương, ngày giá hoặc dữ liệu thuốc đầy đủ để bắt đầu dự báo. Không thay thế bằng giá AI giả định.</p>')+'</section>');
     bindClose();
   }
   // Each RxNorm term can be explored in the opposite direction without
@@ -317,32 +324,42 @@
     }
   }
   details.addEventListener('click',async event=>{
-    const button=event.target.closest('#lookup-predict-btn');
+    const button=event.target.closest('[data-forecast-horizon]');
     if(!button||!details._mlRow)return;
-    const output=$('lookup-predict-out');
+    const output=$('lookup-forecast-out');
     const request=state.detailRequestId;
+    const horizon=Number(button.dataset.forecastHorizon);
     button.disabled=true;
-    output.textContent='Đang yêu cầu Render dự đoán…';
+    output.textContent='Đang kiểm tra mô hình dự báo '+horizon+' tháng…';
     try{
-      const response=await fetch('/api/predict-price',{
+      const response=await fetch('/api/forecast-price',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(details._mlRow)
+        body:JSON.stringify({...details._mlRow,horizon_months:horizon})
       });
       const result=await response.json();
       if(request!==state.detailRequestId||!output.isConnected)return;
       if(!response.ok){
-        const reason=String(result.notice||result.detail||'Model chưa sẵn sàng');
-        if(reason.includes('SEGMENT_NOT_APPROVED'))throw Error('Chưa có model đạt chuẩn cho loại giá và đơn vị của thuốc này');
+        const reason=String(result.notice||result.detail||'Model dự báo chưa sẵn sàng');
+        if(reason.includes('HORIZON_NOT_APPROVED')||reason.includes('NO_APPROVED_FORECAST'))
+          throw Error('Chưa có model dự báo '+horizon+' tháng đạt kiểm định. Không có giá dự báo đáng tin cậy.');
+        if(reason.includes('BASE_PRICE_STALE'))
+          throw Error('Giá DAV đã quá một năm, cần cập nhật giá gần đây để dự báo từ hiện tại.');
         throw Error(reason);
       }
-      output.innerHTML='<strong>'+esc(price(result.predicted_price_vnd))+' / '+esc(result.unit||details._mlRow.unit)+'</strong>'+
+      const movement=Number(result.change_percent);
+      const sign=movement>0?'+':'';
+      output.innerHTML='<p><strong>Giá dự báo '+horizon+' tháng: '+esc(price(result.forecast_price_vnd))+
+        ' / '+esc(result.unit||details._mlRow.unit)+'</strong></p>'+
+        '<p>Ngày mục tiêu: '+esc(result.forecast_date)+
+        ' · Thay đổi: '+esc(sign+movement.toFixed(2))+'%</p>'+
+        '<p>Khoảng dự báo tham khảo: '+esc(price(result.interval_low_vnd))+' – '+esc(price(result.interval_high_vnd))+'</p>'+
         '<small>Model '+esc(result.model_version||'—')+
-        ' · MAE kiểm thử '+esc(price(result.test_mae_vnd))+
-        '</small>'+(result.data_coverage_warning?'<p class="lookup-warning">'+esc(result.data_coverage_warning)+'</p>':'')+
-        '<p>Đây là dự đoán giá kê khai, không phải giá bán thực tế hoặc lời khuyên điều trị.</p>';
+        ' · MAE kiểm thử '+esc(price(result.test_mae_vnd))+'</small>'+
+        (result.warning?'<p class="lookup-warning">'+esc(result.warning)+'</p>':'')+
+        '<p>'+esc(result.note||'Dự báo có sai số; không phải giá bán thực tế hay tư vấn điều trị.')+'</p>';
     }catch(e){
       if(request===state.detailRequestId&&output.isConnected)
-        output.textContent='Chưa dự đoán được: '+String(e.message||'Lỗi kết nối')+'. Nếu Render đang ngủ, thử lại sau khi khởi động.';
+        output.textContent='Chưa thể dự báo: '+String(e.message||'Lỗi kết nối')+'.';
     }finally{if(button.isConnected)button.disabled=false;}
   });
   $('lookup-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(state.debounce);state.page=1;search();});
