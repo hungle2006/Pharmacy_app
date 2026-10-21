@@ -7,12 +7,17 @@ ALTERATIONS = {
     "dav_product": [
         ("silver_qc_status","TEXT"),
         ("silver_source_sha","TEXT"),
+        ("catalog_equivalent_to","TEXT"),
+        ("catalog_duplicate_status","TEXT"),
     ],
     "price_record": [("silver_source_sha","TEXT")],
     "dav_rxnorm_mapping": [
         ("silver_mapping_status","TEXT"),
         ("candidate_scd_name","TEXT"),
         ("review_reason","TEXT"),
+        ("candidate_evidence_status","TEXT"),
+        ("ingredient_component_total","INTEGER"),
+        ("ingredient_component_matched","INTEGER"),
         ("silver_source_sha","TEXT"),
     ],
     "disease": [
@@ -90,6 +95,7 @@ SELECT dav_row_id, drug_name, registration_number, active_ingredient_raw,
        silver_qc_status, %(source_sha)s
 FROM src WHERE dav_row_id IS NOT NULL
 ON CONFLICT (dav_row_id) DO UPDATE SET
+ source=EXCLUDED.source,
  drug_name=EXCLUDED.drug_name, registration_number=EXCLUDED.registration_number,
  active_ingredient_raw=EXCLUDED.active_ingredient_raw, strength_raw=EXCLUDED.strength_raw,
  dosage_form_raw=EXCLUDED.dosage_form_raw, package=EXCLUDED.package, unit=EXCLUDED.unit,
@@ -97,11 +103,11 @@ ON CONFLICT (dav_row_id) DO UPDATE SET
  silver_qc_status=EXCLUDED.silver_qc_status, silver_source_sha=EXCLUDED.silver_source_sha
 WHERE (dav_product.drug_name, dav_product.registration_number, dav_product.active_ingredient_raw,
        dav_product.strength_raw, dav_product.dosage_form_raw, dav_product.package, dav_product.unit,
-       dav_product.manufacturer, dav_product.country, dav_product.silver_qc_status)
+       dav_product.manufacturer, dav_product.country, dav_product.silver_qc_status, dav_product.source)
  IS DISTINCT FROM
       (EXCLUDED.drug_name, EXCLUDED.registration_number, EXCLUDED.active_ingredient_raw,
        EXCLUDED.strength_raw, EXCLUDED.dosage_form_raw, EXCLUDED.package, EXCLUDED.unit,
-       EXCLUDED.manufacturer, EXCLUDED.country, EXCLUDED.silver_qc_status)
+       EXCLUDED.manufacturer, EXCLUDED.country, EXCLUDED.silver_qc_status, EXCLUDED.source)
 """),
 ("price_record", """
 WITH src AS (
@@ -280,21 +286,40 @@ WHERE COALESCE(rxnorm_scd_component.relation_status,'') IN ('','REVIEW','TEXT_IN
        EXCLUDED.strength_text,EXCLUDED.component_raw)
 """),
 ("dav_rxnorm_mapping", """
-WITH source AS (
- SELECT NULLIF(TRIM(dav_row_id),'') AS dav_row_id,
-        NULLIF(TRIM(candidate_scd_rxcui),'') AS suggested_scd_rxcui,
-        NULLIF(TRIM(candidate_scd_name),'') AS candidate_scd_name,
-        NULLIF(TRIM(mapping_status),'') AS mapping_status,
-        NULLIF(TRIM(review_reason),'') AS review_reason
- FROM gold_stg_mapping
+WITH evidence AS (
+ SELECT dav_row_id, COUNT(*)::integer component_total,
+        COUNT(*) FILTER (WHERE NULLIF(BTRIM(ingredient_candidate_rxcui),'') IS NOT NULL)::integer component_matched,
+        COUNT(*) FILTER (WHERE NULLIF(BTRIM(component_raw),'') IS NULL)::integer source_missing
+ FROM gold_stg_evidence GROUP BY dav_row_id
+), source AS (
+ SELECT NULLIF(TRIM(m.dav_row_id),'') AS dav_row_id,
+        NULLIF(TRIM(m.candidate_scd_rxcui),'') AS suggested_scd_rxcui,
+        NULLIF(TRIM(m.candidate_scd_name),'') AS candidate_scd_name,
+        NULLIF(TRIM(m.mapping_status),'') AS mapping_status,
+        NULLIF(TRIM(m.review_reason),'') AS review_reason,
+        COALESCE(e.component_total,0) AS component_total,
+        COALESCE(e.component_matched,0) AS component_matched,
+        CASE
+          WHEN COALESCE(e.source_missing,0)>0 THEN 'MISSING_DAV_SOURCE_INGREDIENT'
+          WHEN m.mapping_status='CANDIDATE_REVIEW' THEN 'SCD_CANDIDATE_NEEDS_CLINICAL_REVIEW'
+          WHEN COALESCE(e.component_total,0)=0 THEN 'NO_COMPONENT_EVIDENCE'
+          WHEN COALESCE(e.component_matched,0)=0 THEN 'INGREDIENT_NOT_FOUND_IN_RXNORM'
+          WHEN e.component_matched<e.component_total THEN 'PARTIAL_INGREDIENT_EVIDENCE'
+          ELSE 'NO_EXACT_SCD_STRENGTH_FORM'
+        END AS evidence_status
+ FROM gold_stg_mapping m
+ LEFT JOIN evidence e ON e.dav_row_id=m.dav_row_id
 )
 INSERT INTO public.dav_rxnorm_mapping
 (mapping_id,dav_row_id,selected_scd_rxcui,selected_scd_name,suggested_scd_rxcui,
  mapping_status,confidence,review_required,evidence_level,accepted_for_serving,
- selected_scd_fk_valid,silver_mapping_status,candidate_scd_name,review_reason,silver_source_sha)
+ selected_scd_fk_valid,silver_mapping_status,candidate_scd_name,review_reason,
+ candidate_evidence_status,ingredient_component_total,ingredient_component_matched,silver_source_sha)
 SELECT 'slv:'||md5(s.dav_row_id),s.dav_row_id,NULL,NULL,s.suggested_scd_rxcui,
        COALESCE(s.mapping_status,'UNMATCHED_REVIEW'),'CANDIDATE_ONLY',1,
-       'UNVERIFIED_SILVER',0,0,s.mapping_status,s.candidate_scd_name,s.review_reason,%(source_sha)s
+       'UNVERIFIED_SILVER',0,0,COALESCE(s.mapping_status,'UNMATCHED_REVIEW'),
+       s.candidate_scd_name,COALESCE(s.review_reason,'SCD_RELATION_NOT_CLINICALLY_VERIFIED'),
+       s.evidence_status,s.component_total,s.component_matched,%(source_sha)s
 FROM source s
 WHERE s.dav_row_id IS NOT NULL
  AND EXISTS(SELECT 1 FROM public.dav_product d WHERE d.dav_row_id=s.dav_row_id)
@@ -303,13 +328,19 @@ ON CONFLICT (dav_row_id) DO UPDATE SET
  silver_mapping_status=EXCLUDED.silver_mapping_status,
  candidate_scd_name=EXCLUDED.candidate_scd_name,
  review_reason=EXCLUDED.review_reason,
+ candidate_evidence_status=EXCLUDED.candidate_evidence_status,
+ ingredient_component_total=EXCLUDED.ingredient_component_total,
+ ingredient_component_matched=EXCLUDED.ingredient_component_matched,
  silver_source_sha=EXCLUDED.silver_source_sha
-WHERE COALESCE(dav_rxnorm_mapping.accepted_for_serving,0)<>1
-  AND (dav_rxnorm_mapping.suggested_scd_rxcui,dav_rxnorm_mapping.silver_mapping_status,
-       dav_rxnorm_mapping.candidate_scd_name,dav_rxnorm_mapping.review_reason)
+WHERE (dav_rxnorm_mapping.suggested_scd_rxcui,dav_rxnorm_mapping.silver_mapping_status,
+       dav_rxnorm_mapping.candidate_scd_name,dav_rxnorm_mapping.review_reason,
+       dav_rxnorm_mapping.candidate_evidence_status,dav_rxnorm_mapping.ingredient_component_total,
+       dav_rxnorm_mapping.ingredient_component_matched)
  IS DISTINCT FROM
       (EXCLUDED.suggested_scd_rxcui,EXCLUDED.silver_mapping_status,
-       EXCLUDED.candidate_scd_name,EXCLUDED.review_reason)
+       EXCLUDED.candidate_scd_name,EXCLUDED.review_reason,
+       EXCLUDED.candidate_evidence_status,EXCLUDED.ingredient_component_total,
+       EXCLUDED.ingredient_component_matched)
 """),
 ("dav_rxnorm_evidence", """
 WITH clean AS (
@@ -388,5 +419,70 @@ WHERE NOT EXISTS (
  AND r.indication_description IS NOT DISTINCT FROM u.indication_description
 )
 ON CONFLICT (medi_relation_id) DO NOTHING
+"""),
+
+("dav_rxnorm_mapping_legacy_enrichment", """
+WITH resolved AS (
+ SELECT m.dav_row_id,
+   COALESCE(m.silver_mapping_status,
+     CASE WHEN COALESCE(m.accepted_for_serving,0)=1 THEN 'LEGACY_CURATED_MAPPING'
+          ELSE 'LEGACY_MAPPING_NOT_IN_CURRENT_SILVER' END) AS new_status,
+   COALESCE(m.review_reason,
+     CASE WHEN COALESCE(m.accepted_for_serving,0)=1 THEN 'LEGACY_MAPPING_RETAINED_BY_REVIEW'
+          ELSE 'LEGACY_MAPPING_NO_CURRENT_SILVER_EVIDENCE' END) AS new_reason,
+   COALESCE(m.candidate_scd_name,s.scd_name) AS resolved_name,
+   COALESCE(m.candidate_evidence_status,
+     CASE WHEN m.suggested_scd_rxcui IS NOT NULL AND s.scd_rxcui IS NOT NULL
+          THEN 'LEGACY_SCD_ID_RESOLVED_NAME_ONLY'
+          WHEN m.suggested_scd_rxcui IS NOT NULL THEN 'LEGACY_SCD_ID_NOT_IN_RXNORM_SCD'
+          WHEN COALESCE(m.accepted_for_serving,0)=1 THEN 'LEGACY_ACCEPTED_MAPPING_NO_NEW_CANDIDATE'
+          ELSE 'NO_SCD_CANDIDATE_OR_EVIDENCE' END) AS new_evidence_status
+ FROM public.dav_rxnorm_mapping m
+ LEFT JOIN public.rxnorm_scd s ON s.scd_rxcui=m.suggested_scd_rxcui
+)
+UPDATE public.dav_rxnorm_mapping m SET
+ silver_mapping_status=r.new_status,review_reason=r.new_reason,
+ candidate_scd_name=r.resolved_name,candidate_evidence_status=r.new_evidence_status
+FROM resolved r
+WHERE m.dav_row_id=r.dav_row_id
+ AND (m.silver_mapping_status,m.review_reason,m.candidate_scd_name,m.candidate_evidence_status)
+ IS DISTINCT FROM (r.new_status,r.new_reason,r.resolved_name,r.new_evidence_status)
+"""),
+("dav_catalog_legacy_equivalence", """
+-- One-to-one EXACT attribute equivalence is a *review flag*, not a merge/delete.
+-- Previously curated mappings and historical price observations remain untouched.
+WITH matches AS (
+ SELECT old.dav_row_id AS old_id,
+        COUNT(DISTINCT cur.dav_row_id) AS matches,
+        MIN(cur.dav_row_id) AS matched_id
+ FROM public.dav_product old
+ JOIN public.dav_product cur ON cur.source='SILVER_R2'
+  AND old.registration_number=cur.registration_number
+  AND NULLIF(BTRIM(old.registration_number),'') IS NOT NULL
+  AND UPPER(BTRIM(old.registration_number)) NOT IN ('#N/A','N/A','NULL')
+  AND LOWER(BTRIM(old.drug_name))=LOWER(BTRIM(cur.drug_name))
+  AND LOWER(BTRIM(COALESCE(old.active_ingredient_raw,'')))=LOWER(BTRIM(COALESCE(cur.active_ingredient_raw,'')))
+  AND LOWER(BTRIM(COALESCE(old.strength_raw,'')))=LOWER(BTRIM(COALESCE(cur.strength_raw,'')))
+  AND LOWER(BTRIM(COALESCE(old.dosage_form_raw,'')))=LOWER(BTRIM(COALESCE(cur.dosage_form_raw,'')))
+  AND LOWER(BTRIM(COALESCE(old.manufacturer,'')))=LOWER(BTRIM(COALESCE(cur.manufacturer,'')))
+ WHERE old.source='DAV_PUBLIC_DRUG_PRICE'
+ GROUP BY old.dav_row_id
+), result AS (
+ SELECT old.dav_row_id,
+   CASE WHEN m.matches=1 THEN m.matched_id ELSE NULL END AS equivalent,
+   CASE WHEN m.matches=1 THEN 'POSSIBLE_SAME_PRODUCT_REVIEW'
+        WHEN m.matches>1 THEN 'AMBIGUOUS_MULTIPLE_SILVER_ROWS_REVIEW'
+        ELSE 'LEGACY_UNRESOLVED' END AS status
+ FROM public.dav_product old
+ LEFT JOIN matches m ON m.old_id=old.dav_row_id
+ WHERE old.source='DAV_PUBLIC_DRUG_PRICE'
+)
+UPDATE public.dav_product d SET
+ catalog_equivalent_to=r.equivalent,
+ catalog_duplicate_status=r.status
+FROM result r
+WHERE d.dav_row_id=r.dav_row_id
+ AND (d.catalog_equivalent_to,d.catalog_duplicate_status)
+ IS DISTINCT FROM (r.equivalent,r.status)
 """),
 ]

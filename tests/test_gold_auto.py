@@ -75,12 +75,20 @@ class GoldIntegrationTest(unittest.TestCase):
     cur.execute(SCHEMA)
     cur.execute("""INSERT INTO dav_product
      (dav_row_id,drug_name) VALUES ('1','Old drug name')""")
+    cur.execute("""INSERT INTO dav_product
+     (dav_row_id,drug_name,registration_number,active_ingredient_raw,strength_raw,
+      dosage_form_raw,manufacturer,source) VALUES
+     ('legacy-2','Second drug','VD002','ibuprofen','200 MG','Viên nén',
+      'Test Company','DAV_PUBLIC_DRUG_PRICE')""")
     cur.execute("""INSERT INTO price_record
      (price_id,dav_row_id,declaration_date,price_vnd,currency,price_type,unit,package,source)
      VALUES ('legacy-price','1','2026-10-20',5000,'VND','KKL','viên','Hộp','DAV')""")
     cur.execute("""INSERT INTO dav_rxnorm_mapping
      (mapping_id,dav_row_id,selected_scd_rxcui,mapping_status,accepted_for_serving)
      VALUES ('legacy-mapping','1','103','VERIFIED_SCD',1)""")
+    cur.execute("""INSERT INTO dav_rxnorm_mapping
+     (mapping_id,dav_row_id,suggested_scd_rxcui,mapping_status,accepted_for_serving)
+     VALUES ('legacy-mapping-2','legacy-2','103','UNMAPPED',0)""")
     cur.execute("""INSERT INTO rxnorm_scd (scd_rxcui,scd_name,component_count,
      matched_component_count,component_status)
      VALUES ('103','Previously curated SCD',1,1,'ALL_COMPONENTS_EXACT')""")
@@ -149,16 +157,33 @@ class GoldIntegrationTest(unittest.TestCase):
    with psycopg.connect(url) as conn:
     with conn.cursor() as cur:
      cur.execute("SELECT COUNT(*) FROM public.dav_product")
-     self.assertEqual(cur.fetchone()[0],2)
+     self.assertEqual(cur.fetchone()[0],3)
      cur.execute("SELECT drug_name FROM public.dav_product WHERE dav_row_id='1'")
      self.assertEqual(cur.fetchone()[0],"Paracetamol 500")
      cur.execute("SELECT COUNT(*) FROM public.price_record")
      self.assertEqual(cur.fetchone()[0],2) # prior identical price remains one + one genuinely new
      cur.execute("SELECT COUNT(*) FROM public.dav_rxnorm_mapping")
-     self.assertEqual(cur.fetchone()[0],2)
+     self.assertEqual(cur.fetchone()[0],3)
      cur.execute("""SELECT selected_scd_rxcui,mapping_status,accepted_for_serving
       FROM public.dav_rxnorm_mapping WHERE dav_row_id='1'""")
      self.assertEqual(cur.fetchone(),("103","VERIFIED_SCD",1))
+     cur.execute("""SELECT silver_mapping_status,review_reason,candidate_scd_name,
+                           candidate_evidence_status
+      FROM public.dav_rxnorm_mapping WHERE dav_row_id='legacy-2'""")
+     legacy=cur.fetchone()
+     self.assertEqual(legacy[0],'LEGACY_MAPPING_NOT_IN_CURRENT_SILVER')
+     self.assertEqual(legacy[1],'LEGACY_MAPPING_NO_CURRENT_SILVER_EVIDENCE')
+     self.assertEqual(legacy[2],'Previously curated SCD')
+     self.assertEqual(legacy[3],'LEGACY_SCD_ID_RESOLVED_NAME_ONLY')
+     cur.execute("""SELECT catalog_equivalent_to,catalog_duplicate_status
+      FROM public.dav_product WHERE dav_row_id='legacy-2'""")
+     self.assertEqual(cur.fetchone(),('2','POSSIBLE_SAME_PRODUCT_REVIEW'))
+     cur.execute("""SELECT source FROM public.dav_product WHERE dav_row_id='1'""")
+     self.assertEqual(cur.fetchone()[0],'SILVER_R2')
+     cur.execute("""SELECT candidate_evidence_status,ingredient_component_total,
+                           ingredient_component_matched
+      FROM public.dav_rxnorm_mapping WHERE dav_row_id='2'""")
+     self.assertEqual(cur.fetchone(),('INGREDIENT_NOT_FOUND_IN_RXNORM',1,0))
      cur.execute("SELECT COUNT(*) FROM public.dav_rxnorm_evidence")
      self.assertEqual(cur.fetchone()[0],2)
      cur.execute("SELECT COUNT(*) FROM public.rxnorm_scd_component")
