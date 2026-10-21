@@ -68,3 +68,28 @@ jobs:
             if [ -z "${!var}" ]; then echo "Missing GitHub secret: $var" >&2; exit 1; fi
           done
           python -m ml_price.upload
+      - name: Train all sufficiently sampled price types and units independently
+        id: catalog
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.NEON_DATABASE_URL }}
+        run: python -m ml_price.train_catalog
+      - name: Archive all segment evaluations, including rejected models
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pharma-price-segments-${{ github.run_number }}
+          path: models/price/catalog.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publish approved segment catalog to R2
+        if: github.ref == 'refs/heads/main' && steps.catalog.outcome == 'success'
+        env:
+          ML_R2_ENDPOINT: ${{ secrets.ML_R2_ENDPOINT || secrets.R2_ENDPOINT }}
+          ML_R2_BUCKET: ${{ secrets.ML_R2_BUCKET || secrets.R2_BUCKET }}
+          ML_R2_ACCESS_KEY_ID: ${{ secrets.ML_R2_ACCESS_KEY_ID || secrets.R2_ACCESS_KEY_ID }}
+          ML_R2_SECRET_ACCESS_KEY: ${{ secrets.ML_R2_SECRET_ACCESS_KEY || secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          for var in ML_R2_ENDPOINT ML_R2_BUCKET ML_R2_ACCESS_KEY_ID ML_R2_SECRET_ACCESS_KEY; do
+            if [ -z "${!var}" ]; then echo "Missing GitHub secret: $var" >&2; exit 1; fi
+          done
+          python -m ml_price.upload_catalog

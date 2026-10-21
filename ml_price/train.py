@@ -102,7 +102,7 @@ def predict_vnd(model, features, target_transform):
     return np.maximum(0, values)
 
 
-def train(raw, directory="models/price"):
+def train(raw, directory="models/price", price_type=SEGMENT_PRICE_TYPE, unit=SEGMENT_UNIT):
     df = clean_data(raw)
     train_df, val_df, test_df = time_split(df)
     # Train-only priors, with validation-selected weights per evidence level.
@@ -160,7 +160,7 @@ def train(raw, directory="models/price"):
         "model_version": datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
         "trained_at": datetime.now(timezone.utc).isoformat(),
         "status": "approved" if approved else "rejected_baseline",
-        "price_type": SEGMENT_PRICE_TYPE, "currency": "VND", "unit": SEGMENT_UNIT,
+        "price_type": price_type, "currency": "VND", "unit": unit,
         "features": FEATURES,
         "target_transform": target_transform,
         "selected_candidate": selected_name,
@@ -168,7 +168,7 @@ def train(raw, directory="models/price"):
         "blend_weights": weights,
         "test_baseline_coverage": {str(i): int(np.sum(test_levels == i)) for i in range(4)},
         "baseline_priors": priors,
-        "target": "Positive observed expected wholesale price including VAT, VND per viên",
+        "target": f"Positive observed price (VND/{unit}) for price_type={price_type}",
         "n_initial_rows": int(len(raw)), "n_distinct_products": int(len(df)),
         "n_train": int(len(train_df)), "n_validation": int(len(val_df)), "n_test": int(len(test_df)),
         "training_dates": [str(train_df.declaration_date.min().date()),
