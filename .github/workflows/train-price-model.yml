@@ -2,7 +2,7 @@ name: Train Pharmacy Price Model
 on:
   workflow_dispatch:
   push:
-    branches: [main, experiment/price-hybrid-20261021]
+    branches: [main]
     paths:
       - 'ml_price/**'
       - '.github/workflows/train-price-model.yml'
