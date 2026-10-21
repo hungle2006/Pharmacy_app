@@ -164,3 +164,70 @@ test('Drug Lookup workspace is wired into navigation and usable on phones',()=>{
   assert.match(html,/assets\/drug-lookup\.css/);
   assert.match(html,/assets\/drug-lookup\.js/);
 });
+
+
+test('RxNorm SCD reverse lookup separates accepted mapping and candidate DAV products',async()=>{
+  const db=new PGlite();
+  try{
+    await db.exec([
+      "CREATE TABLE dav_product (dav_row_id text primary key,drug_name text,",
+      "registration_number text,active_ingredient_raw text,strength_raw text,",
+      "dosage_form_raw text,manufacturer text,source text,unit text,",
+      "catalog_duplicate_status text);",
+      "CREATE TABLE dav_rxnorm_mapping (dav_row_id text primary key,selected_scd_rxcui text,",
+      "suggested_scd_rxcui text,accepted_for_serving integer,mapping_status text);",
+      "CREATE TABLE dav_rxnorm_evidence (dav_row_id text,component_order integer,",
+      "ingredient_candidate_rxcui text);",
+      "CREATE TABLE price_record (price_id text,dav_row_id text,price_vnd bigint,",
+      "price_type text,declaration_date date,unit text);",
+      "INSERT INTO dav_product (dav_row_id,drug_name,source,registration_number) VALUES",
+      "('A','Losartan A','DAV_PUBLIC_DRUG_PRICE','VD1'),",
+      "('B','Losartan B','SILVER_R2','VD2'),",
+      "('C','Acetaminophen C','SILVER_R2','VD3'),",
+      "('D','Losartan D','SILVER_R2','VD4');",
+      "INSERT INTO dav_rxnorm_mapping VALUES",
+      "('A','979492',NULL,1,'VERIFIED_SCD'),",
+      "('B',NULL,'979492',0,'CANDIDATE_REVIEW'),",
+      "('C',NULL,NULL,0,'UNMATCHED_REVIEW'),",
+      "('D','999999','979492',1,'VERIFIED_SCD');",
+      "INSERT INTO dav_rxnorm_evidence VALUES",
+      "('C',1,'161'),('C',2,'161'),('B',1,'161');",
+      "INSERT INTO price_record VALUES",
+      "('old','A',1000,'KKL','2024-01-01','vien'),",
+      "('new','A',3000,'KKL','2026-10-21','vien');"
+    ].join(' '));
+    const q=rxnorm.buildDavReverseQuery({rxcui:'979492',kind:'scd',page:1,pageSize:10});
+    assert.equal(Number((await db.query(q.countSql,q.countParams)).rows[0].total_rows),2);
+    const rows=(await db.query(q.rowsSql,q.params)).rows;
+    assert.deepEqual(rows.map(x=>[x.id,x.match_type]),[['A','ACCEPTED_SCD'],['B','CANDIDATE_SCD']]);
+    assert.equal(Number(rows[0].price_vnd),3000);
+    const accepted=rxnorm.buildDavReverseQuery({rxcui:'979492',kind:'scd',review:'accepted'});
+    assert.deepEqual((await db.query(accepted.rowsSql,accepted.params)).rows.map(x=>x.id),['A']);
+    const review=rxnorm.buildDavReverseQuery({rxcui:'979492',kind:'scd',review:'review'});
+    assert.deepEqual((await db.query(review.rowsSql,review.params)).rows.map(x=>x.id),['B']);
+    const ingredient=rxnorm.buildDavReverseQuery({rxcui:'161',kind:'ingredient',pageSize:1,page:2});
+    assert.equal(Number((await db.query(ingredient.countSql,ingredient.countParams)).rows[0].total_rows),2);
+    assert.equal((await db.query(ingredient.rowsSql,ingredient.params)).rows.length,1);
+    const ingAll=rxnorm.buildDavReverseQuery({rxcui:'161',kind:'ingredient'});
+    assert.deepEqual((await db.query(ingAll.rowsSql,ingAll.params)).rows.map(x=>x.match_type),
+      ['INGREDIENT_EVIDENCE','INGREDIENT_EVIDENCE']);
+    assert.equal(Number((await db.query(
+      rxnorm.buildDavReverseQuery({rxcui:'161',kind:'ingredient',review:'accepted'}).countSql,
+      ['161','ingredient','accepted'])).rows[0].total_rows),0);
+    assert.equal(rxnorm.buildDavReverseQuery({rxcui:"161 OR 1=1"}),null);
+    const unsupported=rxnorm.buildDavReverseQuery({rxcui:'161',kind:'unsupported'});
+    assert.equal(Number((await db.query(unsupported.countSql,unsupported.countParams)).rows[0].total_rows),0);
+  }finally{await db.close();}
+});
+test('RxNorm UI includes reverse-DAV drill-down and separate pagination controls',()=>{
+  const fs=require('node:fs');
+  const js=fs.readFileSync(require('node:path').join(__dirname,'../assets/drug-lookup.js'),'utf8');
+  const css=fs.readFileSync(require('node:path').join(__dirname,'../assets/drug-lookup.css'),'utf8');
+  assert.match(js,/dav_for_rxcui/);
+  assert.match(js,/lookup-reverse-dav/);
+  assert.match(js,/data-reverse-filter/);
+  assert.match(js,/data-reverse-page/);
+  assert.match(js,/INGREDIENT_EVIDENCE/);
+  assert.match(js,/data-back-rx/);
+  assert.match(css,/lookup-reverse-item/);
+});

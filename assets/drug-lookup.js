@@ -158,13 +158,115 @@
       details.insertAdjacentHTML('beforeend','<p class="lookup-warning">Sản phẩm cũ đang được đánh dấu nghi trùng với bản Silver; dữ liệu giá và mapping lịch sử chưa bị xóa.</p>');
     bindClose();
   }
-  function renderRxDetail(raw){
+  // Each RxNorm term can be explored in the opposite direction without
+  // inventing new RxCUI/SCD relationships. Reverse paging is independent
+  // of the main terminology search pagination.
+  let rxDetailConcept=null,rxReverseRequest=0,rxReverseAbort=null,rxReversePage=1,rxReverseReview='all';
+  async function loadReverseDav(raw,page=1,review='all'){
+    rxReverseAbort?.abort();
+    const req=++rxReverseRequest;
+    rxReversePage=page;rxReverseReview=review;
+    const host=$('lookup-reverse-dav');if(!host)return;
+    const controller=new AbortController();rxReverseAbort=controller;
+    host.innerHTML='<p class="lookup-muted">Đang tìm thuốc DAV có bằng chứng liên kết…</p>';
+    const params=new URLSearchParams({
+      dav_for_rxcui:String(raw.rxcui),page:String(page),pageSize:'10',review
+    });
+    try{
+      const response=await fetch('/api/rxnorm?'+params,{signal:controller.signal,cache:'no-store'});
+      const body=await response.json();
+      if(!response.ok||body.mode!=='database')throw Error(body.notice||body.error||'Không đọc được danh sách DAV');
+      if(req!==rxReverseRequest||!state.active||rxDetailConcept?.rxcui!==raw.rxcui)return;
+      const ingredient=body.relationKind==='ingredient';
+      const linked=(body.products||[]).map(product=>{
+        const label=product.match_type==='ACCEPTED_SCD'?'Đã chấp nhận trong Gold':
+          product.match_type==='CANDIDATE_SCD'?'Ứng viên SCD':'Bằng chứng hoạt chất';
+        const style=product.match_type==='ACCEPTED_SCD'?'mint':'amber';
+        return '<button type="button" class="lookup-reverse-item" data-reverse-dav="'+esc(product.id)+'">'+
+          '<span>'+badge(label,style)+'<small>'+esc(product.registration_no||'DAV '+product.id)+'</small></span>'+
+          '<strong>'+esc(product.drug_name||'Thuốc không có tên')+'</strong>'+
+          '<span class="lookup-item-sub">'+esc(product.ingredient||'Hoạt chất chưa có dữ liệu')+'</span>'+
+          '<span class="lookup-reverse-bottom"><span>'+esc([product.strength,product.dosage_form].filter(Boolean).join(' · ')||'Xem chi tiết sản phẩm')+
+          '</span><b>'+esc(price(product.price_vnd))+' ↗</b></span></button>';
+      }).join('');
+      const tabs=!ingredient&&body.relationKind==='scd'
+        ?'<div class="lookup-reverse-tabs" role="group" aria-label="Lọc trạng thái liên kết">'+
+          [['all','Tất cả'],['accepted','Đã chấp nhận'],['review','Cần rà soát']].map(([v,l])=>
+            '<button type="button" data-reverse-filter="'+v+'" aria-pressed="'+(review===v)+'">'+l+'</button>').join('')+'</div>':'';
+      const notice=ingredient
+        ?'Liên kết mức hoạt chất dựa trên bằng chứng ứng viên, không phải quan hệ tương đương thuốc đã được duyệt.'
+        :body.relationKind==='scd'
+        ?'Đã chấp nhận = trạng thái lưu trên Gold. Ứng viên cần kiểm tra bởi chuyên gia trước khi sử dụng.'
+        :'Loại thuật ngữ này chưa có liên kết DAV trực tiếp được hỗ trợ.';
+      host.innerHTML='<div class="lookup-reverse-heading"><strong>Thuốc DAV liên quan</strong><span>'+fmt(body.totalRows)+' thuốc</span></div>'+
+        tabs+'<p class="lookup-reverse-note">'+esc(notice)+'</p>'+
+        (linked||'<p class="lookup-muted">Không có thuốc DAV có bằng chứng đối chiếu tương ứng trong Gold.</p>')+
+        '<div class="lookup-reverse-pagination"><button type="button" data-reverse-page="'+(page-1)+'" '+(page<=1?'disabled':'')+'>← Trước</button>'+
+        '<span>Trang '+page+' / '+Math.max(1,body.totalPages)+'</span>'+
+        '<button type="button" data-reverse-page="'+(page+1)+'" '+(!body.hasNextPage?'disabled':'')+'>Tiếp →</button></div>';
+      // Use current result objects for details; avoid reinterpreting RxNorm names.
+      host._products=body.products||[];
+    }catch(error){
+      if(controller.signal.aborted||req!==rxReverseRequest)return;
+      host.innerHTML='<p class="lookup-muted">Chưa đọc được thuốc DAV: '+esc(error.message||'Lỗi kết nối')+
+        ' <button type="button" data-reverse-retry>Thử lại</button></p>';
+    }
+  }
+  async function openReverseDav(product){
+    if(!product||!rxDetailConcept)return;
+    const concept=rxDetailConcept;
+    state.detailController?.abort();
+    const controller=new AbortController();state.detailController=controller;
+    const requestId=++state.detailRequestId;
+    details.innerHTML='<div class="lookup-detail-empty"><h3>Đang mở thuốc DAV…</h3></div>';
+    try{
+      const response=await fetch('/api/rxnorm?'+new URLSearchParams({dav_row_id:product.id}),
+        {signal:controller.signal,cache:'no-store'});
+      const data=await response.json();
+      if(!response.ok||data.mode!=='database')throw Error(data.error||data.reason||'Không có chi tiết DAV');
+      if(requestId!==state.detailRequestId||!state.active)return;
+      renderDavDetail(data,{...product,price_type:product.price_type,unit:product.unit,
+        snapshot_date:product.snapshot_date,price_vnd:product.price_vnd});
+      details.insertAdjacentHTML('afterbegin',
+        '<button type="button" class="lookup-back-to-rx" data-back-rx>← Quay lại RxNorm '+esc(concept.rxcui)+'</button>');
+      if(product.match_type!=='ACCEPTED_SCD')
+        details.insertAdjacentHTML('beforeend',
+          '<p class="lookup-warning">Liên kết này là ứng viên hoặc bằng chứng mức hoạt chất, chưa được xác minh tương đương điều trị.</p>');
+    }catch(error){
+      if(controller.signal.aborted||requestId!==state.detailRequestId)return;
+      details.innerHTML='<button type="button" class="lookup-back-to-rx" data-back-rx>← Quay lại RxNorm</button>'+
+        '<p class="lookup-muted">Không tải được thông tin DAV: '+esc(error.message||'Lỗi kết nối')+'</p>';
+    }
+  }
+  details.addEventListener('click',event=>{
+    if(event.target.closest('[data-back-rx]')&&rxDetailConcept){
+      renderRxDetail(rxDetailConcept,rxReversePage,rxReverseReview);return;
+    }
+    const filter=event.target.closest('[data-reverse-filter]');
+    if(filter&&rxDetailConcept){loadReverseDav(rxDetailConcept,1,filter.dataset.reverseFilter);return;}
+    const pageBtn=event.target.closest('[data-reverse-page]');
+    if(pageBtn&&rxDetailConcept&&!pageBtn.disabled){
+      loadReverseDav(rxDetailConcept,Number(pageBtn.dataset.reversePage),rxReverseReview);return;
+    }
+    if(event.target.closest('[data-reverse-retry]')&&rxDetailConcept){
+      loadReverseDav(rxDetailConcept,rxReversePage,rxReverseReview);return;
+    }
+    const result=event.target.closest('[data-reverse-dav]');
+    if(result){
+      const product=$('lookup-reverse-dav')?._products?.find(x=>String(x.id)===result.dataset.reverseDav);
+      if(product)openReverseDav(product);
+    }
+  });
+  function renderRxDetail(raw,reversePage=1,reverseReview='all'){
+    rxDetailConcept=raw;
     details.innerHTML='<div class="lookup-detail-top"><div class="eyebrow">RXNORM / CONCEPT</div><button id="lookup-detail-close" class="lookup-detail-close" type="button" aria-label="Đóng chi tiết">✕</button></div>'+
       '<h3 class="lookup-detail-title">'+esc(raw.canonical_name||'Không có tên')+'</h3>'+
       '<div class="lookup-badges">'+badge(raw.canonical_tty||'TERM','mint')+badge('RxCUI '+text(raw.rxcui),'muted')+'</div>'+
       '<dl class="lookup-fields">'+field('RxCUI',raw.rxcui)+field('Loại thuật ngữ (TTY)',raw.canonical_tty)+field('Nguồn thuật ngữ (SAB)',raw.canonical_sab)+field('Các loại TTY',raw.tty_set)+field('SCD',raw.scd_name)+field('Dạng bào chế',raw.dose_form_name)+field('Số thành phần SCD',raw.component_count)+'</dl>'+
-      '<p class="lookup-warning">Thông tin thuật ngữ RxNorm không tự xác nhận tương đương với thuốc DAV hoặc chỉ định điều trị.</p>';
+      '<p class="lookup-warning">Thông tin thuật ngữ RxNorm không tự xác nhận tương đương với thuốc DAV hoặc chỉ định điều trị.</p>'+
+      '<section id="lookup-reverse-dav" class="lookup-reverse" aria-label="Thuốc DAV liên quan RxNorm"><p class="lookup-muted">Đang tìm thuốc DAV…</p></section>';
     bindClose();
+    loadReverseDav(raw,reversePage,reverseReview);
   }
   function bindClose(){
     $('lookup-detail-close').onclick=()=>{
@@ -216,7 +318,7 @@
     const active=Boolean(event.detail?.active);
     state.active=active;
     if(active&&!state.loaded){state.loaded=true;search();}
-    if(!active){state.controller?.abort();state.detailController?.abort();}
+    if(!active){state.controller?.abort();state.detailController?.abort();rxReverseAbort?.abort();}
   });
   document.addEventListener('pharmabiz:lookup-refresh',()=>{state.page=1;search();});
 })();

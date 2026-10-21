@@ -86,3 +86,27 @@ Mở [PharmaBiz](https://pharmacyapp-data.vercel.app/) rồi chọn **Tra cứu 
 Giao diện hoạt động trực tiếp qua `/api/data?mode=products` và `/api/rxnorm`, có tìm kiếm và phân trang trên toàn bộ Neon Gold; không tạo bản sao, không giới hạn 2.000 dòng. Mọi RxCUI ứng viên chưa xét duyệt được phân biệt rõ với mapping chấp nhận trong Gold. **Không dùng mapping chưa được xác minh để tư vấn điều trị.** Giao diện đáp ứng điện thoại và chế độ sáng/tối; các dashboard phân tích cũ vẫn hoạt động.
 
 Truy cập trực tiếp mục tra cứu mà không qua trang giới thiệu: https://pharmacyapp-data.vercel.app/?view=lookup
+
+
+## RxNorm → DAV reverse lookup
+
+In **Tra cứu thuốc → RxNorm**, search by RxCUI or term, select a concept,
+then review the **Thuốc DAV liên quan** section. The results are paginated
+independently of the RxNorm terminology search; each product can be opened
+to inspect source DAV details and price observations.
+
+The read-only API is:
+- `GET /api/rxnorm?dav_for_rxcui=979492&page=1&pageSize=10` for direct
+  *SCD-to-DAV* links, separated as `ACCEPTED_SCD` and `CANDIDATE_SCD`.
+  Optional `review=accepted` or `review=review` filters these classifications.
+- `GET /api/rxnorm?dav_for_rxcui=161&page=1&pageSize=10` for *ingredient-to-DAV*
+  matches from `dav_rxnorm_evidence.ingredient_candidate_rxcui`. Each
+  has `INGREDIENT_EVIDENCE` review status, even when the same DAV product
+  happens to have another accepted SCD mapping.
+- Unsupported RxNorm term types return no DAV associations rather than
+  making a medically misleading name-based link.
+
+A result is counted once per DAV ID. A latest price observation (if any)
+is displayed for convenience. No Gold rows or schema are modified. Source
+mapping and ingredient evidence have not necessarily been clinically
+validated; they do not imply interchangeable medicines or indications.
