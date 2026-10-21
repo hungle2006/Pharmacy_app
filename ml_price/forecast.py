@@ -14,16 +14,8 @@ import pandas as pd
 from catboost import CatBoostRegressor
 from sklearn.metrics import mean_absolute_error
 
-HORIZONS = (3, 6, 12)
-# Approximate calendar horizons; future declarations must fall in these windows.
-TARGET_DAYS = {3: 91, 6: 183, 12: 365}
-TOLERANCES = {3: 35, 6: 50, 12: 50}
+from ml_price.forecast_schema import HORIZONS, TARGET_DAYS, TOLERANCES, CATEGORICAL, NUMERIC, FEATURES
 MIN_TRAIN, MIN_VALIDATION, MIN_TEST = 100, 30, 30
-CATEGORICAL = ["ingredient", "strength", "dosage_form", "manufacturer",
-               "country", "package", "price_type", "unit"]
-NUMERIC = ["log_last_price", "previous_change", "days_since_previous",
-           "origin_year", "origin_month", "horizon_months"]
-FEATURES = CATEGORICAL + NUMERIC
 
 SQL = """
 SELECT d.dav_row_id, d.registration_number,
