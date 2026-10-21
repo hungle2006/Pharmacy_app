@@ -1,6 +1,11 @@
 name: Train Pharmacy Price Model
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'ml_price/**'
+      - '.github/workflows/train-price-model.yml'
   schedule:
     - cron: '0 3 * * 0' # Sunday 10:00 Asia/Ho_Chi_Minh
 permissions:
