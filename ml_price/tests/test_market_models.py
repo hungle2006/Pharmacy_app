@@ -9,7 +9,7 @@ from ml_price.market_models import rolling_folds, fit_predict, evaluate_market_h
 def fixture(n=180, horizon=6, signal=True):
     rows=[]
     for i in range(n):
-        origin=pd.Timestamp('2010-01-01',tz='UTC')+pd.Timedelta(days=35*i)
+        origin=pd.Timestamp('2005-01-01',tz='UTC')+pd.Timedelta(days=35*i)
         registration=f'reg{i%38}'
         group='A' if i%2 else 'B'
         ratio = (.09 if group=='A' else -.06) if signal else 0.
@@ -35,6 +35,23 @@ class MarketModelsTests(unittest.TestCase):
             p=fit_predict(train,query,model)
             self.assertEqual(len(p),len(query))
             self.assertTrue(np.isfinite(p).all())
+
+    def test_strong_group_signal_can_pass_untouched_holdout(self):
+        observations=[]
+        for i in range(38):
+            for year in (2022, 2023):
+                observations.append(dict(
+                    registration_number=f'reg{i}',price_type='kind',unit='viên',
+                    date=pd.Timestamp(f'{year}-01-01',tz='UTC'),
+                    price_vnd=1000 if year==2022 else 1090,
+                    ingredient='A' if i%2 else 'B',strength='10mg',
+                    dosage_form='tablet',manufacturer='maker',country='VN',package='box'))
+        result=evaluate_market_horizon(fixture(),6,pd.DataFrame(observations))
+        self.assertEqual(result['status'],'approved')
+        self.assertEqual(result['selected_model'],'hierarchical')
+        self.assertGreater(result['test_gain_fraction'],.01)
+        self.assertEqual(len(result['test_gain_ci95_pct_points']),2)
+        self.assertEqual(len(result['forecast_sample_ci90_pct']),2)
 
     def test_constant_prices_cannot_approve(self):
         result=evaluate_market_horizon(fixture(signal=False),6)
