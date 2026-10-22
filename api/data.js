@@ -54,7 +54,7 @@ function buildQuery(query={}) {
     'd.catalog_duplicate_status, d.catalog_equivalent_to, p.price_id,',
     "CASE WHEN p.price_vnd >= 0 AND (p.currency='VND' OR p.currency IS NULL OR p.currency='')",
     'THEN p.price_vnd ELSE NULL END AS price_vnd,',
-    "NULLIF(p.price_type,'') AS price_type, p.declaration_date AS snapshot_date,",
+    "NULLIF(p.price_type,'') AS price_type, TO_CHAR(p.declaration_date::date, 'YYYY-MM-DD') AS snapshot_date,",
     "COALESCE(NULLIF(p.unit,''),NULLIF(d.unit,'')) AS unit,",
     "COALESCE(NULLIF(p.package,''),NULLIF(d.package,'')) AS package",
     from,
