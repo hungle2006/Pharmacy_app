@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from ml_price.market_models import rolling_folds, fit_predict, evaluate_market_horizon
+from ml_price.market_models import rolling_folds, fit_predict, evaluate_market_horizon, exploratory_scenario
 
 
 def fixture(n=180, horizon=6, signal=True):
@@ -52,6 +52,27 @@ class MarketModelsTests(unittest.TestCase):
         self.assertGreater(result['test_gain_fraction'],.01)
         self.assertEqual(len(result['test_gain_ci95_pct_points']),2)
         self.assertEqual(len(result['forecast_sample_ci90_pct']),2)
+
+    def test_experimental_scenario_is_separate_from_quality_approval(self):
+        frame=fixture(signal=True)
+        observations=[]
+        for i in range(38):
+            for year in (2022, 2023):
+                observations.append(dict(
+                    registration_number=f'reg{i}',price_type='kind',unit='viên',
+                    date=pd.Timestamp(f'{year}-01-01',tz='UTC'),
+                    price_vnd=1000. if year==2022 else 1090.,
+                    ingredient='A' if i%2 else 'B',strength='10mg',
+                    dosage_form='tablet',manufacturer='maker',country='VN',package='box'))
+        reference=pd.DataFrame(observations)
+        scenario=exploratory_scenario(frame,6,reference,preferred_model='hierarchical')
+        self.assertIsNotNone(scenario)
+        self.assertIsInstance(scenario['experimental_change_pct'],float)
+        self.assertEqual(scenario['experimental_label'],'UNVALIDATED_EXPLORATORY_SCENARIO')
+        self.assertEqual(scenario['experimental_reference_products'],38)
+        self.assertNotIn('forecast_change_pct',scenario)
+        self.assertIsNone(exploratory_scenario(frame,6))
+        self.assertIsNone(exploratory_scenario(frame.iloc[:8],6,reference))
 
     def test_constant_prices_cannot_approve(self):
         result=evaluate_market_horizon(fixture(signal=False),6)
