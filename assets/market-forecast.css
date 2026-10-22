@@ -57,3 +57,19 @@
 @media(max-width:1020px){.market-details{grid-template-columns:1fr}.market-horizon{padding:17px}.market-stats{gap:10px}}
 @media(max-width:680px){.market-hero{padding:24px 20px;flex-direction:column}.market-refresh{width:100%}.market-stats{grid-template-columns:1fr 1fr}.market-stats .market-stat:last-child{grid-column:1/-1}.market-horizon-grid{grid-template-columns:1fr}.market-horizon{min-height:0;gap:8px}.market-horizon-value{font-size:2.3rem}.market-article{padding:18px}.market-mini-grid{grid-template-columns:1fr}.market-timeline-row{grid-template-columns:34px minmax(60px,1fr) 66px 52px;gap:7px}}
 @media(prefers-reduced-motion:reduce){.market-horizon{transition:none}}
+
+
+/* Walk-forward candidate comparison and uncertainty table. */
+.market-validation-panel{margin-top:16px}
+.market-qa-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0 18px}
+.market-qa-grid>div{padding:14px;border-radius:12px;background:var(--surface-secondary,#f1f5f1);display:flex;flex-direction:column;gap:6px;min-width:0}
+.market-qa-grid span{font-size:.74rem;color:var(--muted,#61756e)}
+.market-qa-grid strong{font-size:.88rem;overflow-wrap:anywhere}
+.market-model-scroll{max-width:100%;overflow-x:auto;border:1px solid var(--line,#dde7e0);border-radius:12px}
+.market-model-table{width:100%;min-width:560px;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums}
+.market-model-table th,.market-model-table td{padding:13px 15px;border-bottom:1px solid var(--line,#dde7e0)}
+.market-model-table th{font-size:.76rem;color:var(--muted,#61756e);font-weight:750;background:var(--surface-secondary,#f1f5f1)}
+.market-model-table td{font-size:.83rem}
+.market-model-table tbody tr:last-child td{border-bottom:0}
+@media(max-width:730px){.market-qa-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.market-qa-grid{grid-template-columns:1fr}}
