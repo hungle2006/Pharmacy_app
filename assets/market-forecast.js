@@ -14,6 +14,14 @@
       ?'<span class="market-chip market-chip-ok">Đã vượt kiểm định</span>'
       :'<span class="market-chip market-chip-neutral">Chưa có dự báo đạt chuẩn</span>';
   }
+  const qualityReason=item=>({
+    NO_DIRECTIONAL_SIGNAL:'Mô hình chưa tìm được tín hiệu tăng/giảm tốt hơn giả định giá giữ nguyên trên tập xác thực.',
+    VALIDATION_NOT_BETTER_THAN_BASELINE:'Tập xác thực chưa cải thiện ít nhất 1% so với giả định giá không đổi.',
+    INSUFFICIENT_DISTINCT_TEST_DRUGS:'Tập kiểm định chưa có đủ số đăng ký thuốc phân biệt.',
+    TEST_NOT_BETTER_THAN_BASELINE:'Tập kiểm định độc lập chưa cải thiện ít nhất 1% so với giá không đổi.'
+  }[item.reason]||(item.status==='insufficient_history'
+    ?'Chưa có đủ chuỗi giá được tách theo thời gian để huấn luyện và kiểm định cho kỳ hạn này.'
+    :'Mô hình chưa vượt kiểm định độc lập; dữ liệu lịch sử vẫn có thể được sử dụng.'));
   function render(){
     if(!active)return;
     if(!report){return;}
