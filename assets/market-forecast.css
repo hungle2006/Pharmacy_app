@@ -1,0 +1,57 @@
+/* PharmaBiz market-wide price outlook — designed for both themes and phones */
+.market-forecast{display:grid;gap:20px}
+.market-forecast[hidden]{display:none!important}
+.mf-hero{display:flex;justify-content:space-between;gap:28px;align-items:center;padding:32px;border-radius:22px;background:linear-gradient(125deg,#153e37 0%,#244d42 60%,#3b6650 100%);color:#fff;position:relative;overflow:hidden}
+.mf-hero:after{content:"";width:250px;height:250px;border:1px solid #ffffff2a;border-radius:50%;position:absolute;right:-74px;top:-102px;box-shadow:0 0 0 45px #ffffff09,0 0 0 90px #ffffff09;pointer-events:none}
+.mf-hero .eyebrow{color:#adcfba!important;letter-spacing:.12em}
+.mf-hero h2{font-size:clamp(25px,3.5vw,44px);max-width:710px;line-height:1.12;margin:15px 0;color:white;letter-spacing:-.035em}
+.mf-hero h2 span{color:#b9e6bb}
+.mf-hero p{max-width:650px;line-height:1.7;color:#d0e2d7;margin:0;font-size:14px}
+.mf-hero p strong{color:#fff}
+.mf-source{text-align:center;white-space:nowrap;line-height:1.65;border:1px solid #ffffff35;border-radius:14px;padding:18px 21px;font-size:13px;z-index:1;color:#ecf9ee;background:#ffffff0e}
+.mf-source small{color:#b0d0bd}
+.mf-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.mf-horizon-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.mf-horizon-buttons button{font:inherit;font-weight:700;font-size:13px;background:var(--surface,#fff);border:1px solid var(--line,#dbe5df);border-radius:999px;padding:11px 17px;cursor:pointer;color:var(--text,#193b33);transition:.15s}
+.mf-horizon-buttons button.active,.mf-horizon-buttons button[aria-pressed=true]{background:#225a46;color:#fff;border-color:#225a46}
+.mf-horizon-buttons button:focus-visible{outline:3px solid #8ec8a9;outline-offset:2px}
+#mf-updated{font-size:12px;color:var(--muted,#687f72)}
+#mf-message{font-size:13px;color:var(--muted,#65796e);min-height:18px}
+.mf-report{display:grid;gap:20px}
+.mf-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.mf-stat{padding:23px;background:var(--surface,#fff);border:1px solid var(--line,#dce5df);border-radius:16px;min-height:130px}
+.mf-stat-label{font-size:12px;font-weight:650;color:var(--muted,#718479)}
+.mf-stat strong{display:block;margin:11px 0 7px;font-size:clamp(22px,3vw,32px);font-weight:750;letter-spacing:-.035em;color:var(--text,#183a31)}
+.mf-stat p{font-size:12px;color:var(--muted,#65786d);line-height:1.5;margin:0}
+.mf-trend-up{color:#24875a!important}.mf-trend-down{color:#bd6f34!important}.mf-trend-flat{color:var(--text,#234536)!important}
+.mf-panels{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:16px}
+.mf-panel{background:var(--surface,#fff);border:1px solid var(--line,#dce5df);padding:23px;border-radius:17px;min-width:0}
+.mf-panel h3{font-size:17px;margin:0 0 4px;color:var(--text,#183a31)}
+.mf-panel>.mf-muted{font-size:12px;color:var(--muted,#65796f);margin:0 0 18px;line-height:1.6}
+.mf-bar{display:grid;grid-template-columns:112px minmax(0,1fr) 48px;align-items:center;gap:8px;margin:16px 0}
+.mf-bar>span{font-size:12px;color:var(--text,#183a31);font-weight:600}
+.mf-bar>strong{text-align:right;font-size:12px;color:var(--text,#183a31)}
+.mf-track{height:13px;border-radius:20px;background:var(--line,#e1ece5);overflow:hidden}
+.mf-fill{height:100%;border-radius:20px;background:#388b61}
+.mf-fill.down{background:#b9905d}.mf-fill.flat{background:#819b91}
+.mf-index{display:flex;align-items:center;justify-content:center;gap:10px;min-height:140px;flex-direction:column;text-align:center}
+.mf-index strong{font-size:39px;letter-spacing:-.04em;color:var(--text,#183a31)}
+.mf-index small{font-size:12px;color:var(--muted,#65796f);line-height:1.5}
+.mf-status{font-weight:700;font-size:12px;border-radius:999px;background:var(--line,#e9f0e9);padding:5px 10px;color:var(--text,#173f32);display:inline-block}
+.mf-status.approved{color:#146444;background:#dcefe4}
+.mf-status.unapproved{color:#855a28;background:#f7e9d4}
+.mf-horizon-table{width:100%;border-collapse:collapse;font-size:13px}
+.mf-horizon-table th,.mf-horizon-table td{padding:13px 10px;border-bottom:1px solid var(--line,#e3ebe5);text-align:left}
+.mf-horizon-table th{font-size:11px;color:var(--muted,#65796f);font-weight:700}
+.mf-horizon-table td{color:var(--text,#16382d)}
+.mf-horizon-table tr[data-mf-row]{cursor:pointer}
+.mf-horizon-table tr.selected{background:rgba(53,136,96,.09)}
+.mf-horizon-table tr:focus-visible{outline:2px solid #4a9a76;outline-offset:-2px}
+.mf-table-wrap{overflow-x:auto}
+.mf-disclaimer{font-size:12px;line-height:1.7;color:var(--muted,#6b8275);max-width:1050px}
+.mf-disclaimer strong{color:var(--text,#28473b)}
+.mf-empty{background:var(--surface,#fff);border:1px dashed var(--line,#cad8cc);border-radius:15px;padding:30px;color:var(--text,#274b3c);line-height:1.6}
+.mf-legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:var(--muted,#6a8072)}
+.mf-legend b{color:var(--text,#244b3b)}
+@media(max-width:850px){.mf-panels{grid-template-columns:1fr}.mf-hero{padding:24px;flex-direction:column;align-items:flex-start}.mf-source{text-align:left}.mf-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.mf-summary{grid-template-columns:1fr}.mf-hero{padding:22px}.mf-source{width:100%;box-sizing:border-box}.mf-horizon-buttons{width:100%}.mf-horizon-buttons button{flex:1;padding:10px}.mf-panel{padding:18px}.mf-bar{grid-template-columns:92px minmax(0,1fr) 42px}.mf-horizon-table{min-width:600px}}
