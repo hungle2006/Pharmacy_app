@@ -8,6 +8,7 @@
 <script>try{const t=localStorage.getItem('pharmabiz-theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}catch{document.documentElement.dataset.theme='light';}</script>
 <link rel="stylesheet" href="/assets/visual.css">
 <link rel="stylesheet" href="/assets/drug-lookup.css">
+<link rel="stylesheet" href="/assets/market-forecast.css">
 </head>
 <body>
 <section class="cover" id="cover" aria-label="Giới thiệu PharmaBiz">
@@ -42,6 +43,44 @@
         <aside id="lookup-details" class="lookup-detail-panel" aria-label="Chi tiết thuốc và mapping" tabindex="-1"><div class="lookup-detail-empty"><div class="lookup-detail-icon" aria-hidden="true">✳</div><h3>Chọn một thuốc để xem chi tiết</h3><p>Thông tin đăng ký, hoạt chất, dạng bào chế, giá và bằng chứng liên kết RxNorm sẽ xuất hiện ở đây.</p></div></aside></div>
         <p class="lookup-disclaimer">Dữ liệu phục vụ nghiên cứu và phân tích thị trường. Liên kết ứng viên RxNorm chưa được xác minh không dùng để tư vấn điều trị hoặc kê đơn.</p>
       </section>
+
+      <section id="market-forecast-panel" class="market-workspace" aria-label="Dashboard xu hướng biến động giá thuốc toàn thị trường" hidden>
+        <header class="market-hero">
+          <div><span class="market-kicker">PHARMABIZ · DAV MARKET PRICE OUTLOOK</span>
+            <h2>Xu hướng giá thuốc <span>toàn thị trường.</span></h2>
+            <p>So sánh tỷ lệ biến động giữa các lần kê khai của cùng thuốc theo 3, 6 và 12 tháng. Phân biệt rõ xu hướng lịch sử và dự báo đã vượt kiểm định.</p>
+          </div>
+          <button type="button" class="market-refresh" data-market-reload>↻ Cập nhật báo cáo</button>
+        </header>
+        <p class="market-message" id="market-message" role="status" aria-live="polite">Đang chuẩn bị báo cáo biến động giá từ dữ liệu DAV…</p>
+        <div class="market-stats" id="market-summary"></div>
+        <div class="market-section-title"><h3>Biến động theo thời hạn</h3><p>Chọn một mốc để khám phá dữ liệu lịch sử và kết quả kiểm định</p></div>
+        <div class="market-horizon-grid" id="market-horizons"></div>
+        <div class="market-details">
+          <article class="market-article">
+            <div class="market-card-heading"><h3>Xu hướng giá trong <span id="market-selected-horizon">6 tháng</span></h3><div id="market-model-status"><span class="market-chip">Đang tải</span></div></div>
+            <div id="market-main-number" class="market-feature-num">—</div>
+            <p class="market-feature-caption" id="market-main-caption">Đang đọc dữ liệu giá công bố</p>
+            <div class="market-alert" id="market-forecast-note">Chỉ công bố mức dự báo tương lai nếu đã vượt kiểm định.</div>
+            <div class="market-mini-grid"><div><span>Thuốc / cặp lịch sử</span><strong id="market-coverage">—</strong></div>
+              <div><span>Phạm vi thời gian dữ liệu</span><strong id="market-dates">—</strong></div>
+              <div><span>Khoảng P10–P90 lịch sử</span><strong id="market-band">—</strong></div>
+              <div><span>Nguồn và phiên bản</span><strong id="market-updated">—</strong></div></div>
+          </article>
+          <article class="market-article">
+            <div class="market-card-heading"><h3>Cơ cấu tăng, giữ nguyên và giảm</h3></div>
+            <p class="market-muted">Tỷ lệ số thuốc có lần kê khai thay đổi theo cùng loại giá và đơn vị tính</p>
+            <div id="market-distribution"></div>
+          </article>
+        </div>
+        <article class="market-article">
+          <div class="market-card-heading"><h3>Biến động theo năm kê khai</h3><span class="market-chip">Trung vị lịch sử</span></div>
+          <p class="market-muted">So sánh lịch sử theo năm. Không nối giá của những thuốc khác nhau thành một chuỗi giá.</p>
+          <div id="market-timeline"></div>
+          <p class="market-footnote" id="market-method"></p>
+          <p class="market-footnote"><strong>Phạm vi:</strong> <span id="market-source">Dữ liệu DAV từ Neon Gold</span>. Đây không phải chỉ số giá thị trường được cân theo doanh số, và không phải tư vấn mua bán thuốc.</p>
+        </article>
+      </section>
       <section id="metrics" class="metrics" aria-label="Chỉ số chính"></section>
       <div id="visuals" aria-live="polite"></div>
       <section class="panel records-panel" id="records-panel"><div class="panel-head"><div><div class="eyebrow">SOURCE EXPLORER</div><h2>Khám phá bản ghi</h2><p>Truy xuất sản phẩm và các quan sát giá từ database</p></div><span class="tag" id="records-count">—</span></div><div class="table-scroll"><table><thead><tr><th>Sản phẩm / Hoạt chất</th><th>Nhà sản xuất</th><th>Quốc gia</th><th>Loại giá / Đơn vị</th><th class="numeric">Giá quan sát</th></tr></thead><tbody id="records"></tbody></table></div><div class="table-footer"><span id="range">Đang tải…</span><div class="pagination"><button id="prev" aria-label="Trang trước">←</button><span id="pageinfo">01</span><button id="next" aria-label="Trang tiếp theo">→</button></div></div></section>
@@ -51,5 +90,5 @@
 </div>
 <div class="chart-tooltip" id="tooltip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
-<script src="/assets/scene3d.js" defer></script><script src="/assets/drug-lookup.js" defer></script><script src="/assets/presentation.js" defer></script>
+<script src="/assets/scene3d.js" defer></script><script src="/assets/drug-lookup.js" defer></script><script src="/assets/market-forecast.js" defer></script><script src="/assets/presentation.js" defer></script>
 </body></html>
