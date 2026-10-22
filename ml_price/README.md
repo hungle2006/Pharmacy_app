@@ -52,3 +52,15 @@ Báo cáo xu hướng lịch sử có thể xuất bản ngay cả khi các giá
 - Giữ JSON `schema_version=1` để tương thích với Render/Vercel hiện có; các trường kiểm định bổ sung là tùy chọn cho báo cáo cũ.
 - Một số kỳ hạn vẫn có thể không đạt do tập kê khai lặp lại thưa; tính đúng đắn quan trọng hơn ép mô hình hiển thị kết quả.
 - Báo cáo phương pháp ở `ml_price/market_models.py` và bài test ở `ml_price/tests/test_market_models.py`.
+
+
+## Chế độ hiển thị khi mô hình chưa qua kiểm định
+
+Báo cáo có ba tầng thông tin tách biệt:
+- **Đã qua kiểm định**: \`status=approved\` và \`forecast_change_pct\` có số thực, đã vượt baseline trên tập test riêng.
+- **Ước tính thử nghiệm**: \`experimental_change_pct\` chỉ được tính từ giá kê khai thực (ít nhất 20 cặp lịch sử, 15 mã thuốc và 15 mã tham chiếu có lịch sử lặp lại). Đây là mô hình nghiên cứu **CHƯA vượt kiểm định**, chỉ cho thấy một kịch bản cần tiếp tục đánh giá. Không dùng để định giá giao dịch, dự toán giá hay tuyên bố xu hướng chắc chắn.
+- **Chỉ thống kê lịch sử**: không đủ thông tin để tính ước tính thử nghiệm, frontend vẫn hiển thị trung vị, tỷ lệ tăng/giảm, dải phân vị và lịch sử 3/6/12 tháng.
+
+Tuyệt đối không sao chép \`experimental_change_pct\` vào \`forecast_change_pct\` khi \`status != approved\`. \`historical_only=true\` tiếp tục có nghĩa là không có dự báo **được phê duyệt**, dù có số thử nghiệm riêng. Giao diện điều hướng không bị khóa; dấu cảnh báo xuất hiện khi chưa có dự báo đạt chuẩn.
+
+Không cần thay đổi Bronze/Silver/Gold hay lịch thu thập nguồn để bật giao diện này. Báo cáo R2 phải được tính lại bằng workflow GitHub từ dữ liệu thực và bản frontend cần triển khai lên Vercel; chỉ sửa mã trên GitHub chưa chứng minh bản production đã cập nhật.
