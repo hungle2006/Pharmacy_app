@@ -8,7 +8,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from ml_price.forecast import clean_observations, make_examples, time_split, fit_forecast, HORIZONS
-from ml_price.serve import advance_months, ForecastRequest, forecast_price
+from unittest.mock import patch
+from ml_price.serve import market_forecast, per_drug_forecast_removed
+from ml_price.market_store import store
 from fastapi import HTTPException
 
 class TestFutureForecast(unittest.TestCase):
@@ -68,11 +70,16 @@ class TestFutureForecast(unittest.TestCase):
             if result["status"]!="approved":
                 self.assertFalse((Path(path)/"forecast_model.cbm").exists())
 
-    def test_calendar_and_never_call_legacy_price_api(self):
-        self.assertEqual(advance_months(date(2026,1,31),3),date(2026,4,30))
-        self.assertEqual(advance_months(date(2024,2,29),12),date(2025,2,28))
-        payload=ForecastRequest(ingredient="Cimetidin",price_type="KK trong nước",
-                                unit="Viên",latest_price_vnd=1000,
-                                latest_price_date=date(2026,1,1),horizon_months=3)
-        with self.assertRaises(HTTPException):
-            forecast_price(payload,x_api_key=None)
+    def test_retired_drug_forecast_api_and_unavailable_market(self):
+        with self.assertRaises(HTTPException) as err:
+            per_drug_forecast_removed()
+        self.assertEqual(err.exception.status_code,410)
+        previous=store.report
+        try:
+            store.report=None
+            with patch.object(store,"refresh"):
+                with self.assertRaises(HTTPException) as error:
+                    market_forecast()
+            self.assertEqual(error.exception.status_code,503)
+        finally:
+            store.report=previous
