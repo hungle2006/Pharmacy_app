@@ -73,3 +73,12 @@
 .market-model-table tbody tr:last-child td{border-bottom:0}
 @media(max-width:730px){.market-qa-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.market-qa-grid{grid-template-columns:1fr}}
+
+/* Distinguish experimental market estimates without hiding access. */
+.market-message.market-warning{
+  border:1px solid #d8aa55;background:rgba(250,192,63,.12);
+  color:var(--text,#38483e);border-radius:12px;padding:13px 16px;
+  font-weight:650;
+}
+#nav .market-nav-unvalidated .nav-arrow{color:#b77817;font-weight:800}
+.market-horizon-label{overflow-wrap:anywhere}
