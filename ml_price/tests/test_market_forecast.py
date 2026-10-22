@@ -17,7 +17,7 @@ class MarketForecastTest(unittest.TestCase):
     def records(self,changing=True):
         data=[]
         for product in range(20):
-            for month in range(36):
+            for month in range(72):
                 at=pd.Timestamp("2020-01-16",tz="UTC")+pd.DateOffset(months=month)
                 price=1000*(1+product/5)*np.exp((.01 if changing else 0)*month)
                 data.append({
