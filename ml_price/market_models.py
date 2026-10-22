@@ -218,3 +218,34 @@ def evaluate_market_horizon(examples, horizon, observations=None):
                   reference_products=int(reference.registration_number.nunique()),
                   forecast_asof=str(pd.to_datetime(reference.origin_date, utc=True).max().date()))
     return result
+
+
+def exploratory_scenario(examples, horizon, observations=None, preferred_model=None):
+    """Optional *unvalidated* scenario, never an approved forecast.
+
+    Train with known observed price pairs. If recent repeated-filing reference
+    products exist, produce a grouped log-change scenario using only their
+    observable features. Without references, do not invent a future projection.
+    """
+    frame = examples[examples.horizon_months.eq(horizon)].copy()
+    if len(frame) < 20 or frame.registration_number.nunique() < 15:
+        return None
+    reference = _market_references(observations, horizon)
+    if reference.empty or reference.registration_number.nunique() < 15:
+        return None
+    model = preferred_model if preferred_model in MODEL_NAMES else 'time_weighted'
+    predicted_logs = np.clip(fit_predict(frame, reference, model),
+                             -math.log(1.5), math.log(1.5))
+    # Give each registration equal weight, even if it has multiple price kinds.
+    by_reg = pd.DataFrame({'registration': reference.registration_number.astype(str),
+                           'change': predicted_logs}).groupby('registration').change.mean()
+    value = float(100 * np.expm1(by_reg.mean()))
+    if not math.isfinite(value):
+        return None
+    return {'experimental_change_pct': round(value, 2),
+            'experimental_model': model,
+            'experimental_reference_products': int(len(by_reg)),
+            'experimental_source': 'observed_repeated_DAV_filings',
+            'experimental_label': 'UNVALIDATED_EXPLORATORY_SCENARIO',
+            'experimental_warning': ('Model estimate for research only. Has NOT passed '
+                                     'the out-of-sample quality gate; not a validated price forecast.') }
