@@ -77,13 +77,17 @@
       const good=item.status==='approved' && hasNumber(item.forecast_change_pct);
       const experimental=!good && hasNumber(item.experimental_change_pct);
       const shown=good?item.forecast_change_pct:experimental?item.experimental_change_pct:item.historical_change_pct;
+      const indicator=good?'Đã kiểm định':experimental?'Thử nghiệm':'Lịch sử';
+      const indicatorClass=good?'':experimental?' experimental':'';
+      const context=good?'Dự báo đã vượt kiểm định':experimental?'Ước tính chưa đạt kiểm định':'Trung vị biến động lịch sử';
       return '<button type="button" class="market-horizon '+(h===horizon?'is-active':'')+
-        '" data-market-horizon="'+h+'" aria-pressed="'+(h===horizon)+'">'+
-        '<span class="market-horizon-head"><span>0'+([3,6,12].indexOf(h)+1)+' / '+h+' THÁNG</span><span aria-hidden="true">↗</span></span>'+
+        '" data-market-horizon="'+h+'" aria-pressed="'+(h===horizon)+'" aria-label="'+h+' tháng: '+esc(context)+', '+pct(shown)+'">'+
+        '<span class="market-horizon-top"><span class="market-horizon-icon" aria-hidden="true">▦</span>'+
+        '<span class="market-horizon-tag'+indicatorClass+'">'+indicator+'</span></span>'+
+        '<span class="market-horizon-name">Xu hướng giá '+h+' tháng</span>'+
         '<strong class="market-horizon-value '+(shown>=0?'up':'down')+'">'+pct(shown)+'</strong>'+
-        '<span class="market-horizon-label">'+(good?'Dự báo đã vượt kiểm định':experimental?'Ước tính thử nghiệm — chưa vượt kiểm định':'Trung vị thay đổi trong lịch sử')+'</span>'+
-        '<span class="market-horizon-footer">'+integer(item.n_products)+' mã thuốc trong lịch sử · '+
-        (good?'Đã kiểm định':experimental?'Không phải dự báo đáng tin cậy':'Chỉ hiển thị số liệu lịch sử')+'</span></button>';
+        '<span class="market-horizon-label">'+context+'</span>'+
+        '<span class="market-horizon-footer"><span>'+integer(item.n_products)+' mã thuốc trong lịch sử</span><b aria-hidden="true">↗</b></span></button>';
     }).join('');
     const item=report.horizons?.[String(horizon)]||{};
     const valid=item.status==='approved' && hasNumber(item.forecast_change_pct);
@@ -109,10 +113,20 @@
       {name:'Gần như giữ nguyên (±1%)',value:n(item.share_stable_pct),kind:'stable'},
       {name:'Giảm > 1%',value:n(item.share_decrease_pct),kind:'down'}
     ];
-    $('market-distribution').innerHTML=parts.map(p=>
-      '<div class="market-distribution-line"><div class="market-distribution-title"><span>'+esc(p.name)+'</span><strong>'+pct(p.value)+'</strong></div>'+
-      '<div class="market-track"><div class="market-track-fill '+p.kind+'" style="width:'+Math.min(100,Math.max(0,p.value))+'%"></div></div></div>'
-    ).join('');
+    const up=Math.min(100,Math.max(0,n(item.share_increase_pct)));
+    const stable=Math.min(100,Math.max(0,n(item.share_stable_pct)));
+    $('market-distribution').innerHTML=
+      '<div class="market-distribution-layout">'+
+      '<div class="market-donut" role="img" aria-label="Tỷ lệ tăng '+pct(up)+', giữ nguyên '+pct(stable)+
+      ', giảm '+pct(item.share_decrease_pct)+'" style="--market-increase:'+up+'%;--market-stable-end:'+
+      Math.min(100,up+stable)+'%"><div class="market-donut-center"><strong>'+
+      integer(item.n_products)+'</strong><span>mã thuốc</span></div></div>'+
+      '<div class="market-donut-legend">'+parts.map(p=>
+        '<div class="market-distribution-line"><div class="market-distribution-title"><span>'+esc(p.name)+
+        '</span><strong>'+pct(p.value)+'</strong></div>'+
+        '<div class="market-track"><div class="market-track-fill '+p.kind+
+        '" style="width:'+Math.min(100,Math.max(0,p.value))+'%"></div></div></div>'
+      ).join('')+'</div></div>';
     const timeline=item.yearly_history||[];
     const max=Math.max(5,...timeline.map(x=>Math.abs(n(x.median_change_pct))));
     $('market-timeline').innerHTML=timeline.length
@@ -134,7 +148,8 @@
   async function load(force=false) {
     if(loading||(!force&&report))return;
     loading=true;
-    $('market-message').textContent='Đang tải báo cáo xu hướng thị trường từ Render / Cloudflare R2…';
+    $('market-message').classList.remove('market-error','market-warning');
+    $('market-message').textContent='Đang tải báo cáo thị trường từ dữ liệu DAV…';
     try{
       const res=await fetch('/api/market-forecast',{cache:'no-store'});
       const payload=await res.json();
@@ -156,7 +171,9 @@
         :'Đã tải báo cáo giá thuốc; các dự báo đạt chuẩn và ước tính thử nghiệm được phân biệt rõ.';
       render();
     }catch(error){
-      $('market-message').textContent='Chưa tải được báo cáo: '+String(error.message||'Lỗi kết nối')+'. Dữ liệu sẽ hiển thị khi GitHub xuất bản báo cáo lên R2.';
+      $('market-message').classList.add('market-error');
+      $('market-message').textContent='Không thể kết nối báo cáo: '+String(error.message||'Lỗi kết nối')+
+        '. Mục dự báo vẫn mở; thử bấm “Cập nhật báo cáo” hoặc kiểm tra lại máy chủ Render.';
     }finally{loading=false}
   }
   host.addEventListener('click',e=>{

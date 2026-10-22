@@ -46,11 +46,25 @@
 
       <section id="market-forecast-panel" class="market-workspace" aria-label="Dashboard xu hướng biến động giá thuốc toàn thị trường" hidden>
         <header class="market-hero">
-          <div><span class="market-kicker">PHARMABIZ · DAV MARKET PRICE OUTLOOK</span>
-            <h2>Xu hướng giá thuốc <span>toàn thị trường.</span></h2>
-            <p>So sánh tỷ lệ biến động giữa các lần kê khai của cùng thuốc theo 3, 6 và 12 tháng. Phân biệt rõ xu hướng lịch sử và dự báo đã vượt kiểm định.</p>
+          <div class="market-hero-main">
+            <span class="market-kicker"><span class="market-kicker-dot"></span> DAV MARKET OUTLOOK · PHARMABIZ</span>
+            <h2>Dự báo thị trường thuốc<span class="market-dot">.</span></h2>
+            <p>Phân tích biến động giá kê khai theo 3, 6 và 12 tháng. Đối chiếu lịch sử thực tế với ước tính mô hình và chất lượng kiểm định.</p>
+            <div class="market-hero-benefits" aria-label="Phạm vi báo cáo">
+              <span><i aria-hidden="true">▥</i> Dữ liệu giá DAV</span>
+              <span><i aria-hidden="true">◷</i> 3 · 6 · 12 tháng</span>
+              <span><i aria-hidden="true">✓</i> Công khai chất lượng</span>
+            </div>
           </div>
-          <button type="button" class="market-refresh" data-market-reload>↻ Cập nhật báo cáo</button>
+          <div class="market-hero-aside">
+            <div class="market-hero-symbol" aria-hidden="true">
+              <div class="market-hero-symbol-ring"></div>
+              <span class="market-hero-symbol-main">03</span>
+              <span class="market-hero-symbol-sub">KHUNG THỜI GIAN</span>
+              <span class="market-hero-symbol-mini">DAV / MARKET</span>
+            </div>
+            <button type="button" class="market-refresh" data-market-reload><span aria-hidden="true">↻</span> Cập nhật báo cáo</button>
+          </div>
         </header>
         <p class="market-message" id="market-message" role="status" aria-live="polite">Đang chuẩn bị báo cáo biến động giá từ dữ liệu DAV…</p>
         <div class="market-stats" id="market-summary"></div>
@@ -70,7 +84,7 @@
           <article class="market-article">
             <div class="market-card-heading"><h3>Cơ cấu tăng, giữ nguyên và giảm</h3></div>
             <p class="market-muted">Tỷ lệ số thuốc có lần kê khai thay đổi theo cùng loại giá và đơn vị tính</p>
-            <div id="market-distribution"></div>
+            <div id="market-distribution" aria-label="Tỷ lệ tăng, giữ nguyên và giảm theo dữ liệu lịch sử"></div>
           </article>
         </div>
         <article class="market-article">
