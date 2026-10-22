@@ -62,6 +62,9 @@ test('Data pagination bounds inputs and uses parameters instead of interpolation
   assert.equal(built.params.at(-1),0);
   assert.match(built.countSql,/COUNT\(\*\)::bigint AS total_rows/);
   assert.match(built.rowsSql,/catalog_duplicate_status/);
+  // PostgreSQL HTTP drivers may decode raw DATE as JavaScript Date.
+  // Explicit ISO formatting prevents values like 'Thu Aug 27' with no year.
+  assert(built.rowsSql.includes("TO_CHAR(p.declaration_date::date, 'YYYY-MM-DD') AS snapshot_date"));
 });
 
 test('RxNorm search is also parameterized and can reach any page',async()=>{
@@ -141,6 +144,8 @@ test('Drug lookup returns one product per card with the newest price, while pres
     assert.equal(onePerDrug.rows.length,2);
     assert.equal(onePerDrug.rows[0].id,'A');
     assert.equal(onePerDrug.rows[0].price_id,'new');
+    assert.equal(onePerDrug.rows[0].snapshot_date,'2026-10-21');
+    assert.equal(onePerDrug.rows[0].snapshot_date.length,10);
     assert.equal(onePerDrug.rows[1].id,'B');
     assert.equal(onePerDrug.rows[1].price_vnd,null);
   }finally{await db.close();}
