@@ -18,6 +18,7 @@ import pandas as pd
 
 from ml_price.forecast import clean_observations, load_gold, make_examples, time_split
 from ml_price.forecast_schema import HORIZONS
+from ml_price.market_models import evaluate_market_horizon
 
 MIN_REFERENCE = 20
 MIN_VALIDATION = 20
@@ -163,6 +164,7 @@ def make_market_report(raw, directory="models/market"):
         "horizons":{},
         "approved_horizons":[],
         "historical_only":True,
+        "methodology":"Three candidate models, expanding walk-forward validation, unseen final chronological holdout, registration-cluster bootstrap.",
     }
     if examples.empty:
         for h in HORIZONS:
@@ -174,19 +176,15 @@ def make_market_report(raw, directory="models/market"):
         subset=examples[examples.horizon_months.eq(h)]
         historical=sample_stats(subset)
         historical["yearly_history"]=history_by_year(subset)
-        split=horizon_time_split(examples,h)
-        if split is not None:
-            verification=train_change(*split,h)
-        else:
-            verification={"status":"insufficient_history",
-                          "forecast_change_pct":None,
-                          "reason":"Insufficient chronologically separated training, validation or test samples for this horizon"}
+        # Model selection is on embargoed rolling validation folds only.
+        # A final chronological holdout determines if a forecast is publishable.
+        verification=evaluate_market_horizon(examples,h,observations)
         result={**historical,**verification}
         report["horizons"][str(h)]=result
         if result["status"]=="approved":
             report["approved_horizons"].append(int(h))
     report["historical_only"]=len(report["approved_horizons"])==0
-    report["caution"]="Historical statistics are descriptive, not future forecasts. Published forecasts are only estimates for repeat declared prices, not daily market quotes or retail transactions."
+    report["caution"]="Historical statistics are descriptive, not future forecasts. Forecasts apply only to repeatedly declared DAV prices, not every medicine, and are not sales-weighted. Bootstrap ranges represent sample uncertainty, not predictive intervals."
     (output/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     return report
 
