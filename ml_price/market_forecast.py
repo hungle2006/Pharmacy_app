@@ -75,6 +75,34 @@ def history_by_year(rows):
                        "mean_change_pct":finite_number(df.change.mean())})
     return output[-12:]
 
+def horizon_time_split(examples, horizon):
+    """Split each horizon independently, embargoing outcomes that cross folds.
+
+    Calendar-date boundaries prevent the same filing date being scattered
+    across splits. A training outcome must precede the first validation
+    origin; likewise a validation outcome must precede the first test origin.
+    """
+    subset = examples[examples.horizon_months.eq(horizon)].copy()
+    if subset.empty:
+        return None
+    dates = sorted(subset.origin_date.unique())
+    if len(dates) < 8:
+        return None
+    # Search only predeclared calendar cuts, not test-score-optimized cuts.
+    candidates = [(0.60, 0.82), (0.55, 0.85), (0.50, 0.80),
+                  (0.65, 0.85), (0.50, 0.85)]
+    for first, second in candidates:
+        a, b = dates[int(len(dates) * first)], dates[int(len(dates) * second)]
+        train = subset[(subset.origin_date < a) & (subset.target_date < a)].copy()
+        val = subset[(subset.origin_date >= a) & (subset.origin_date < b) &
+                     (subset.target_date < b)].copy()
+        test = subset[subset.origin_date >= b].copy()
+        if (len(train) >= MIN_TRAIN and len(val) >= MIN_VALIDATION and
+                len(test) >= MIN_TEST):
+            return train, val, test
+    return None
+
+
 def train_change(train,val,test,horizon):
     """One global % change per horizon; select shrinkage only from validation."""
     x=train[train.horizon_months.eq(horizon)]
@@ -110,7 +138,12 @@ def train_change(train,val,test,horizon):
         "forecast_change_pct":finite_number(pct(applied)) if approved else None,
         "candidate_change_pct":finite_number(pct(applied)) if weight>0 else None,
         "selected_weight":float(weight),
-        "reason":"Compared with unchanged price using validation selection and held-out chronological test; log-ratio MAE",
+        "reason":("approved" if approved else
+                  "NO_DIRECTIONAL_SIGNAL" if weight==0 else
+                  "VALIDATION_NOT_BETTER_THAN_BASELINE" if val_mae >= baseline_val*0.99 else
+                  "INSUFFICIENT_DISTINCT_TEST_DRUGS" if len(t.registration_number.unique())<15 else
+                  "TEST_NOT_BETTER_THAN_BASELINE"),
+        "method":"Horizon-specific embargoed time split; zero-change baseline; log-ratio MAE",
     })
     return result
 
@@ -137,15 +170,17 @@ def make_market_report(raw, directory="models/market"):
                                          "n_pairs":0, "forecast_change_pct":None}
         (output/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
         return report
-    split=time_split(examples)
     for h in HORIZONS:
         subset=examples[examples.horizon_months.eq(h)]
         historical=sample_stats(subset)
         historical["yearly_history"]=history_by_year(subset)
+        split=horizon_time_split(examples,h)
         if split is not None:
             verification=train_change(*split,h)
         else:
-            verification={"status":"insufficient_history","forecast_change_pct":None}
+            verification={"status":"insufficient_history",
+                          "forecast_change_pct":None,
+                          "reason":"Insufficient chronologically separated training, validation or test samples for this horizon"}
         result={**historical,**verification}
         report["horizons"][str(h)]=result
         if result["status"]=="approved":
