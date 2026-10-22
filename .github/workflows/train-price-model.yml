@@ -1,19 +1,19 @@
 name: Train Pharmacy Price Model
-# The workflow name is preserved so GitHub -> Render deploy automation can
-# continue to trigger on successful main-branch runs.
+# Preserve workflow name so GitHub -> Render deploy hook continues to work.
+# The published product is now a MARKET-WIDE trend report, NOT per-drug prices.
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, feature/market-price-trend-dashboard-20261022]
     paths:
       - 'ml_price/**'
       - '.github/workflows/train-price-model.yml'
   schedule:
-    - cron: '0 3 * * 0' # Sunday 10:00 Vietnam
+    - cron: '0 3 * * 0' # 10:00 Sunday Vietnam
 permissions:
   contents: read
 concurrency:
-  group: pharmacy-future-price-forecast
+  group: pharmacy-market-forecast
   cancel-in-progress: false
 jobs:
   train:
@@ -26,46 +26,44 @@ jobs:
           python-version: '3.11'
           cache: pip
           cache-dependency-path: ml_price/requirements-train.txt
-      - name: Install training dependencies
+      - name: Install forecast evaluation dependencies
         run: python -m pip install -r ml_price/requirements-train.txt
-      - name: Test forecast logic and API without production credentials
+      - name: Test global market forecast quality and front-end syntax
         run: |
           python -m unittest discover -s ml_price/tests -p 'test_*.py' -v
-          python -m py_compile ml_price/forecast.py ml_price/forecast_store.py ml_price/serve.py
-          node --check api/forecast-price.js
+          python -m py_compile ml_price/market_forecast.py ml_price/market_store.py ml_price/serve.py ml_price/upload_market.py
+          node --check api/market-forecast.js
+          node --check assets/market-forecast.js
           node --check assets/drug-lookup.js
-      - name: Backtest actual future-price declarations on Neon Gold
-        id: backtest
+      - name: Evaluate actual DAV market price changes on Neon Gold
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.NEON_DATABASE_URL }}
+        run: python -m ml_price.market_forecast
+      - name: Summarize market price trend evaluation
         run: |
-          python -m ml_price.forecast
           python - <<'PY'
           import json,os
           from pathlib import Path
-          r=json.loads(Path("models/forecast/report.json").read_text(encoding="utf-8"))
-          with open(os.environ["GITHUB_OUTPUT"],"a",encoding="utf-8") as f:
-              f.write("approved="+str(bool(r.get("approved_horizons"))).lower()+"\n")
+          r=json.loads(Path("models/market/report.json").read_text(encoding="utf-8"))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as f:
-              f.write("## Future medicine price forecasting\n")
-              f.write("Status: **"+r["status"]+"**\n\n")
-              f.write("Labeled future price pairs: "+str(r["candidate_pairs"])+"\n\n")
-              for h,details in r["horizons"].items():
-                  f.write("- "+h+" months: "+details["status"]+" | MAE "+
-                          str(details.get("mae_vnd","N/A"))+" VND | baseline "+
-                          str(details.get("baseline_mae_vnd","N/A"))+" VND\n")
-              f.write("\nPublishing only horizons that pass the backtest.\n")
+              f.write("## DAV market price outlook\n")
+              f.write(f"Observed time-separated pairs: {r['labeled_pairs']}\n\n")
+              for h,item in r['horizons'].items():
+                  f.write(f"- {h} months: {item['status']}; {item.get('n_products',0)} drugs; "
+                          f"historical median {item.get('historical_change_pct')}%; "
+                          f"approved forecast {item.get('forecast_change_pct')}%\n")
+              f.write("\nHistorical descriptive metrics are published with explicit labels even when no future forecast is approved.\n")
           PY
-      - name: Save forecast backtest report for review
+      - name: Archive report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pharmacy-future-forecast-${{ github.run_number }}
-          path: models/forecast/report.json
+          name: dav-market-price-trends-${{ github.run_number }}
+          path: models/market/report.json
           retention-days: 30
           if-no-files-found: warn
-      - name: Publish only approved FUTURE forecast model to Cloudflare R2
-        if: github.ref == 'refs/heads/main' && steps.backtest.outputs.approved == 'true'
+      - name: Publish aggregate report to private R2
+        if: github.ref == 'refs/heads/main'
         env:
           ML_R2_ENDPOINT: ${{ secrets.ML_R2_ENDPOINT || secrets.R2_ENDPOINT }}
           ML_R2_BUCKET: ${{ secrets.ML_R2_BUCKET || secrets.R2_BUCKET }}
@@ -74,6 +72,6 @@ jobs:
         run: |
           set -euo pipefail
           for var in ML_R2_ENDPOINT ML_R2_BUCKET ML_R2_ACCESS_KEY_ID ML_R2_SECRET_ACCESS_KEY; do
-            if [ -z "${!var}" ]; then echo "::error::Missing GitHub secret $var" >&2; exit 1; fi
+            if [ -z "${!var}" ]; then echo "::error::Missing GitHub secret: $var" >&2; exit 1; fi
           done
-          python -m ml_price.upload_forecast
+          python -m ml_price.upload_market
