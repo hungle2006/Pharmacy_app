@@ -141,6 +141,14 @@
       if(!res.ok||payload.kind!=='dav-market-price-trend')throw Error(payload.notice||'Báo cáo thị trường chưa được công bố');
       report=payload;
       const nExperimental=[3,6,12].filter(h=>hasNumber(report.horizons?.[String(h)]?.experimental_change_pct)).length;
+      const nav=document.querySelector('#nav [data-view="market-forecast"]');
+      if(nav){
+        nav.title=report.historical_only?'Chưa vượt kiểm định: có thể xem lịch sử và ước tính thử nghiệm':'Đã có dự báo vượt kiểm định';
+        nav.classList.toggle('market-nav-unvalidated',Boolean(report.historical_only));
+        const arrow=nav.querySelector('.nav-arrow');
+        if(arrow)arrow.textContent=report.historical_only?'⚠':'↗';
+      }
+      $('market-message').classList.toggle('market-warning',Boolean(report.historical_only));
       $('market-message').textContent=report.historical_only
         ?(nExperimental
            ?'Đã tải dữ liệu thật: '+nExperimental+' khung thời gian có ước tính thử nghiệm CHƯA vượt kiểm định. Xem cảnh báo ở từng thẻ.'
