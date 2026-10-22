@@ -14,14 +14,50 @@
       ?'<span class="market-chip market-chip-ok">Đã vượt kiểm định</span>'
       :'<span class="market-chip market-chip-neutral">Chưa có dự báo đạt chuẩn</span>';
   }
-  const qualityReason=item=>({
+  const qualityReason=item=>item.status==='approved'?'Dự báo đã vượt kiểm định trên tập test độc lập theo thời gian.':({
     NO_DIRECTIONAL_SIGNAL:'Mô hình chưa tìm được tín hiệu tăng/giảm tốt hơn giả định giá giữ nguyên trên tập xác thực.',
     VALIDATION_NOT_BETTER_THAN_BASELINE:'Tập xác thực chưa cải thiện ít nhất 1% so với giả định giá không đổi.',
     INSUFFICIENT_DISTINCT_TEST_DRUGS:'Tập kiểm định chưa có đủ số đăng ký thuốc phân biệt.',
-    TEST_NOT_BETTER_THAN_BASELINE:'Tập kiểm định độc lập chưa cải thiện ít nhất 1% so với giá không đổi.'
+    TEST_NOT_BETTER_THAN_BASELINE:'Tập kiểm định độc lập chưa cải thiện ít nhất 1% so với giá không đổi.',
+    NO_VALIDATION_IMPROVEMENT:'Cả ba mô hình đều không cải thiện tối thiểu 1% so với baseline trên các vòng validation.',
+    INSUFFICIENT_CHRONOLOGICAL_HOLDOUT:'Chưa đủ mẫu test độc lập về thời gian và mã thuốc.',
+    INSUFFICIENT_WALK_FORWARD_HISTORY:'Không tạo được tối thiểu hai vòng kiểm định cuốn chiếu đạt yêu cầu.',
+    INSUFFICIENT_CURRENT_REFERENCE:'Thiếu ít nhất 15 mã thuốc kê khai lặp lại để xuất bản tỷ lệ dự báo chung.'
   }[item.reason]||(item.status==='insufficient_history'
     ?'Chưa có đủ chuỗi giá được tách theo thời gian để huấn luyện và kiểm định cho kỳ hạn này.'
     :'Mô hình chưa vượt kiểm định độc lập; dữ liệu lịch sử vẫn có thể được sử dụng.'));
+  const modelNames={time_weighted:'Xu hướng trọng số thời gian',hierarchical:'Mô hình phân cấp nhóm thuốc',temporal_ridge:'Hồi quy có yếu tố thời gian'};
+  function validationPanel(item){
+    const comparisons=item.model_comparison||[];
+    if(!comparisons.length){
+      return '<p class="market-muted">'+esc(qualityReason(item))+
+        ' Thống kê lịch sử vẫn được hiển thị độc lập.</p>'+
+        '<p class="market-footnote">Mẫu train: '+integer(item.n_train)+' · validation: '+integer(item.n_validation)+
+        ' · test: '+integer(item.n_test)+' · vòng cuốn chiếu: '+integer(item.n_walkforward_folds)+'</p>';
+    }
+    const entries=comparisons.map(model=>'<tr><td>'+esc(modelNames[model.name]||model.name)+'</td>'+
+      '<td>'+esc(Number(model.validation_log_mae).toFixed(5))+'</td>'+
+      '<td>'+pct(model.validation_gain_pct)+'</td></tr>').join('');
+    const hasTest=typeof item.test_gain_fraction==='number';
+    const ci=item.test_gain_ci95_pct_points;
+    const sampleCI=item.forecast_sample_ci90_pct;
+    const chosen=item.selected_model?esc(modelNames[item.selected_model]||item.selected_model):'Chưa chọn';
+    return '<div class="market-qa-grid">'+
+      '<div><span>Validation cuốn chiếu</span><strong>'+integer(item.n_walkforward_folds)+' vòng / '+integer(item.n_validation)+' mẫu</strong></div>'+
+      '<div><span>Test độc lập</span><strong>'+integer(item.n_test)+' mẫu</strong></div>'+
+      '<div><span>Ứng viên được chọn</span><strong>'+chosen+'</strong></div>'+
+      '<div><span>Mức cải thiện trên test</span><strong>'+(hasTest?pct(item.test_gain_fraction*100):'Chưa kiểm định')+'</strong></div>'+
+      '</div>'+
+      '<div class="market-model-scroll"><table class="market-model-table"><thead><tr>'+
+      '<th>Mô hình</th><th>Validation log-MAE</th><th>So với baseline</th></tr></thead><tbody>'+
+      '<tr><td>Giữ nguyên giá (baseline)</td><td>'+esc(Number(item.validation_baseline_log_mae||0).toFixed(5))+'</td><td>0%</td></tr>'+
+      entries+'</tbody></table></div>'+
+      '<p class="market-footnote"><strong>Độ bất định:</strong> '+
+      (hasTest&&Array.isArray(ci)?'Khoảng bootstrap 95% cho mức cải thiện MAE trên test: '+pct(ci[0])+' đến '+pct(ci[1])+'. ':'Chưa đủ điều kiện ước lượng khoảng cải thiện trên test. ')+
+      (item.status==='approved'&&Array.isArray(sampleCI)?'Khoảng bootstrap 90% của trung bình dự báo trên tập thuốc tham chiếu: '+pct(sampleCI[0])+' đến '+pct(sampleCI[1])+'. ':'')+
+      'Đây là độ bất định do lấy mẫu; không phải khoảng dự báo giá cho từng thuốc.</p>'+
+      '<p class="market-footnote">'+esc(qualityReason(item))+'</p>';
+  }
   function render(){
     if(!active)return;
     if(!report){return;}
@@ -79,6 +115,7 @@
           '<strong>'+pct(amount)+'</strong><small>'+integer(row.n_products)+' thuốc</small></div>';
       }).join('')
       :'<p class="market-muted">Chưa đủ số cặp kê khai theo từng năm để hiển thị xu hướng dài hạn.</p>';
+    $('market-validation').innerHTML=validationPanel(item);
     $('market-method').textContent='Mỗi cặp so sánh cùng số đăng ký, loại giá và đơn vị. '+
       'Các thuốc không có nhiều lần kê khai không được đưa vào chỉ số thay đổi. Mỗi số đăng ký có trọng số ngang nhau trong thống kê hiện tại. '+
       'Khoảng P10–P90 mô tả phân phối thay đổi lịch sử; không phải khoảng tin cậy của dự báo. '+
