@@ -14,10 +14,12 @@
 
 `ml_price/market_forecast.py` tạo giá trị thay đổi theo **log của tỷ số giá tương lai/giá gốc**. Tập train/validation/test được tách theo thời gian; nhãn cuối train kết thúc trước validation, nhãn cuối validation kết thúc trước test.
 
-- Baseline: **giá không thay đổi**.
-- Mô hình thống kê chung: log tỷ lệ biến động đã làm bền vững với ngoại lệ trong quá khứ, được co trọng số (shrinkage) chọn trên validation.
-- Kiểm định test riêng cho từng thời hạn: sai số tuyệt đối trong thang log cải thiện ít nhất 1% so với baseline và số quan sát tối thiểu.
-- Nếu không đạt, `forecast_change_pct` bắt buộc là `null`. Dashboard chỉ hiển thị các tỷ lệ **đã quan sát trong lịch sử**, không tự gọi đó là dự báo tương lai.
+- Baseline: **giá không thay đổi** (0%).
+- Ba ứng viên độc lập: **time_weighted** (log biến động trung bình có suy giảm trọng số theo thời gian và hạn chế ngoại lệ); **hierarchical** (partial pooling theo hoạt chất, loại giá, đơn vị); **temporal_ridge** (hồi quy ridge theo ngày gốc, mùa vụ, khoảng cách giữa hai lần kê khai và biến động trước đó).
+- Chọn thuật toán qua tối thiểu **hai vòng expanding walk-forward validation** theo từng thời hạn. Nhãn của train phải có ngày đích trước ngày bắt đầu validation; nhãn validation kết thúc trước lần chia tiếp theo; test cuối không tham gia chọn mô hình.
+- Tiếp tục dùng log-MAE và baseline 0%. Chỉ công bố khi validation tốt hơn ít nhất 1%, test độc lập tốt hơn ít nhất 1% và đủ mẫu tham chiếu kê khai lặp lại.
+- Báo cáo gồm bảng **model_comparison**, **walkforward_folds**, số mẫu, **test_gain_fraction**, **test_gain_ci95_pct_points** (bootstrap theo mã đăng ký), và khi đạt có **forecast_sample_ci90_pct** (độ bất định lấy mẫu của giá trị trung bình dự báo, KHÔNG phải khoảng dự báo giá thuốc).
+- Nếu không đạt, `forecast_change_pct` bắt buộc là `null`, dashboard vẫn hiển thị lịch sử tăng/giảm/giữ nguyên, trung vị, P10–P90 và chuỗi theo năm. Các khoảng bootstrap mô tả sai số lấy mẫu, không phải bằng chứng chắc chắn cho mức tăng giá tương lai.
 - Với một nhóm thuốc cụ thể, xu hướng thị trường không được coi là dự báo cho riêng thuốc đó.
 
 ## Pipeline tự động
@@ -43,3 +45,10 @@ Cần các secrets GitHub đã được cấu hình: `DATABASE_URL` (hoặc `NEO
 ## Giới hạn sử dụng
 
 Báo cáo xu hướng lịch sử có thể xuất bản ngay cả khi các giá trị **dự báo tương lai** chưa vượt chất lượng. Tuyệt đối không gọi thống kê lịch sử là giá chắc chắn tăng trong tương lai. Không sử dụng để định giá giao dịch, mua sắm bệnh viện, dự toán bán lẻ hay tư vấn điều trị mà không có kiểm định độc lập.
+
+## Phạm vi thay đổi 2026-10-22
+
+- Giữ nguyên Neon Gold, Silver, Bronze, job crawl và cơ chế cập nhật nguồn. Không tăng số liệu, tạo giá kê khai mới hoặc đặt lại lịch ETL.
+- Giữ JSON `schema_version=1` để tương thích với Render/Vercel hiện có; các trường kiểm định bổ sung là tùy chọn cho báo cáo cũ.
+- Một số kỳ hạn vẫn có thể không đạt do tập kê khai lặp lại thưa; tính đúng đắn quan trọng hơn ép mô hình hiển thị kết quả.
+- Báo cáo phương pháp ở `ml_price/market_models.py` và bài test ở `ml_price/tests/test_market_models.py`.
