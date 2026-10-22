@@ -9,10 +9,13 @@
   const n=x=>typeof x==='number'&&Number.isFinite(x)?x:0;
   let report=null,active=false,horizon=6,loading=false;
 
-  function badge(status) {
+  const hasNumber=value=>typeof value==='number'&&Number.isFinite(value);
+  function badge(status,experimental) {
     return status==='approved'
       ?'<span class="market-chip market-chip-ok">Đã vượt kiểm định</span>'
-      :'<span class="market-chip market-chip-neutral">Chưa có dự báo đạt chuẩn</span>';
+      :experimental
+        ?'<span class="market-chip market-chip-neutral">Thử nghiệm · Chưa vượt kiểm định</span>'
+        :'<span class="market-chip market-chip-neutral">Chỉ có dữ liệu lịch sử</span>';
   }
   const qualityReason=item=>item.status==='approved'?'Dự báo đã vượt kiểm định trên tập test độc lập theo thời gian.':({
     NO_DIRECTIONAL_SIGNAL:'Mô hình chưa tìm được tín hiệu tăng/giảm tốt hơn giả định giá giữ nguyên trên tập xác thực.',
@@ -65,32 +68,39 @@
       integer(report.labeled_pairs)+' cặp lịch sử theo thời gian';
     $('market-updated').textContent='Phiên bản dữ liệu: '+esc(report.version||'—');
     const approved=report.approved_horizons||[];
+    const indicative=[3,6,12].filter(h=>hasNumber(report.horizons?.[String(h)]?.experimental_change_pct));
     $('market-summary').innerHTML='<article class="market-stat"><span>Khung thời gian phân tích</span><strong>3 · 6 · 12 tháng</strong><small>So sánh cùng thuốc, loại giá và đơn vị</small></article>'+
       '<article class="market-stat"><span>Cặp giá lịch sử</span><strong>'+integer(report.labeled_pairs)+'</strong><small>Chỉ gồm các lần kê khai có thật</small></article>'+
-      '<article class="market-stat"><span>Thời hạn đạt chuẩn dự báo</span><strong>'+approved.length+'/3</strong><small>Đối chiếu với giả định giá không đổi</small></article>';
+      '<article class="market-stat"><span>Chất lượng mô hình</span><strong>'+approved.length+'/3 đạt chuẩn</strong><small>'+indicative.length+' thời hạn có ước tính thử nghiệm chưa kiểm định đạt</small></article>';
     $('market-horizons').innerHTML=[3,6,12].map(h=>{
       const item=report.horizons?.[String(h)]||{};
-      const good=item.status==='approved' && typeof item.forecast_change_pct==='number';
+      const good=item.status==='approved' && hasNumber(item.forecast_change_pct);
+      const experimental=!good && hasNumber(item.experimental_change_pct);
+      const shown=good?item.forecast_change_pct:experimental?item.experimental_change_pct:item.historical_change_pct;
       return '<button type="button" class="market-horizon '+(h===horizon?'is-active':'')+
         '" data-market-horizon="'+h+'" aria-pressed="'+(h===horizon)+'">'+
         '<span class="market-horizon-head"><span>0'+([3,6,12].indexOf(h)+1)+' / '+h+' THÁNG</span><span aria-hidden="true">↗</span></span>'+
-        '<strong class="market-horizon-value '+(good?(item.forecast_change_pct>=0?'up':'down'):'')+'">'+
-        (good?pct(item.forecast_change_pct):pct(item.historical_change_pct))+'</strong>'+
-        '<span class="market-horizon-label">'+(good?'Dự báo tỷ lệ biến động toàn thị trường':'Trung vị thay đổi trong lịch sử')+'</span>'+
-        '<span class="market-horizon-footer">'+integer(item.n_products)+' mã thuốc tham chiếu · '+
-        (good?'Dự báo đã kiểm định':'Chỉ số lịch sử, không phải dự báo')+'</span></button>';
+        '<strong class="market-horizon-value '+(shown>=0?'up':'down')+'">'+pct(shown)+'</strong>'+
+        '<span class="market-horizon-label">'+(good?'Dự báo đã vượt kiểm định':experimental?'Ước tính thử nghiệm — chưa vượt kiểm định':'Trung vị thay đổi trong lịch sử')+'</span>'+
+        '<span class="market-horizon-footer">'+integer(item.n_products)+' mã thuốc trong lịch sử · '+
+        (good?'Đã kiểm định':experimental?'Không phải dự báo đáng tin cậy':'Chỉ hiển thị số liệu lịch sử')+'</span></button>';
     }).join('');
     const item=report.horizons?.[String(horizon)]||{};
-    const valid=item.status==='approved' && typeof item.forecast_change_pct==='number';
+    const valid=item.status==='approved' && hasNumber(item.forecast_change_pct);
+    const experimental=!valid&&hasNumber(item.experimental_change_pct);
     $('market-selected-horizon').textContent=horizon+' tháng';
-    $('market-model-status').innerHTML=badge(item.status);
-    $('market-main-number').textContent=valid?pct(item.forecast_change_pct):pct(item.historical_change_pct);
+    $('market-model-status').innerHTML=badge(item.status,experimental);
+    $('market-main-number').textContent=pct(valid?item.forecast_change_pct:experimental?item.experimental_change_pct:item.historical_change_pct);
     $('market-main-caption').textContent=valid
-      ?'Dự báo thay đổi giá kê khai trung bình cho nhóm thuốc có lịch sử lặp lại'
-      :'Trung vị biến động đã ghi nhận trong lịch sử — không phải tỷ lệ tăng giá được dự báo';
+      ?'Dự báo biến động giá kê khai của tập thuốc tham chiếu — đã vượt kiểm định'
+      :experimental
+        ?'Ước tính mô hình thử nghiệm trên dữ liệu giá thật — CHƯA VƯỢT KIỂM ĐỊNH'
+        :'Trung vị biến động đã ghi nhận trong lịch sử — không phải dự báo';
     $('market-forecast-note').innerHTML=valid
-      ?'<strong>Dự báo thử nghiệm đã đạt ngưỡng:</strong> MAE trên biến động log tốt hơn giữ nguyên giá '+pct(n(item.test_gain_fraction)*100)+'. Kết quả không đại diện giá bán lẻ hay mọi thuốc.'
-      :'<strong>Chưa có dự báo tương lai đáng tin cậy:</strong> '+esc(qualityReason(item))+' Các con số đang hiển thị chỉ là thống kê lịch sử.';
+      ?'<strong>Đã vượt ngưỡng kiểm định:</strong> mức cải thiện log-MAE so với giá không đổi là '+pct(n(item.test_gain_fraction)*100)+'. Không phải giá bán lẻ.'
+      :experimental
+        ?'<strong>⚠ CHƯA VƯỢT KIỂM ĐỊNH — KHÔNG DÙNG ĐỂ QUYẾT ĐỊNH:</strong> Đây là ước tính thử nghiệm, không phải dự báo tương lai đã được chứng minh. '+esc(qualityReason(item))+' Trung vị thay đổi lịch sử của cùng kỳ: <strong>'+pct(item.historical_change_pct)+'</strong>.'
+        :'<strong>⚠ Chưa có ước tính dự báo đủ điều kiện:</strong> '+esc(qualityReason(item))+' Số đang hiển thị là trung vị biến động lịch sử, không phải dự báo.';
     $('market-coverage').textContent=integer(item.n_products)+' mã thuốc · '+integer(item.n_pairs)+' cặp giá đã ghi nhận';
     $('market-dates').textContent=(item.observed_from||'—')+' → '+(item.observed_to||'—');
     $('market-band').textContent=pct(item.p10_pct)+' đến '+pct(item.p90_pct);
@@ -130,9 +140,12 @@
       const payload=await res.json();
       if(!res.ok||payload.kind!=='dav-market-price-trend')throw Error(payload.notice||'Báo cáo thị trường chưa được công bố');
       report=payload;
+      const nExperimental=[3,6,12].filter(h=>hasNumber(report.horizons?.[String(h)]?.experimental_change_pct)).length;
       $('market-message').textContent=report.historical_only
-        ?'Đã tải số liệu lịch sử. Chưa có thời hạn dự báo nào vượt kiểm định.'
-        :'Đã tải báo cáo thị trường; chỉ các dự báo đạt chuẩn được hiển thị là dự báo tương lai.';
+        ?(nExperimental
+           ?'Đã tải dữ liệu thật: '+nExperimental+' khung thời gian có ước tính thử nghiệm CHƯA vượt kiểm định. Xem cảnh báo ở từng thẻ.'
+           :'Đã tải dữ liệu lịch sử; chưa đủ bằng chứng để đưa ra ước tính thử nghiệm đáng dùng. Bạn vẫn xem được thống kê 3/6/12 tháng.')
+        :'Đã tải báo cáo giá thuốc; các dự báo đạt chuẩn và ước tính thử nghiệm được phân biệt rõ.';
       render();
     }catch(error){
       $('market-message').textContent='Chưa tải được báo cáo: '+String(error.message||'Lỗi kết nối')+'. Dữ liệu sẽ hiển thị khi GitHub xuất bản báo cáo lên R2.';
