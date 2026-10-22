@@ -4,7 +4,7 @@ on:
     branches: [main]
     paths:
       - 'ml_price/**'
-      - 'api/forecast-price.js'
+      - 'api/market-forecast.js'
       - '.github/workflows/train-price-model.yml'
       - '.github/workflows/validate-ml.yml'
       - 'render.yaml'
@@ -12,7 +12,7 @@ on:
     branches: [main]
     paths:
       - 'ml_price/**'
-      - 'api/forecast-price.js'
+      - 'api/market-forecast.js'
       - '.github/workflows/train-price-model.yml'
       - '.github/workflows/validate-ml.yml'
       - 'render.yaml'
@@ -31,6 +31,7 @@ jobs:
           cache-dependency-path: ml_price/requirements-train.txt
       - run: python -m pip install -r ml_price/requirements-train.txt
       - run: python -m unittest discover -s ml_price/tests -p 'test_*.py' -v
-      - run: python -m py_compile ml_price/forecast.py ml_price/forecast_store.py ml_price/serve.py ml_price/upload_forecast.py
-      - run: node --check api/forecast-price.js
+      - run: python -m py_compile ml_price/market_forecast.py ml_price/market_store.py ml_price/serve.py ml_price/upload_market_forecast.py
+      - run: node --check api/market-forecast.js
+      - run: node --check assets/market-forecast.js
       - run: node --check assets/drug-lookup.js
