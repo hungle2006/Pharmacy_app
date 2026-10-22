@@ -14,7 +14,7 @@
       ?'<span class="market-chip market-chip-ok">Đã vượt kiểm định</span>'
       :'<span class="market-chip market-chip-neutral">Chưa có dự báo đạt chuẩn</span>';
   }
-  const qualityReason=item=>({
+  const qualityReason=item=>item.status==='approved'?'Dự báo đã vượt kiểm định trên tập test độc lập theo thời gian.':({
     NO_DIRECTIONAL_SIGNAL:'Mô hình chưa tìm được tín hiệu tăng/giảm tốt hơn giả định giá giữ nguyên trên tập xác thực.',
     VALIDATION_NOT_BETTER_THAN_BASELINE:'Tập xác thực chưa cải thiện ít nhất 1% so với giả định giá không đổi.',
     INSUFFICIENT_DISTINCT_TEST_DRUGS:'Tập kiểm định chưa có đủ số đăng ký thuốc phân biệt.',
