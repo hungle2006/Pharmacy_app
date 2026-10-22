@@ -8,6 +8,7 @@
 <script>try{const t=localStorage.getItem('pharmabiz-theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}catch{document.documentElement.dataset.theme='light';}</script>
 <link rel="stylesheet" href="/assets/visual.css">
 <link rel="stylesheet" href="/assets/drug-lookup.css">
+<link rel="stylesheet" href="/assets/market-forecast.css">
 </head>
 <body>
 <section class="cover" id="cover" aria-label="Giới thiệu PharmaBiz">
@@ -42,7 +43,26 @@
         <aside id="lookup-details" class="lookup-detail-panel" aria-label="Chi tiết thuốc và mapping" tabindex="-1"><div class="lookup-detail-empty"><div class="lookup-detail-icon" aria-hidden="true">✳</div><h3>Chọn một thuốc để xem chi tiết</h3><p>Thông tin đăng ký, hoạt chất, dạng bào chế, giá và bằng chứng liên kết RxNorm sẽ xuất hiện ở đây.</p></div></aside></div>
         <p class="lookup-disclaimer">Dữ liệu phục vụ nghiên cứu và phân tích thị trường. Liên kết ứng viên RxNorm chưa được xác minh không dùng để tư vấn điều trị hoặc kê đơn.</p>
       </section>
-      <section id="metrics" class="metrics" aria-label="Chỉ số chính"></section>
+      <section id="market-forecast-panel" class="market-forecast" aria-label="Dashboard xu hướng giá thuốc toàn thị trường" hidden>
+  <header class="mf-hero">
+    <div><div class="eyebrow">PHARMABIZ · MARKET PRICE OUTLOOK</div>
+      <h2>Giá thuốc sẽ biến động <span>như thế nào?</span></h2>
+      <p>Phân tích thay đổi giá kê khai qua các lần công bố của <strong>cùng thuốc</strong>, theo các mốc 1, 3, 6 và 12 tháng. Không dự báo cho từng sản phẩm.</p>
+    </div><div class="mf-source">DAV · Neon Gold<br><small>Kết hợp dữ liệu có ghép cặp</small></div>
+  </header>
+  <div class="mf-toolbar" role="group" aria-label="Chọn thời hạn phân tích">
+    <div class="mf-horizon-buttons" id="mf-horizons">
+      <button type="button" data-mf-horizon="1">1 tháng</button>
+      <button type="button" data-mf-horizon="3">3 tháng</button>
+      <button type="button" data-mf-horizon="6" class="active">6 tháng</button>
+      <button type="button" data-mf-horizon="12">12 tháng</button>
+    </div><span id="mf-updated">Đang tải báo cáo…</span>
+  </div>
+  <div id="mf-message" role="status" aria-live="polite">Đang kết nối báo cáo thị trường từ Render…</div>
+  <div id="mf-report" class="mf-report" aria-live="polite"></div>
+  <p class="mf-disclaimer"><strong>Giới hạn diễn giải:</strong> Mẫu chỉ gồm các thuốc được kê khai giá lặp lại và có thể không đại diện cho toàn bộ thị trường. Biến động lịch sử không phải cam kết giá sẽ thay đổi tương ứng trong tương lai. Không trộn mức giá tiền tuyệt đối giữa các đơn vị thuốc khác nhau.</p>
+</section>
+<section id="metrics" class="metrics" aria-label="Chỉ số chính"></section>
       <div id="visuals" aria-live="polite"></div>
       <section class="panel records-panel" id="records-panel"><div class="panel-head"><div><div class="eyebrow">SOURCE EXPLORER</div><h2>Khám phá bản ghi</h2><p>Truy xuất sản phẩm và các quan sát giá từ database</p></div><span class="tag" id="records-count">—</span></div><div class="table-scroll"><table><thead><tr><th>Sản phẩm / Hoạt chất</th><th>Nhà sản xuất</th><th>Quốc gia</th><th>Loại giá / Đơn vị</th><th class="numeric">Giá quan sát</th></tr></thead><tbody id="records"></tbody></table></div><div class="table-footer"><span id="range">Đang tải…</span><div class="pagination"><button id="prev" aria-label="Trang trước">←</button><span id="pageinfo">01</span><button id="next" aria-label="Trang tiếp theo">→</button></div></div></section>
       <footer class="page-footer"><span>PharmaBiz Analytics <b>© 2026</b></span><span>Business Intelligence · Giá và danh mục, không phải doanh số</span><button id="back-top" aria-label="Về đầu trang">↑</button></footer>
@@ -51,5 +71,5 @@
 </div>
 <div class="chart-tooltip" id="tooltip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
-<script src="/assets/scene3d.js" defer></script><script src="/assets/drug-lookup.js" defer></script><script src="/assets/presentation.js" defer></script>
+<script src="/assets/scene3d.js" defer></script><script src="/assets/drug-lookup.js" defer></script><script src="/assets/market-forecast.js" defer></script><script src="/assets/presentation.js" defer></script>
 </body></html>
