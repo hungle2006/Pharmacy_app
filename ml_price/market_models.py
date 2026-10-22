@@ -118,12 +118,16 @@ def _market_references(observations, horizon):
         return pd.DataFrame()
     from ml_price.forecast import make_feature
     rows = []
+    newest = pd.to_datetime(observations.date, utc=True).max()
+    earliest = newest - pd.Timedelta(days=730)
     for (registration, kind, unit), group in observations.groupby(
             ['registration_number', 'price_type', 'unit'], sort=False):
         ordered = group.sort_values('date')
         if len(ordered) < 2:
             continue
         last = ordered.iloc[-1]
+        if pd.Timestamp(last.date) < earliest:
+            continue
         previous = ordered.iloc[-2]
         features = make_feature(last, previous, horizon)
         features.update(registration_number=registration, origin_date=last.date)
