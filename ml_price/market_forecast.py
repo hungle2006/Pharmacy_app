@@ -18,7 +18,7 @@ import pandas as pd
 
 from ml_price.forecast import clean_observations, load_gold, make_examples, time_split
 from ml_price.forecast_schema import HORIZONS
-from ml_price.market_models import evaluate_market_horizon
+from ml_price.market_models import evaluate_market_horizon, exploratory_scenario
 
 MIN_REFERENCE = 20
 MIN_VALIDATION = 20
@@ -164,6 +164,7 @@ def make_market_report(raw, directory="models/market"):
         "horizons":{},
         "approved_horizons":[],
         "historical_only":True,
+        "report_policy":"Experimental scenarios are not validated forecasts and must be labeled separately.",
         "methodology":"Three candidate models, expanding walk-forward validation, unseen final chronological holdout, registration-cluster bootstrap.",
     }
     if examples.empty:
@@ -179,11 +180,17 @@ def make_market_report(raw, directory="models/market"):
         # Model selection is on embargoed rolling validation folds only.
         # A final chronological holdout determines if a forecast is publishable.
         verification=evaluate_market_horizon(examples,h,observations)
-        result={**historical,**verification}
+        # Research estimates remain visible separately even when the strict
+        # quality gate rejects an official future forecast.
+        exploratory=exploratory_scenario(examples,h,observations,
+                                          verification.get("selected_model"))
+        result={**historical,**verification,**(exploratory or {})}
         report["horizons"][str(h)]=result
         if result["status"]=="approved":
             report["approved_horizons"].append(int(h))
     report["historical_only"]=len(report["approved_horizons"])==0
+    report["experimental_horizons"]=[int(h) for h,v in report["horizons"].items()
+                                      if v.get("experimental_change_pct") is not None]
     report["caution"]="Historical statistics are descriptive, not future forecasts. Forecasts apply only to repeatedly declared DAV prices, not every medicine, and are not sales-weighted. Bootstrap ranges represent sample uncertainty, not predictive intervals."
     (output/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     return report
