@@ -54,7 +54,7 @@ jobs:
                           f"approved forecast {item.get('forecast_change_pct')}%, " +
                           f"selected={item.get('selected_model')}, folds={item.get('n_walkforward_folds')}, " +
                           f"test gain={item.get('test_gain_fraction')}, " +
-                          f"bootstrap95={item.get('test_gain_ci95_pct_points')}\\n")
+                          f"bootstrap95={item.get('test_gain_ci95_pct_points')}\n")
               f.write("\nHistorical descriptive metrics are published with explicit labels even when no future forecast is approved.\n")
           PY
       - name: Archive report
