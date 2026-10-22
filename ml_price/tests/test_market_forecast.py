@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 from ml_price.market_forecast import (make_market_report, sample_stats, train_change,
-                                       MIN_TRAIN, MIN_VALIDATION, MIN_TEST)
+                                       MIN_TRAIN, MIN_VALIDATION, MIN_TEST, horizon_time_split)
 from ml_price.forecast import clean_observations, make_examples, time_split
 from ml_price.tests.test_forecast import TestFutureForecast
 
@@ -49,6 +49,23 @@ class TestMarketTrends(unittest.TestCase):
                     self.assertGreaterEqual(item["test_gain_fraction"],.01)
             on_disk=json.loads((Path(root)/"report.json").read_text(encoding="utf-8"))
             self.assertEqual(on_disk["approved_horizons"],report["approved_horizons"])
+
+    def test_independent_horizon_splits_embargo_future_labels(self):
+        rows=[]
+        for horizon, days in [(3,91),(6,183),(12,365)]:
+            for i in range(65):
+                origin=pd.Timestamp("2015-01-01",tz="UTC")+pd.Timedelta(days=i*35)
+                rows.append({"horizon_months":horizon,"origin_date":origin,
+                             "target_date":origin+pd.Timedelta(days=days),
+                             "registration_number":f"drug-{horizon}-{i}"})
+        examples=pd.DataFrame(rows)
+        for horizon in (3,6,12):
+            split=horizon_time_split(examples,horizon)
+            self.assertIsNotNone(split, f"No split for horizon {horizon}")
+            train,val,test=split
+            self.assertTrue(train.horizon_months.eq(horizon).all())
+            self.assertLess(train.target_date.max(),val.origin_date.min())
+            self.assertLess(val.target_date.max(),test.origin_date.min())
 
     def test_constant_prices_do_not_fake_forecast(self):
         sample=TestFutureForecast().sample()
