@@ -54,7 +54,7 @@
       :'Trung vị biến động đã ghi nhận trong lịch sử — không phải tỷ lệ tăng giá được dự báo';
     $('market-forecast-note').innerHTML=valid
       ?'<strong>Dự báo thử nghiệm đã đạt ngưỡng:</strong> MAE trên biến động log tốt hơn giữ nguyên giá '+pct(n(item.test_gain_fraction)*100)+'. Kết quả không đại diện giá bán lẻ hay mọi thuốc.'
-      :'<strong>Chưa có dự báo tương lai đáng tin cậy:</strong> các con số đang hiển thị là thống kê lịch sử để tham khảo. Không có bằng chứng rằng giá sẽ tăng hoặc giảm theo đúng mức này.';
+      :'<strong>Chưa có dự báo tương lai đáng tin cậy:</strong> '+esc(qualityReason(item))+' Các con số đang hiển thị chỉ là thống kê lịch sử.';
     $('market-coverage').textContent=integer(item.n_products)+' mã thuốc · '+integer(item.n_pairs)+' cặp giá đã ghi nhận';
     $('market-dates').textContent=(item.observed_from||'—')+' → '+(item.observed_to||'—');
     $('market-band').textContent=pct(item.p10_pct)+' đến '+pct(item.p90_pct);
