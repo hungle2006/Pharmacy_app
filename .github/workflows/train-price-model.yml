@@ -31,7 +31,7 @@ jobs:
       - name: Test global market forecast quality and front-end syntax
         run: |
           python -m unittest discover -s ml_price/tests -p 'test_*.py' -v
-          python -m py_compile ml_price/market_forecast.py ml_price/market_store.py ml_price/serve.py ml_price/upload_market.py
+          python -m py_compile ml_price/market_models.py ml_price/market_forecast.py ml_price/market_store.py ml_price/serve.py ml_price/upload_market.py
           node --check api/market-forecast.js
           node --check assets/market-forecast.js
           node --check assets/drug-lookup.js
@@ -51,7 +51,10 @@ jobs:
               for h,item in r['horizons'].items():
                   f.write(f"- {h} months: {item['status']}; {item.get('n_products',0)} drugs; "
                           f"historical median {item.get('historical_change_pct')}%; "
-                          f"approved forecast {item.get('forecast_change_pct')}%\n")
+                          f"approved forecast {item.get('forecast_change_pct')}%, " +
+                          f"selected={item.get('selected_model')}, folds={item.get('n_walkforward_folds')}, " +
+                          f"test gain={item.get('test_gain_fraction')}, " +
+                          f"bootstrap95={item.get('test_gain_ci95_pct_points')}\\n")
               f.write("\nHistorical descriptive metrics are published with explicit labels even when no future forecast is approved.\n")
           PY
       - name: Archive report
