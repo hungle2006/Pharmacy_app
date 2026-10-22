@@ -53,7 +53,7 @@ class TestMarketTrends(unittest.TestCase):
     def test_independent_horizon_splits_embargo_future_labels(self):
         rows=[]
         for horizon, days in [(3,91),(6,183),(12,365)]:
-            for i in range(65):
+            for i in range(120):
                 origin=pd.Timestamp("2015-01-01",tz="UTC")+pd.Timedelta(days=i*35)
                 rows.append({"horizon_months":horizon,"origin_date":origin,
                              "target_date":origin+pd.Timedelta(days=days),
