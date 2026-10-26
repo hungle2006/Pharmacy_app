@@ -84,7 +84,7 @@ class RxnormReport3StatisticalTests(unittest.TestCase):
             for term in ("Missing%(c)", "Readiness%", "Variance", "Pearson r",
                          "Spearman ρ", "Welch's t-test", "Welch–Satterthwaite",
                          "Cohen's d", "CI₉₅%", "Holm", "Chi-square Pearson",
-                         "Cramér's V", "Jaccard", "Coherence", "Cách nói"):
+                         "Cramér's V", "Jaccard", "Coherence", "Cách trình bày"):
                 self.assertIn(term.replace("'", "&#x27;"), html)
             for anchor in ("r3-correlation", "r3-welch", "r3-chi2", "r3-coherence"):
                 self.assertIn(anchor, html)
