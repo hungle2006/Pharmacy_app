@@ -57,6 +57,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_silver_mapping.py' -v
           python -m unittest discover -s tests -p 'test_rxnorm_eda.py' -v
           python -m unittest discover -s tests -p 'test_rxnorm_report4.py' -v
+          python -m unittest discover -s tests -p 'test_rxnorm_report3.py' -v
           python -m compileall -q silver_auto silver_v3 silver_mapping
   sync:
     if: github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
