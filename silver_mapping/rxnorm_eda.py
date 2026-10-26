@@ -187,8 +187,14 @@ def render_html(report):
     r3='<section class="panel"><h2>Report 3 · Khám phá & xử lý dữ liệu</h2><p><strong>Missing values:</strong> không điền giả RxCUI, TTY, SAB hoặc tên. <strong>Normalize:</strong> Unicode NFKD, chữ thường, loại dấu, chuẩn hóa khoảng trắng. <strong>Duplicates:</strong> loại khỏi dữ liệu mapping theo khóa (RxCUI, TTY, SAB, display_name). Bảng gốc không bị sửa.</p><table><thead><tr><th>Cột</th><th>Giá trị thiếu</th><th>Tỷ lệ</th></tr></thead><tbody>'+missing_rows+'</tbody></table></section>'
     r4='<div class="two">'+bars("Report 4 · Phân bố TTY",v["tty_distribution"])+bars("Report 4 · Độ dài tên thuốc",v["name_length_distribution"])+bars("Trạng thái chất lượng Silver",v["qc_distribution"])+bars("Sẵn sàng cho Mapping",v["mapping_readiness"])+'</div>'
     flow='<section class="panel"><h2>Chuyển sang Mapping</h2><div class="flow"><span>RxNorm Silver</span><b class="arrow">→</b><span>EDA / QC / Normalize</span><b class="arrow">→</b><span>Mapping-ready CSV</span><b class="arrow">→</b><span>DAV ↔ RxNorm candidates</span></div><p>Đối chiếu thành phần hoạt chất, hàm lượng, dạng bào chế. Mọi khớp tự động vẫn cần rà soát; không suy ra tương đương thuốc từ trùng tên.</p></section>'
+    sample=e["sample_mapping_ready"]
+    preview_table='<section class="panel"><h2>Bảng RxNorm · Mẫu bản ghi sau xử lý</h2><table><thead><tr><th>RxCUI</th><th>TTY</th><th>Tên hiển thị</th><th>Tên chuẩn hóa</th></tr></thead><tbody>'+''.join('<tr><td>'+safe(x["rxcui"])+'</td><td>'+safe(x["tty"])+'</td><td>'+safe(x["display_name"])+'</td><td>'+safe(x["normalized_name"])+'</td></tr>' for x in sample)+'</tbody></table></section>'
+    handoff=report["mapping_handoff"]
+    status_chart=bars("Bảng Mapping · Trạng thái ứng viên",handoff["mapping_status_distribution"]) if handoff.get("mapping_status_distribution") else ""
+    examples=handoff.get("candidate_examples",[])
+    candidates_table='<section class="panel"><h2>Mẫu ứng viên DAV ↔ RxNorm</h2><p>Đây là ứng viên từ thuật ngữ và cấu trúc; chưa có quan hệ xác minh lâm sàng.</p><table><thead><tr><th>Sản phẩm DAV</th><th>RxCUI SCD</th><th>Tên RxNorm</th><th>Trạng thái</th></tr></thead><tbody>'+''.join('<tr><td>'+safe(x["dav_drug_name"])+'</td><td>'+safe(x["candidate_scd_rxcui"])+'</td><td>'+safe(x["candidate_scd_name"])+'</td><td>'+safe(x["mapping_status"])+'</td></tr>' for x in examples)+'</tbody></table></section>' if examples else ""
     footer='<footer>Dữ liệu '+safe(report["source"])+' · SHA-256 '+safe(report["source_sha256"])+' · Kết xuất '+safe(report["generated_utc"])+'</footer>'
-    return html_head+metrics+r3+r4+flow+footer+"</main></body></html>"
+    return html_head+metrics+r3+r4+preview_table+flow+status_chart+candidates_table+footer+"</main></body></html>"
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
