@@ -7,6 +7,8 @@ from __future__ import annotations
 import html
 import math
 
+from silver_mapping.rxnorm_mathml import render_math
+
 
 def esc(v):
     return html.escape(str(v), quote=True)
@@ -23,37 +25,69 @@ def vi(number, places=0):
 
 
 def formula(title, general, substitute, interpretation, definitions="", note=""):
+    # Static MathML is generated in Python; browser requires no extra runtime.
     return (
-        '<div class="r3-formula">'
-        '<div class="r3-formula-title">Công thức · ' + esc(title) + '</div>'
-        '<div class="r3-equation">' + esc(general) + '</div>'
-        '<div class="r3-equation r3-equation-value">' + esc(substitute) + '</div>'
-        + ('<p class="r3-variables"><strong>Ký hiệu:</strong> ' + esc(definitions) + '</p>' if definitions else "")
-        + '<p class="r3-script"><strong>Cách nói:</strong> ' + esc(interpretation) + '</p>'
-        + ('<p class="r3-formula-note">' + esc(note) + '</p>' if note else "")
-        + '</div>'
+        '<article class="r3-formula">'
+        '<div class="r3-formula-header"><span class="r3-formula-marker">ƒ</span>'
+        '<h4 class="r3-formula-title">' + esc(title) + '</h4></div>'
+        + render_math(title, general, substitute)
+        + '<div class="r3-explanation"><span class="r3-speak-icon">✦</span>'
+        '<div><strong>Cách trình bày</strong><p>' + esc(interpretation) + '</p></div></div>'
+        + ('<details class="r3-formula-details"><summary>Giải thích ký hiệu và lưu ý</summary>'
+           + ('<p><strong>Ký hiệu:</strong> ' + esc(definitions) + '</p>' if definitions else "")
+           + ('<p>' + esc(note) + '</p>' if note else "") + '</details>'
+           if definitions or note else "")
+        + '</article>'
     )
 
 
 STYLE = """<style>
-.r3-formula-guide{margin:18px 0 22px}.r3-formula-guide h3{font-size:17px;margin:4px 0 8px;color:#245361}
-.r3-formula-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
-.r3-formula{min-width:0;border:1px solid #dcebe8;border-radius:13px;padding:14px 15px;background:#fbfefd}
-.r3-formula-title{color:#087c72;font-weight:800;letter-spacing:.1px;font-size:12px;margin-bottom:9px}
-.r3-equation{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;line-height:1.65;
- background:#f0f5f5;border-radius:7px;padding:9px 11px;margin:7px 0;white-space:pre-wrap;overflow-wrap:anywhere;color:#204352}
-.r3-equation-value{background:#e4f5f1;color:#087568;font-weight:750}
-.r3-variables,.r3-script,.r3-formula-note{font-size:12px;line-height:1.7;margin:9px 0 0;color:#526a73}
-.r3-script strong{color:#0e776d}.r3-formula-note{color:#84591d}
-.r3-formula-guide .r3-summary-intro{font-size:13px;color:#60747d}
-.r3-mini-link{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}
-.r3-mini-link a{font-size:12px;text-decoration:none;border:1px solid #cce3df;padding:7px 11px;border-radius:9px;
- color:#08756c;background:#f6fbfa;font-weight:700}
-.r3-mini-link a:hover{background:#e6f3ef}
-@media(max-width:760px){.r3-formula-grid{grid-template-columns:1fr}.r3-equation{font-size:12px}}
-@media print{.r3-formula,.r3-study{break-inside:avoid}.r3-formula-grid{grid-template-columns:1fr 1fr}}
-</style>"""
-
+/* Report 3 · mathematical typography: academic layout, no external fonts or scripts */
+.r3-formula-guide{margin:24px 0 26px}
+.r3-formula-guide>h3{font-size:19px;margin:4px 0 6px;font-weight:760;color:#173c49}
+.r3-formula-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0 22px}
+.r3-formula{background:#fff;border:1px solid #dfe9e9;border-radius:17px;padding:0;overflow:hidden;min-width:0;
+ box-shadow:0 4px 16px rgba(17,61,70,.045);transition:box-shadow .22s ease,transform .22s ease}
+.r3-formula:hover{box-shadow:0 10px 26px rgba(17,61,70,.085);transform:translateY(-1px)}
+.r3-formula-header{padding:17px 18px 12px;display:flex;gap:12px;align-items:center}
+.r3-formula-marker{width:34px;height:34px;border-radius:10px;background:#e7f4f0;color:#0e8074;
+ display:inline-grid;place-items:center;font-family:Georgia,serif;font-style:italic;font-size:20px;flex-shrink:0}
+.r3-formula-title{font-size:14px!important;line-height:1.38;font-weight:750;margin:0!important;color:#234653}
+.r3-math-layout{padding:0 15px 16px}
+.r3-math-group{position:relative;padding:12px 10px 13px;margin-top:8px;background:#f5f8fa;border:1px solid #eef1f2;
+ border-radius:11px;min-width:0}
+.r3-math-group.worked{background:#eaf7f3;border-color:#d8ebe5;margin-top:10px}
+.r3-stage-label{font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:#718791;
+ display:block;margin:0 0 9px 3px}
+.r3-math-group.worked .r3-stage-label{color:#088377}
+.r3-math{color:#19404d;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:9px 3px 11px;
+ font-size:17px;line-height:1.5;scrollbar-width:thin}
+.r3-math math{font-size:1em;display:block;max-width:max-content;min-width:min-content;
+ margin-left:auto;margin-right:auto;white-space:nowrap}
+.r3-math-worked{color:#0b746d;font-size:18px;font-weight:650}
+.r3-math-text{font-size:12px;line-height:1.65;color:#526d76;margin:4px 5px 7px}
+.r3-explanation{display:flex;gap:12px;padding:15px 18px;background:#fbfdfd;border-top:1px solid #eaf0f0}
+.r3-speak-icon{width:25px;height:25px;flex-shrink:0;border-radius:8px;display:grid;place-items:center;
+ color:#0b8276;background:#e9f5f2;font-size:14px}
+.r3-explanation strong{font-size:11px;color:#0d7b70;text-transform:uppercase;letter-spacing:.6px}
+.r3-explanation p{font-size:12px;line-height:1.65;margin:5px 0 0;color:#47636b}
+.r3-formula-details{border-top:1px solid #ecf1f0;padding:0 19px 12px;font-size:12px;color:#526a73}
+.r3-formula-details summary{cursor:pointer;padding-top:12px;font-weight:650;color:#5b7780}
+.r3-formula-details p{margin:8px 0 0;line-height:1.6}
+.r3-formula-guide .r3-summary-intro{font-size:13px;color:#647981}
+.r3-mini-link{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0}
+.r3-mini-link a{font-size:12px;text-decoration:none;border:1px solid #d4e7e3;padding:9px 12px;border-radius:10px;
+ color:#08796e;background:#f6fbfa;font-weight:700;transition:background .2s ease}
+.r3-mini-link a:hover{background:#e7f5f0}
+.r3-study:not(.wide) .r3-formula-grid{grid-template-columns:1fr}
+.r3-study:not(.wide) .r3-math{font-size:15px}
+@media(max-width:1000px){.r3-formula-grid{grid-template-columns:1fr}}
+@media(max-width:760px){.r3-formula-header{padding:15px 14px 10px}
+ .r3-math-layout{padding:0 11px 11px}.r3-math{font-size:15px}
+ .r3-math-worked{font-size:16px}.r3-explanation{padding:13px 14px}}
+@media print{.r3-formula{break-inside:avoid;box-shadow:none;transform:none!important}
+ .r3-formula-details{display:block}.r3-math{overflow:visible}.r3-formula-grid{grid-template-columns:1fr 1fr}}
+</style>
 
 def quality_formulas(e, multivariate, stats):
     n=e["total_rows"]
