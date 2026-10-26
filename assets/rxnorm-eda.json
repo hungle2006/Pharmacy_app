@@ -1,7 +1,7 @@
 {
   "source": "silver/rxnorm.csv",
   "source_sha256": "b90f7d0b5f9452d7b660fed8dc3c23e621211f8ce10db91d53e0763d5265ad21",
-  "generated_utc": "2026-10-26T11:23:04.243074+00:00",
+  "generated_utc": "2026-10-26T11:25:52.697338+00:00",
   "provenance": {
     "key": "silver/rxnorm.csv",
     "sha": "b90f7d0b5f9452d7b660fed8dc3c23e621211f8ce10db91d53e0763d5265ad21",
@@ -552,6 +552,7 @@
       "Welch compares independent RxCUI after excluding concepts shared across the two TTY labels; p-values Holm-adjusted across three planned contrasts.",
       "Chi-square involves multiple names for the same RxCUI and violates strict observation independence. Treat p-values as diagnostic only; prioritize Cramer's V.",
       "Extremely large sample sizes can yield very small p-values for negligible effect sizes.",
+      "Distinct TTY count and term count are arithmetically related: a high correlation is partly mechanical, not a novel clinical finding.",
       "Lexical Jaccard measures text overlap, not synonym truth, therapeutic equivalence or clinical correctness.",
       "No distribution normality or independence is guaranteed. No time-series tests on a single snapshot."
     ]
