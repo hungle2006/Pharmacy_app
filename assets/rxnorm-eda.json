@@ -1,7 +1,7 @@
 {
   "source": "silver/rxnorm.csv",
   "source_sha256": "b90f7d0b5f9452d7b660fed8dc3c23e621211f8ce10db91d53e0763d5265ad21",
-  "generated_utc": "2026-10-26T03:33:20.514455+00:00",
+  "generated_utc": "2026-10-26T11:23:04.243074+00:00",
   "provenance": {
     "key": "silver/rxnorm.csv",
     "sha": "b90f7d0b5f9452d7b660fed8dc3c23e621211f8ce10db91d53e0763d5265ad21",
@@ -241,6 +241,319 @@
         "label": "Excluded/review before mapping",
         "count": 0
       }
+    ]
+  },
+  "report_3_multivariate": {
+    "scope": "Exploratory cross-column RxNorm terminology analysis",
+    "source_rows": 141074,
+    "analyzed_rows": 141074,
+    "concepts": 81620,
+    "cross_column_quality": {
+      "source_missing": {},
+      "tty_qc_unique_labels": 1,
+      "sab_unique_values": 1,
+      "tty_unique_values": 22,
+      "concepts_with_multiple_names": 27407,
+      "concepts_single_term": 54213
+    },
+    "correlations": [
+      {
+        "x": "terms_per_rxcui",
+        "y": "avg_name_length",
+        "n": 81620,
+        "pearson_r": 0.1862,
+        "spearman_rho": 0.4473,
+        "unit": "unique RxCUI"
+      },
+      {
+        "x": "terms_per_rxcui",
+        "y": "max_name_length",
+        "n": 81620,
+        "pearson_r": 0.2548,
+        "spearman_rho": 0.5402,
+        "unit": "unique RxCUI"
+      },
+      {
+        "x": "distinct_tty_per_rxcui",
+        "y": "terms_per_rxcui",
+        "n": 81620,
+        "pearson_r": 0.909,
+        "spearman_rho": 0.9944,
+        "unit": "unique RxCUI"
+      },
+      {
+        "x": "distinct_tty_per_rxcui",
+        "y": "avg_name_length",
+        "n": 81620,
+        "pearson_r": 0.1672,
+        "spearman_rho": 0.4465,
+        "unit": "unique RxCUI"
+      }
+    ],
+    "welch_t_tests": [
+      {
+        "comparison": "IN vs SCD",
+        "unit": "one independent RxCUI per group",
+        "n_a": 5874,
+        "n_b": 12081,
+        "method": "Welch unequal-variance t-test",
+        "p_value": 0.0,
+        "status": "computed",
+        "mean_a": 20.768,
+        "mean_b": 53.207,
+        "difference": -32.439,
+        "t": -58.6136,
+        "df": 14710.01,
+        "cohen_d": -0.678,
+        "ci95_normal_approx": [
+          -33.524,
+          -31.354
+        ],
+        "group_a": "IN",
+        "group_b": "SCD",
+        "overlapping_rxcui_excluded": 0,
+        "p_holm": 0.0
+      },
+      {
+        "comparison": "SCD vs SBD",
+        "unit": "one independent RxCUI per group",
+        "n_a": 12081,
+        "n_b": 8094,
+        "method": "Welch unequal-variance t-test",
+        "p_value": 8.593347600461072e-29,
+        "status": "computed",
+        "mean_a": 53.207,
+        "mean_b": 63.424,
+        "difference": -10.217,
+        "t": -11.1564,
+        "df": 15405.69,
+        "cohen_d": -0.165,
+        "ci95_normal_approx": [
+          -12.012,
+          -8.422
+        ],
+        "group_a": "SCD",
+        "group_b": "SBD",
+        "overlapping_rxcui_excluded": 0,
+        "p_holm": 1.7186695200922144e-28
+      },
+      {
+        "comparison": "SY vs PSN",
+        "unit": "one independent RxCUI per group",
+        "n_a": 1040,
+        "n_b": 3230,
+        "method": "Welch unequal-variance t-test",
+        "p_value": 0.0016859117256117606,
+        "status": "computed",
+        "mean_a": 48.404,
+        "mean_b": 41.167,
+        "difference": 7.237,
+        "t": 3.1484,
+        "df": 1105.68,
+        "cohen_d": 0.176,
+        "ci95_normal_approx": [
+          2.732,
+          11.743
+        ],
+        "group_a": "SY",
+        "group_b": "PSN",
+        "overlapping_rxcui_excluded": 18121,
+        "p_holm": 0.0016859117256117606
+      }
+    ],
+    "chi_square": {
+      "columns": [
+        "tty",
+        "derived_name_length_bin"
+      ],
+      "method": "Pearson chi-square",
+      "n_rows": 141074,
+      "statistic": 40532.589,
+      "df": 32,
+      "p_value": 0.0,
+      "cramers_v": 0.268,
+      "min_expected_cell": 291.779,
+      "valid_expected_counts": true,
+      "unit": "terminology row; RxCUI repeated (independence assumption not strictly met)",
+      "row_labels": [
+        "SY",
+        "PSN",
+        "SCD",
+        "SCDC",
+        "TMSY",
+        "SBD",
+        "SBDC",
+        "SBDG",
+        "Khác"
+      ],
+      "column_labels": [
+        "<20",
+        "20–39",
+        "40–59",
+        "60–99",
+        "≥100"
+      ],
+      "observed": [
+        [
+          458,
+          11117,
+          9000,
+          5780,
+          2009
+        ],
+        [
+          104,
+          10890,
+          6991,
+          2940,
+          426
+        ],
+        [
+          0,
+          4731,
+          4573,
+          2192,
+          585
+        ],
+        [
+          3834,
+          5561,
+          558,
+          142,
+          77
+        ],
+        [
+          684,
+          3401,
+          2925,
+          2236,
+          493
+        ],
+        [
+          0,
+          1005,
+          4302,
+          2295,
+          492
+        ],
+        [
+          0,
+          4493,
+          1541,
+          754,
+          237
+        ],
+        [
+          1871,
+          4652,
+          162,
+          7,
+          0
+        ],
+        [
+          9341,
+          16200,
+          7161,
+          3022,
+          1832
+        ]
+      ]
+    },
+    "lexical_coherence": {
+      "metric": "average Jaccard token overlap versus first name within each RxCUI (up to 15 terms), not clinical equivalence",
+      "n_comparable_rxcui": 27407,
+      "mean": 0.755,
+      "median": 0.75,
+      "distribution": [
+        {
+          "label": "low (<0.3)",
+          "count": 938
+        },
+        {
+          "label": "medium (0.3–0.7)",
+          "count": 9484
+        },
+        {
+          "label": "high (≥0.7)",
+          "count": 16985
+        }
+      ],
+      "review_examples": [
+        {
+          "rxcui": "1001593",
+          "jaccard": 0.211,
+          "sampled_names": 3,
+          "n_terms_in_concept": 3
+        },
+        {
+          "rxcui": "1001690",
+          "jaccard": 0.283,
+          "sampled_names": 4,
+          "n_terms_in_concept": 4
+        },
+        {
+          "rxcui": "100278",
+          "jaccard": 0.25,
+          "sampled_names": 2,
+          "n_terms_in_concept": 2
+        },
+        {
+          "rxcui": "1006065",
+          "jaccard": 0.19,
+          "sampled_names": 3,
+          "n_terms_in_concept": 3
+        },
+        {
+          "rxcui": "1011081",
+          "jaccard": 0.111,
+          "sampled_names": 3,
+          "n_terms_in_concept": 3
+        },
+        {
+          "rxcui": "1011650",
+          "jaccard": 0.0,
+          "sampled_names": 2,
+          "n_terms_in_concept": 2
+        },
+        {
+          "rxcui": "1012134",
+          "jaccard": 0.143,
+          "sampled_names": 2,
+          "n_terms_in_concept": 2
+        },
+        {
+          "rxcui": "1013630",
+          "jaccard": 0.222,
+          "sampled_names": 3,
+          "n_terms_in_concept": 3
+        }
+      ]
+    },
+    "not_applicable": [
+      {
+        "test": "TTY × SAB chi-square",
+        "reason": "SAB has just one category in source; association undefined"
+      },
+      {
+        "test": "TTY × Silver QC chi-square",
+        "reason": "All records have same QC label; association undefined"
+      },
+      {
+        "test": "Cronbach alpha / reliability",
+        "reason": "RxNorm columns are terminology identifiers/text, not multiple items measuring one latent construct"
+      },
+      {
+        "test": "Normality test / one-sample t-test of RxCUI",
+        "reason": "RxCUI is an identifier, not a quantitative outcome"
+      }
+    ],
+    "interpretation_notes": [
+      "All results are descriptive or exploratory for an observed source snapshot, not experiments or cause-effect evidence.",
+      "Welch compares independent RxCUI after excluding concepts shared across the two TTY labels; p-values Holm-adjusted across three planned contrasts.",
+      "Chi-square involves multiple names for the same RxCUI and violates strict observation independence. Treat p-values as diagnostic only; prioritize Cramer's V.",
+      "Extremely large sample sizes can yield very small p-values for negligible effect sizes.",
+      "Lexical Jaccard measures text overlap, not synonym truth, therapeutic equivalence or clinical correctness.",
+      "No distribution normality or independence is guaranteed. No time-series tests on a single snapshot."
     ]
   },
   "report_4_statistics": {
