@@ -5,16 +5,18 @@ as unverified code-system candidates. Never creates version directories.
 """
 from __future__ import annotations
 import argparse
+import csv
 import hashlib
 import json
 import os
 import shutil
 import tempfile
 from datetime import datetime,timezone
+from collections import Counter
 from pathlib import Path
 
 from silver_mapping.build import OUTPUTS, build_all
-from silver_mapping.rxnorm_eda import analyze
+from silver_mapping.rxnorm_eda import analyze,render_html
 from silver_auto.r2_runner import BUCKET, client, head_or_none, file_sha, get_json
 
 SOURCES={
@@ -103,6 +105,27 @@ def process(s3,dry_run=False):
                     provenance=fingerprints.get("rxnorm",{}))
         result=build_all(paths["dav"],mapping_ready,paths["icd10"],
                          wd/"build",medi=paths.get("medi"))
+        # Mapping evidence stays separate from terminology QC, but appears in the
+        # same presentation so students can trace RxNorm -> candidate matching.
+        statuses=Counter()
+        examples=[]
+        with (wd/"build"/"dav_rxnorm_mapping.csv").open(encoding="utf-8",newline="") as fh:
+            for row in csv.DictReader(fh):
+                statuses[row.get("mapping_status") or "UNKNOWN"]+=1
+                if len(examples)<8 and row.get("candidate_scd_rxcui"):
+                    examples.append({
+                        "dav_row_id":row.get("dav_row_id",""),
+                        "dav_drug_name":row.get("dav_drug_name",""),
+                        "candidate_scd_rxcui":row.get("candidate_scd_rxcui",""),
+                        "candidate_scd_name":row.get("candidate_scd_name",""),
+                        "mapping_status":row.get("mapping_status",""),
+                        "clinical_verified":"false",
+                    })
+        eda["mapping_handoff"]["mapping_status_distribution"]=[
+            {"label":k,"count":v} for k,v in sorted(statuses.items(),key=lambda x:(-x[1],x[0]))]
+        eda["mapping_handoff"]["candidate_examples"]=examples
+        report_json.write_text(json.dumps(eda,ensure_ascii=False,indent=2),encoding="utf-8")
+        report_html.write_text(render_html(eda),encoding="utf-8")
         eda_paths={"rxnorm_eda.json":report_json,"rxnorm_eda.html":report_html}
         eda_sha={name:file_sha(p) for name,p in eda_paths.items()}
         export_dir=os.getenv("EDA_EXPORT_DIR","").strip()
