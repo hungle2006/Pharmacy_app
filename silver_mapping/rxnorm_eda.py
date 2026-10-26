@@ -9,18 +9,15 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
-import html
 import json
-import math
 import re
 import unicodedata
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-from silver_mapping.rxnorm_report4 import compute_report4, render_sections
-from silver_mapping.rxnorm_report3 import profile, render_report3
-from silver_mapping.rxnorm_report3_formulas import quality_formulas
+from silver_mapping.rxnorm_report4 import compute_report4
+from silver_mapping.rxnorm_report3 import profile
 
 FIELDS = ["normalized_name", "rxcui", "display_name", "tty", "sab"]
 BUCKETS = ["0-19", "20-39", "40-79", "80-159", "160+"]
@@ -175,32 +172,9 @@ def analyze(source_path, mapping_path, report_path, html_path=None, provenance=N
     return report
 
 def render_html(report):
-    e=report["report_3_eda"];v=report["report_4_visualization"]
-    def safe(x):return html.escape(str(x),quote=True)
-    def bars(title,items,label_key="label",value_key="count",top=12):
-        rows=items[:top]
-        maxvalue=max((int(i[value_key]) for i in rows),default=1) or 1
-        lines=[]
-        for item in rows:
-            value=int(item[value_key]);width=round(value/maxvalue*100,2)
-            lines.append('<div class="bar-row"><span>'+safe(item[label_key])+'</span><div class="track"><div style="width:'+str(width)+'%"></div></div><b>'+format(value,",")+'</b></div>')
-        return '<section class="panel"><h2>'+safe(title)+'</h2>'+''.join(lines)+'</section>'
-    missing_rows=''.join('<tr><td>'+safe(x["field"])+'</td><td>'+format(x["count"],",")+'</td><td>'+str(x["percentage"])+'%</td></tr>' for x in e["missing_by_field"])
-    html_head="""<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PharmaBiz · RxNorm EDA & Mapping</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f3f5f7;color:#183043;font:15px/1.5 system-ui,-apple-system,sans-serif}.shell{max-width:1200px;margin:auto;padding:36px 22px}h1{font-size:36px;margin:12px 0}h2{font-size:18px;margin:0 0 18px}h3{margin-bottom:6px}.eyebrow{letter-spacing:2px;color:#168379;font-size:12px;font-weight:750}p{color:#5c6c79}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}.metric,.panel{background:white;border:1px solid #e3e9ed;border-radius:16px;padding:20px}.metric strong{display:block;font-size:29px;color:#153f54}.metric span{color:#627480;font-size:12px}.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.bar-row{display:grid;grid-template-columns:105px 1fr 85px;align-items:center;gap:12px;margin:11px 0;font-size:12px}.track{background:#e7eff0;border-radius:12px;height:13px;overflow:hidden}.track div{background:linear-gradient(90deg,#1a9788,#60bbbf);height:100%;border-radius:12px}.bar-row b{text-align:right}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;border-bottom:1px solid #e8ecee;text-align:left}th{color:#58707b}section{margin-bottom:17px}.arrow{color:#178e84;font-weight:700}.flow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.flow span{padding:12px 17px;border-radius:11px;background:#e9f4f2;font-weight:650}footer{margin-top:25px;color:#687988;font-size:12px}@media(max-width:750px){.grid,.two{grid-template-columns:1fr 1fr}.bar-row{grid-template-columns:75px 1fr 65px}.shell{padding:20px 13px}}@media(max-width:450px){.grid,.two{grid-template-columns:1fr}}</style></head><body><main class="shell"><div class="eyebrow">PHARMABIZ · RXNORM ANALYTICS</div><h1>EDA → Data Visualization → Mapping</h1><p>Dữ liệu thuật ngữ RxNorm từ Silver, báo cáo chất lượng và độ sẵn sàng trước mapping DAV. Đây không phải kết quả thẩm định lâm sàng.</p>"""
-    cards=[("Số dòng nguồn",e["total_rows"]),("RxCUI khác nhau",e["distinct_rxcui_mapping_ready"]),("Dòng đủ điều kiện mapping",e["mapping_ready_rows"]),("Tỷ lệ đủ điều kiện",str(e["mapping_ready_rate_pct"])+"%")]
-    metrics='<div class="grid">'+''.join('<div class="metric"><span>'+safe(label)+'</span><strong>'+safe(format(val,",") if isinstance(val,int) else val)+'</strong></div>' for label,val in cards)+'</div>'
-    r3='<section class="panel"><h2>Report 3 · Khám phá & xử lý dữ liệu</h2><p><strong>Missing values:</strong> không điền giả RxCUI, TTY, SAB hoặc tên. <strong>Normalize:</strong> Unicode NFKD, chữ thường, loại dấu, chuẩn hóa khoảng trắng. <strong>Duplicates:</strong> loại khỏi dữ liệu mapping theo khóa (RxCUI, TTY, SAB, display_name). Bảng gốc không bị sửa.</p><table><thead><tr><th>Cột</th><th>Giá trị thiếu</th><th>Tỷ lệ</th></tr></thead><tbody>'+missing_rows+'</tbody></table>'+quality_formulas(e,report["report_3_multivariate"],report["report_4_statistics"])+ '</section>'
-    r4='<div class="two">'+bars("Report 4 · Phân bố TTY",v["tty_distribution"])+bars("Report 4 · Độ dài tên thuốc",v["name_length_distribution"])+bars("Trạng thái chất lượng Silver",v["qc_distribution"])+bars("Sẵn sàng cho Mapping",v["mapping_readiness"])+'</div>'
-    flow='<section class="panel"><h2>Chuyển sang Mapping</h2><div class="flow"><span>RxNorm Silver</span><b class="arrow">→</b><span>EDA / QC / Normalize</span><b class="arrow">→</b><span>Mapping-ready CSV</span><b class="arrow">→</b><span>DAV ↔ RxNorm candidates</span></div><p>Đối chiếu thành phần hoạt chất, hàm lượng, dạng bào chế. Mọi khớp tự động vẫn cần rà soát; không suy ra tương đương thuốc từ trùng tên.</p></section>'
-    sample=e["sample_mapping_ready"]
-    preview_table='<section class="panel"><h2>Bảng RxNorm · Mẫu bản ghi sau xử lý</h2><table><thead><tr><th>RxCUI</th><th>TTY</th><th>Tên hiển thị</th><th>Tên chuẩn hóa</th></tr></thead><tbody>'+''.join('<tr><td>'+safe(x["rxcui"])+'</td><td>'+safe(x["tty"])+'</td><td>'+safe(x["display_name"])+'</td><td>'+safe(x["normalized_name"])+'</td></tr>' for x in sample)+'</tbody></table></section>'
-    handoff=report["mapping_handoff"]
-    status_chart=bars("Bảng Mapping · Trạng thái ứng viên",handoff["mapping_status_distribution"]) if handoff.get("mapping_status_distribution") else ""
-    examples=handoff.get("candidate_examples",[])
-    candidates_table='<section class="panel"><h2>Mẫu ứng viên DAV ↔ RxNorm</h2><p>Đây là ứng viên từ thuật ngữ và cấu trúc; chưa có quan hệ xác minh lâm sàng.</p><table><thead><tr><th>Sản phẩm DAV</th><th>RxCUI SCD</th><th>Tên RxNorm</th><th>Trạng thái</th></tr></thead><tbody>'+''.join('<tr><td>'+safe(x["dav_drug_name"])+'</td><td>'+safe(x["candidate_scd_rxcui"])+'</td><td>'+safe(x["candidate_scd_name"])+'</td><td>'+safe(x["mapping_status"])+'</td></tr>' for x in examples)+'</tbody></table></section>' if examples else ""
-    footer='<footer>Dữ liệu '+safe(report["source"])+' · SHA-256 '+safe(report["source_sha256"])+' · Kết xuất '+safe(report["generated_utc"])+'</footer>'
-    return html_head+metrics+r3+render_report3(report["report_3_multivariate"])+render_sections(report["report_4_statistics"])+preview_table+flow+status_chart+candidates_table+footer+"</main></body></html>"
+    # Shared by the scheduled Silver pipeline and the published Vercel report.
+    from silver_mapping.rxnorm_presentation import render_presentation
+    return render_presentation(report)
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
