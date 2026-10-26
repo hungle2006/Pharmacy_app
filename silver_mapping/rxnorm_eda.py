@@ -18,6 +18,8 @@ from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from silver_mapping.rxnorm_report4 import compute_report4, render_sections
+
 FIELDS = ["normalized_name", "rxcui", "display_name", "tty", "sab"]
 BUCKETS = ["0-19", "20-39", "40-79", "80-159", "160+"]
 PLACEHOLDERS = {"", "null", "none", "nan", "n/a"}
@@ -151,6 +153,7 @@ def analyze(source_path, mapping_path, report_path, html_path=None, provenance=N
             "qc_distribution":ordered(qc),
             "mapping_readiness":[{"label":"Mapping-ready","count":stats["mapping_ready_rows"]},{"label":"Excluded/review before mapping","count":excluded_count}]
         },
+        "report_4_statistics":compute_report4(mapping_path),
         "mapping_handoff":{
             "source": "silver/rxnorm.csv",
             "temporary_output":"mapping_ready.csv",
@@ -194,7 +197,7 @@ def render_html(report):
     examples=handoff.get("candidate_examples",[])
     candidates_table='<section class="panel"><h2>Mẫu ứng viên DAV ↔ RxNorm</h2><p>Đây là ứng viên từ thuật ngữ và cấu trúc; chưa có quan hệ xác minh lâm sàng.</p><table><thead><tr><th>Sản phẩm DAV</th><th>RxCUI SCD</th><th>Tên RxNorm</th><th>Trạng thái</th></tr></thead><tbody>'+''.join('<tr><td>'+safe(x["dav_drug_name"])+'</td><td>'+safe(x["candidate_scd_rxcui"])+'</td><td>'+safe(x["candidate_scd_name"])+'</td><td>'+safe(x["mapping_status"])+'</td></tr>' for x in examples)+'</tbody></table></section>' if examples else ""
     footer='<footer>Dữ liệu '+safe(report["source"])+' · SHA-256 '+safe(report["source_sha256"])+' · Kết xuất '+safe(report["generated_utc"])+'</footer>'
-    return html_head+metrics+r3+r4+preview_table+flow+status_chart+candidates_table+footer+"</main></body></html>"
+    return html_head+metrics+r3+render_sections(report["report_4_statistics"])+preview_table+flow+status_chart+candidates_table+footer+"</main></body></html>"
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
