@@ -65,7 +65,7 @@ class RxnormReport3StatisticalTests(unittest.TestCase):
                          "Spearman ρ", "Welch's t-test", "Welch–Satterthwaite",
                          "Cohen's d", "CI₉₅%", "Holm", "Chi-square Pearson",
                          "Cramér's V", "Jaccard", "Coherence", "Cách nói"):
-                self.assertIn(term.replace("'", "&#x27;") if False else term, html)
+                self.assertIn(term.replace("'", "&#x27;"), html)
             for anchor in ("r3-correlation", "r3-welch", "r3-chi2", "r3-coherence"):
                 self.assertIn(anchor, html)
             for word in ("Welch","Coherence","Cramér","Spearman","Report 3","Report 4"):
