@@ -10,6 +10,26 @@ from silver_mapping.rxnorm_report3 import (
 from silver_mapping.rxnorm_eda import analyze
 
 class RxnormReport3StatisticalTests(unittest.TestCase):
+    def test_native_mathml_rendering(self):
+        from silver_mapping.rxnorm_mathml import FORMULAS, render_math
+        self.assertGreaterEqual(len(FORMULAS), 20)
+        x=render_math("Welch's t-test: công thức kiểm định",
+                      "t=(Mean1-Mean2)/SE",
+                      "IN vs SCD: (20,768 − 53,207) / 0,5534 ≈ −58,6136")
+        self.assertIn("<math",x)
+        self.assertIn("<mfrac>",x)
+        self.assertIn('r3-math-worked',x)
+        self.assertNotIn('r3-equation-value',x)
+        y=render_math("Jaccard: độ tương đồng bộ token",
+                      "J(A,B)=|A∩B|/|A∪B|",
+                      "Ví dụ minh họa: A={a,b}; B={a,b,c} → J=4/5=0,8")
+        self.assertIn("<math",y)
+        self.assertIn("<mfrac>",y)
+        z=render_math("Welch's t-test: công thức kiểm định",
+                      "t=(Mean1-Mean2)/SE",
+                      "Chưa tính được t từ ví dụ kiểm thử này")
+        self.assertIn("Chưa tính được",z)
+
     def test_student_t_p_values(self):
         self.assertAlmostEqual(student_t_two_sided(0,12),1,places=8)
         self.assertAlmostEqual(student_t_two_sided(2.22813885,10),.05,places=3)
