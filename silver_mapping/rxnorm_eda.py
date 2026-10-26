@@ -30,7 +30,7 @@ def normalized(value):
     text = unicodedata.normalize("NFKD", str(value or ""))
     text = "".join(c for c in text if not unicodedata.combining(c))
     text = text.casefold()
-    return " ".join(re.sub(r"[^a-z0-9]+", " ", text).split())
+    return " ".join("".join(c if c.isalnum() else " " for c in text).split())
 
 def pct(n, d):
     return round(100.0*n/d, 2) if d else 0.0
@@ -98,7 +98,7 @@ def analyze(source_path, mapping_path, report_path, html_path=None, provenance=N
             seen.add(identity)
             concept_ids.add(row["rxcui"].strip())
             clean={f:row[f].strip() for f in FIELDS}
-            clean["normalized_name"]=normalized(text)
+            clean["normalized_name"]=(row["normalized_name"] or normalized(text)).strip()
             if not clean["normalized_name"]:
                 excluded["UNNORMALIZABLE_NAME"]+=1
                 seen.remove(identity)
