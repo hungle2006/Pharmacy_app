@@ -114,8 +114,12 @@ def analyze(source_path, mapping_path, report_path, html_path=None, provenance=N
     if not stats["mapping_ready_rows"] or not stats["ingredient_terms"] or not stats["clinical_drug_terms"]:
         raise ValueError("RxNorm not suitable for mapping: missing IN/PIN or SCD")
     excluded_count=stats["input_rows"]-stats["mapping_ready_rows"]
-    if excluded_count/stats["input_rows"]>0.05:
-        raise ValueError(f"RxNorm excluded {excluded_count}/{stats['input_rows']} rows (>5%)")
+    # Benign identical-term duplicates are deduplicated but must not trip
+    # the quality gate. Invalid/unusable source rows above 5% do.
+    invalid_count=sum(count for reason,count in excluded.items()
+                      if reason!="DUPLICATE_CONCEPT_TERM")
+    if invalid_count/stats["input_rows"]>0.05:
+        raise ValueError(f"RxNorm unusable {invalid_count}/{stats['input_rows']} rows (>5%)")
     report={
         "source":"silver/rxnorm.csv",
         "source_sha256":hash_file(source_path),
