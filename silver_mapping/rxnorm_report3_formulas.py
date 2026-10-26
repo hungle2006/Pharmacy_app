@@ -147,6 +147,11 @@ def inferential_formulas(multivariate):
     pooled=abs(ab["difference"]/ab["cohen_d"]) if ab.get("cohen_d") else None
     diff=ab.get("difference")
     ci=ab.get("ci95_normal_approx")
+    rvalue=corr.get("pearson_r")
+    rsquare=vi(rvalue*rvalue,4) if rvalue is not None else "không xác định (biến không biến thiên)"
+    holm_example=(f"m=3; SCD/SBD ở vị trí 2: 2 × {second['p_value']:.4g} ≈ {second['p_holm']:.4g}"
+                  if second.get("p_value") is not None and second.get("p_holm") is not None
+                  else "Dữ liệu kiểm thử không đủ số cặp hợp lệ để minh họa phép nhân p.")
     coh_high=coh["distribution"][2]
     k=coh["n_comparable_rxcui"]
     out={}
@@ -154,7 +159,7 @@ def inferential_formulas(multivariate):
         formula(
             "Pearson r (tương quan tuyến tính)",
             "r = Σ[(xᵢ − x̄)(yᵢ − ȳ)] / √{Σ(xᵢ−x̄)² × Σ(yᵢ−ȳ)²}",
-            f"n={vi(corr['n'])} RxCUI; r={vi(corr['pearson_r'],4)}; r²=({vi(corr['pearson_r'],4)})² ≈ {vi(corr['pearson_r']**2,4)}",
+            f"n={vi(corr['n'])} RxCUI; r={vi(corr['pearson_r'],4)}; r²=({vi(corr['pearson_r'],4)})² ≈ {rsquare}",
             "Mối quan hệ tuyến tính dương nhưng yếu giữa số thuật ngữ và độ dài tên trung bình.",
             "x: số tên/RxCUI; y: độ dài tên trung bình/RxCUI; x̄ và ȳ: hai trung bình.",
             "Báo cáo chỉ lưu hệ số r, không lưu các tổng tử/mẫu để thay đầy đủ từng hạng tử."
@@ -217,7 +222,7 @@ def inferential_formulas(multivariate):
             formula(
                 "Holm: điều chỉnh p-value cho nhiều phép thử",
                 "p_adj,(i) = maxⱼ≤i[min(1, (m−j+1)×p_(j))], sau khi xếp p tăng dần",
-                f"m=3; SCD/SBD ở vị trí 2: 2 × {second['p_value']:.4g} ≈ {second['p_holm']:.4g}",
+                holm_example,
                 "Kết quả vẫn nhỏ hơn 0,05 sau điều chỉnh.",
                 "p cực nhỏ có thể tràn số về 0 trong máy tính; không diễn giải là xác suất bằng 0."
             ),
