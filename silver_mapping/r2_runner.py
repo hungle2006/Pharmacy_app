@@ -32,7 +32,7 @@ EDA_PREFIX="reports"
 def code_revision():
     root=Path(__file__).resolve().parent
     paths=[
-        root/"build.py",root/"r2_runner.py",root/"rxnorm_eda.py",root/"rxnorm_report4.py",
+        root/"build.py",root/"r2_runner.py",root/"rxnorm_eda.py",root/"rxnorm_report3.py",root/"rxnorm_report4.py",
         root.parent/"silver_v3"/"legacy_tools"/"rxnorm_normalize.py",
         root.parent/"silver_v3"/"quality.py",
         root.parent/"silver_v3"/"safe_tools"/"dav_rxnorm_mapper_v3.py",
