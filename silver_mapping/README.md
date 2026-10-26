@@ -54,3 +54,26 @@ Strength comparison is conservative and rejects ambiguous numeric formats.
 Combination products and unsupported dosage-form equivalences remain
 unmatched. Exactly matching ICD10CM vs ICD10 Vietnam strings is NOT
 cross-version equivalence. MEDI 2020 is historical data only.
+
+## RxNorm Report 3 + Report 4 (EDA → Mapping)
+
+`silver_mapping/rxnorm_eda.py` reads current `silver/rxnorm.csv` from R2. It
+measures missing values, distinct RxCUI, terminology TTY/SAB distribution,
+mapping-readiness, quality status, normalized name changes, duplicate keys,
+and name-length distribution. It builds a **temporary** five-column
+mapping-ready CSV that `silver_mapping.build_all` uses for DAV↔RxNorm mapping.
+
+The workflow publishes exactly two fixed presentation objects outside Bronze:
+- `reports/rxnorm_eda.json` (reviewable aggregates and chart data)
+- `reports/rxnorm_eda.html` (standalone Report 3 + Report 4 with mapping samples)
+
+The public app page `/rxnorm-eda.html` is refreshed by the mapping GitHub Action
+after a successfully published report, using `assets/rxnorm-eda.json` as its
+lightweight static evidence copy. On a blocked GitHub write, the job emits a
+warning and the R2 report remains the authoritative version. The report is
+linked from the RxNorm lookup tab. The GitHub Actions job also attaches
+`rxnorm-eda-report` HTML/JSON files for presentation (30-day retention).
+
+The five RxNorm terms columns are preserved and clinical mapping stays
+CANDIDATE_REVIEW / UNMATCHED_REVIEW, never auto-VERIFIED. Exact text matching
+is not a licensed official RXNREL relationship.
