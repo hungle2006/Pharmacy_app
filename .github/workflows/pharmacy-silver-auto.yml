@@ -55,6 +55,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_silver_r2_runner.py' -v
           python -m unittest discover -s tests -p 'test_quality.py' -v
           python -m unittest discover -s tests -p 'test_silver_mapping.py' -v
+          python -m unittest discover -s tests -p 'test_rxnorm_eda.py' -v
           python -m compileall -q silver_auto silver_v3 silver_mapping
   sync:
     if: github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
@@ -105,6 +106,7 @@ jobs:
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET: pharmacy-data-lake
           MANUAL_DRY_RUN: ${{ inputs.dry_run }}
+          EDA_EXPORT_DIR: ${{ github.workspace }}/rxnorm-reports
         run: |
           set -euo pipefail
           if [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ] && [ "$MANUAL_DRY_RUN" = 'true' ]; then
@@ -112,6 +114,15 @@ jobs:
           else
             python -m silver_mapping.r2_runner
           fi
+
+      - name: Attach RxNorm Report 3 + 4 for presentation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rxnorm-eda-report
+          path: rxnorm-reports/
+          if-no-files-found: ignore
+          retention-days: 30
 
   gold:
     name: Incremental Neon Gold UPSERT
