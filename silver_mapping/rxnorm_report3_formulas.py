@@ -87,7 +87,7 @@ STYLE = """<style>
  .r3-math-worked{font-size:16px}.r3-explanation{padding:13px 14px}}
 @media print{.r3-formula{break-inside:avoid;box-shadow:none;transform:none!important}
  .r3-formula-details{display:block}.r3-math{overflow:visible}.r3-formula-grid{grid-template-columns:1fr 1fr}}
-</style>
+</style>"""
 
 def quality_formulas(e, multivariate, stats):
     n=e["total_rows"]
