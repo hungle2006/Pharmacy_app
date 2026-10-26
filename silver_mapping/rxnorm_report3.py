@@ -279,6 +279,7 @@ def profile(mapping_ready_csv, source_csv=None):
             "Welch compares independent RxCUI after excluding concepts shared across the two TTY labels; p-values Holm-adjusted across three planned contrasts.",
             "Chi-square involves multiple names for the same RxCUI and violates strict observation independence. Treat p-values as diagnostic only; prioritize Cramer's V.",
             "Extremely large sample sizes can yield very small p-values for negligible effect sizes.",
+            "Distinct TTY count and term count are arithmetically related: a high correlation is partly mechanical, not a novel clinical finding.",
             "Lexical Jaccard measures text overlap, not synonym truth, therapeutic equivalence or clinical correctness.",
             "No distribution normality or independence is guaranteed. No time-series tests on a single snapshot."
         ]
@@ -287,6 +288,10 @@ def profile(mapping_ready_csv, source_csv=None):
 def render_report3(result):
     def h(s):return html.escape(str(s),quote=True)
     def num(x):return nfmt(x)
+    def pvalue(x):
+        if x is None:return "—"
+        if x == 0:return "<1e-300 (underflow)"
+        return f"{x:.3g}"
     def table(header,rows):
         return '<div class="r3-table-scroll"><table class="r3-table"><thead><tr>'+''.join('<th>'+h(c)+'</th>' for c in header)+'</tr></thead><tbody>'+''.join('<tr>'+''.join('<td>'+h(v)+'</td>' for v in row)+'</tr>' for row in rows)+'</tbody></table></div>'
     r=result
@@ -295,7 +300,7 @@ def render_report3(result):
     trows=[]
     for q in r["welch_t_tests"]:
         trows.append([q["comparison"],num(q["n_a"]),num(q["n_b"]),
-                     num(q.get("t")),num(q.get("df")),num(q.get("p_value")),num(q.get("p_holm")),
+                     num(q.get("t")),num(q.get("df")),pvalue(q.get("p_value")),pvalue(q.get("p_holm")),
                      num(q.get("cohen_d")),q["status"]])
     ttest=table(["So sánh","N A","N B","t","df","p","p Holm","Cohen d","Trạng thái"],trows)
     c=r["chi_square"]
