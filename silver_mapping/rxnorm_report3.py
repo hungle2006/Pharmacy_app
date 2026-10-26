@@ -12,6 +12,7 @@ import math
 import statistics
 from collections import Counter, defaultdict
 from pathlib import Path
+from silver_mapping.rxnorm_report3_formulas import inferential_formulas
 
 def nfmt(x):
     if x is None:return "—"
@@ -295,6 +296,7 @@ def render_report3(result):
     def table(header,rows):
         return '<div class="r3-table-scroll"><table class="r3-table"><thead><tr>'+''.join('<th>'+h(c)+'</th>' for c in header)+'</tr></thead><tbody>'+''.join('<tr>'+''.join('<td>'+h(v)+'</td>' for v in row)+'</tr>' for row in rows)+'</tbody></table></div>'
     r=result
+    formulae=inferential_formulas(r)
     corr=table(["Cột X","Cột Y","N (RxCUI)","Pearson r","Spearman ρ"],
               [[q["x"],q["y"],num(q["n"]),num(q["pearson_r"]),num(q["spearman_rho"])] for q in r["correlations"]])
     trows=[]
@@ -315,9 +317,9 @@ def render_report3(result):
     css="""<style>.r3-multivariate{margin-top:22px}.r3-head{margin:8px 0 18px}.r3-head h2{font-size:26px;margin:0 0 8px}.r3-head p{max-width:910px}.r3-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.r3-study{background:#fff;border:1px solid #dce9ea;border-radius:17px;padding:20px;min-width:0}.r3-study h3{font-size:18px;margin:0 0 8px;color:#21495a}.r3-study p{font-size:13px}.r3-study.wide{grid-column:1/-1}.r3-pill{display:inline-block;border-radius:999px;padding:5px 10px;font-weight:750;color:#08796e;background:#e5f5f0;font-size:11px}.r3-table-scroll{max-width:100%;overflow:auto}.r3-table{width:100%;border-collapse:collapse;font-size:12px}.r3-table th,.r3-table td{padding:9px 8px;border-bottom:1px solid #e7eeee;white-space:nowrap;text-align:left}.r3-table th{font-size:11px;color:#506b78}.r3-meta{color:#536d78;font-size:12px}.r3-callout{background:#f0f7f6;border-left:3px solid #0e8b80;border-radius:9px;padding:14px 16px;margin-top:16px;font-size:13px;color:#335866}.r3-facts{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.r3-facts span{padding:12px 16px;border-radius:12px;background:#eaf6f3;font-size:12px}.r3-facts strong{display:block;font-size:20px;color:#134f4e}@media(max-width:830px){.r3-grid{grid-template-columns:1fr}.r3-study.wide{grid-column:auto}}</style>"""
     summary='<div class="r3-facts"><span>Thuật ngữ phân tích<strong>'+num(r["analyzed_rows"])+'</strong></span><span>RxCUI<strong>'+num(r["concepts"])+'</strong></span><span>TTY khác nhau<strong>'+num(r["cross_column_quality"]["tty_unique_values"])+'</strong></span><span>RxCUI có nhiều tên<strong>'+num(coher["n_comparable_rxcui"])+'</strong></span></div>'
     return (css+'<section class="r3-multivariate" id="report-3-tests"><div class="r3-head"><span class="r3-pill">REPORT 3 · MULTIVARIATE EDA</span><h2>Kiểm định thống kê giữa các cột dữ liệu</h2><p>Correlation, Welch t-test, χ² / Cramér’s V và consistency giữa các tên cùng RxCUI. Chọn phép kiểm định theo thang đo; RxCUI là mã định danh, không phải số liên tục.</p></div>'+summary+
-        '<div class="r3-grid"><article class="r3-study wide"><h3>01 · Correlation matrix · Tương quan trên mỗi RxCUI</h3><p>Pearson r và Spearman ρ giữa số tên, độ dài tên và số nhóm TTY. Mỗi RxCUI chỉ được tính một lần.</p>'+corr+'</article>'+
-        '<article class="r3-study wide"><h3>02 · Welch’s independent t-tests</h3><p>So sánh trung bình độ dài tên giữa các nhóm TTY. Loại các RxCUI thuộc cả hai nhóm, có hiệu chỉnh Holm cho nhiều phép thử; kèm Cohen d để đánh giá cường độ khác biệt.</p>'+ttest+'</article>'+
-        '<article class="r3-study"><h3>03 · χ² · Categorical association</h3><p>TTY × nhóm độ dài tên. χ²='+num(c["statistic"])+', df='+num(c["df"])+', Cramér V='+num(c["cramers_v"])+'. Đơn vị kiểm định là dòng thuật ngữ, nên giả định độc lập chưa hoàn toàn đúng.</p>'+heat+'</article>'+
-        '<article class="r3-study"><h3>04 · Coherence · Nhất quán nội bộ</h3><p>Jaccard token overlap của các tên chung một RxCUI (tối đa 15 tên mỗi mã). Trung bình='+num(coher["mean"])+', trung vị='+num(coher["median"])+'. Đây là sự nhất quán <strong>về mặt từ vựng</strong>, không đo tính đúng đắn lâm sàng.</p>'+coh+'</article>'+
+        '<div class="r3-grid"><article class="r3-study wide" id="r3-correlation"><h3>01 · Correlation matrix · Tương quan trên mỗi RxCUI</h3><p>Pearson r và Spearman ρ giữa số tên, độ dài tên và số nhóm TTY. Mỗi RxCUI chỉ được tính một lần.</p>'+corr+formulae["correlation"]+'</article>'+
+        '<article class="r3-study wide" id="r3-welch"><h3>02 · Welch’s independent t-tests</h3><p>So sánh trung bình độ dài tên giữa các nhóm TTY. Loại các RxCUI thuộc cả hai nhóm, có hiệu chỉnh Holm cho nhiều phép thử; kèm Cohen d để đánh giá cường độ khác biệt.</p>'+ttest+formulae["ttest"]+'</article>'+
+        '<article class="r3-study" id="r3-chi2"><h3>03 · χ² · Categorical association</h3><p>TTY × nhóm độ dài tên. χ²='+num(c["statistic"])+', df='+num(c["df"])+', Cramér V='+num(c["cramers_v"])+'. Đơn vị kiểm định là dòng thuật ngữ, nên giả định độc lập chưa hoàn toàn đúng.</p>'+heat+formulae["chi"]+'</article>'+
+        '<article class="r3-study" id="r3-coherence"><h3>04 · Coherence · Nhất quán nội bộ</h3><p>Jaccard token overlap của các tên chung một RxCUI (tối đa 15 tên mỗi mã). Trung bình='+num(coher["mean"])+', trung vị='+num(coher["median"])+'. Đây là sự nhất quán <strong>về mặt từ vựng</strong>, không đo tính đúng đắn lâm sàng.</p>'+coh+formulae["coherence"]+'</article>'+
         '<article class="r3-study wide"><h3>05 · Những kiểm định không nên thực hiện</h3>'+excluded+'</article></div>'+
         '<div class="r3-callout"><strong>Giới hạn diễn giải:</strong> Đây là dữ liệu quan sát từ một snapshot. p-value rất nhỏ với N lớn không đồng nghĩa tác động thực tế lớn; cần xem độ lớn hiệu ứng và giả định độc lập. Không suy ra tương đương điều trị hoặc nhân quả từ các phép kiểm định này.</div></section>')

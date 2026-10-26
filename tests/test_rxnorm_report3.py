@@ -60,6 +60,14 @@ class RxnormReport3StatisticalTests(unittest.TestCase):
             self.assertEqual(m["chi_square"]["n_rows"],61)
             self.assertFalse(result["mapping_handoff"]["clinical_verified"])
             html=wd.joinpath("report.html").read_text()
+            # Every new Report 3 test displays its formula, substitution, and presenter guidance.
+            for term in ("Missing%(c)", "Readiness%", "Variance", "Pearson r",
+                         "Spearman ρ", "Welch's t-test", "Welch–Satterthwaite",
+                         "Cohen's d", "CI₉₅%", "Holm", "Chi-square Pearson",
+                         "Cramér's V", "Jaccard", "Coherence", "Cách nói"):
+                self.assertIn(term.replace("'", "&#x27;"), html)
+            for anchor in ("r3-correlation", "r3-welch", "r3-chi2", "r3-coherence"):
+                self.assertIn(anchor, html)
             for word in ("Welch","Coherence","Cramér","Spearman","Report 3","Report 4"):
                 self.assertIn(word,html)
 
