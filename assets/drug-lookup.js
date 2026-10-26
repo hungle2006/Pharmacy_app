@@ -31,6 +31,7 @@
     $('lookup-tab-dav').setAttribute('aria-pressed',String(state.mode==='dav'));
     $('lookup-tab-rx').setAttribute('aria-pressed',String(state.mode==='rx'));
     $('lookup-current-control').hidden=state.mode==='rx';
+    $('lookup-eda-link').hidden=state.mode!=='rx';
     $('lookup-search').placeholder=state.mode==='rx'?'Nhập tên thuật ngữ hoặc mã RxCUI, ví dụ: acetaminophen':'Tên thuốc, hoạt chất, số đăng ký hoặc nhà sản xuất…';
     $('lookup-form').querySelector('.lookup-submit').firstChild.textContent=state.mode==='rx'?'Tra RxNorm ':'Tìm thuốc ';
     resetDetails();

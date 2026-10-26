@@ -1,0 +1,336 @@
+{
+  "source": "silver/rxnorm.csv",
+  "source_sha256": "b90f7d0b5f9452d7b660fed8dc3c23e621211f8ce10db91d53e0763d5265ad21",
+  "generated_utc": "2026-10-26T03:07:01.003415+00:00",
+  "provenance": {
+    "key": "silver/rxnorm.csv",
+    "sha": "b90f7d0b5f9452d7b660fed8dc3c23e621211f8ce10db91d53e0763d5265ad21",
+    "etag": "\"f1b4618aeb84ea5cb7b4c042b2805afa-3\"",
+    "size": 24125518
+  },
+  "report_3_eda": {
+    "scope": "Term-level current Silver RxNorm; not unique products or clinical relationships",
+    "total_rows": 141074,
+    "distinct_rxcui_mapping_ready": 81620,
+    "mapping_ready_rows": 141074,
+    "excluded_rows": 0,
+    "mapping_ready_rate_pct": 100,
+    "ingredient_terms": 7829,
+    "scd_terms": 12081,
+    "normalization_difference_rows": 0,
+    "normalization_difference_pct": 0,
+    "missing_by_field": [
+      {
+        "field": "normalized_name",
+        "count": 0,
+        "percentage": 0
+      },
+      {
+        "field": "rxcui",
+        "count": 0,
+        "percentage": 0
+      },
+      {
+        "field": "display_name",
+        "count": 0,
+        "percentage": 0
+      },
+      {
+        "field": "tty",
+        "count": 0,
+        "percentage": 0
+      },
+      {
+        "field": "sab",
+        "count": 0,
+        "percentage": 0
+      }
+    ],
+    "qc_distribution": [
+      {
+        "label": "ACCEPTED",
+        "count": 141074
+      }
+    ],
+    "excluded_reasons": [],
+    "normalization": "Unicode NFKD, lowercase, remove diacritics/punctuation, collapse spaces; source display_name kept verbatim",
+    "missing_policy": "No imputation of missing RxCUI, TTY, SAB, display_name; invalid terminology excluded from mapping",
+    "duplicate_policy": "Collapse repeated identity (rxcui,tty,sab,display_name) for mapping-ready CSV only",
+    "sample_mapping_ready": [
+      {
+        "rxcui": "1000000",
+        "tty": "PSN",
+        "display_name": "TRIBENZOR 40 MG / 5 MG / 12.5 MG Oral Tablet",
+        "normalized_name": "tribenzor 40 mg 5 mg 12 5 mg oral tablet"
+      },
+      {
+        "rxcui": "1000000",
+        "tty": "SBD",
+        "display_name": "amlodipine 5 MG / hydrochlorothiazide 12.5 MG / olmesartan medoxomil 40 MG Oral Tablet [Tribenzor]",
+        "normalized_name": "amlodipine 5 mg hydrochlorothiazide 12 5 mg olmesartan medoxomil 40 mg oral tablet tribenzor"
+      },
+      {
+        "rxcui": "1000000",
+        "tty": "SY",
+        "display_name": "Amlodipine 5 MG / HCTZ 12.5 MG / Olmesartan medoxomil 40 MG Oral Tablet [Tribenzor]",
+        "normalized_name": "amlodipine 5 mg hctz 12 5 mg olmesartan medoxomil 40 mg oral tablet tribenzor"
+      },
+      {
+        "rxcui": "1000000",
+        "tty": "SY",
+        "display_name": "Tribenzor 40/5/12.5 (olmesartan medoxomil / amlodipine (as amlodipine besylate) / HCTZ) Oral Tablet",
+        "normalized_name": "tribenzor 40 5 12 5 olmesartan medoxomil amlodipine as amlodipine besylate hctz oral tablet"
+      },
+      {
+        "rxcui": "1000000",
+        "tty": "TMSY",
+        "display_name": "Tribenzor 40/5/12.5 (olmesartan medoxomil / amLODIPine (as amLODIPine besylate) / HCTZ) Oral Tablet",
+        "normalized_name": "tribenzor 40 5 12 5 olmesartan medoxomil amlodipine as amlodipine besylate hctz oral tablet"
+      },
+      {
+        "rxcui": "1000000",
+        "tty": "TMSY",
+        "display_name": "amLODIPine 5 MG / HCTZ 12.5 MG / Olmesartan medoxomil 40 MG Oral Tablet [Tribenzor]",
+        "normalized_name": "amlodipine 5 mg hctz 12 5 mg olmesartan medoxomil 40 mg oral tablet tribenzor"
+      },
+      {
+        "rxcui": "1000000",
+        "tty": "TMSY",
+        "display_name": "amLODIPine 5 MG / hydroCHLOROthiazide 12.5 MG / olmesartan medoxomil 40 MG Oral Tablet [Tribenzor]",
+        "normalized_name": "amlodipine 5 mg hydrochlorothiazide 12 5 mg olmesartan medoxomil 40 mg oral tablet tribenzor"
+      },
+      {
+        "rxcui": "1000001",
+        "tty": "PSN",
+        "display_name": "olmesartan medoxomil 40 MG / amLODIPine 5 MG / hydroCHLOROthiazide 25 MG Oral Tablet",
+        "normalized_name": "olmesartan medoxomil 40 mg amlodipine 5 mg hydrochlorothiazide 25 mg oral tablet"
+      }
+    ]
+  },
+  "report_4_visualization": {
+    "tty_distribution": [
+      {
+        "label": "SY",
+        "count": 28364
+      },
+      {
+        "label": "PSN",
+        "count": 21351
+      },
+      {
+        "label": "SCD",
+        "count": 12081
+      },
+      {
+        "label": "SCDC",
+        "count": 10172
+      },
+      {
+        "label": "TMSY",
+        "count": 9739
+      },
+      {
+        "label": "SBD",
+        "count": 8094
+      },
+      {
+        "label": "SBDC",
+        "count": 7025
+      },
+      {
+        "label": "SBDG",
+        "count": 6692
+      },
+      {
+        "label": "SCDG",
+        "count": 6288
+      },
+      {
+        "label": "IN",
+        "count": 5874
+      },
+      {
+        "label": "SCDF",
+        "count": 5566
+      },
+      {
+        "label": "SBDF",
+        "count": 4972
+      },
+      {
+        "label": "BN",
+        "count": 4140
+      },
+      {
+        "label": "SCDGP",
+        "count": 2512
+      },
+      {
+        "label": "SCDFP",
+        "count": 2025
+      },
+      {
+        "label": "PIN",
+        "count": 1955
+      },
+      {
+        "label": "SBDFP",
+        "count": 1762
+      },
+      {
+        "label": "MIN",
+        "count": 960
+      },
+      {
+        "label": "BPCK",
+        "count": 717
+      },
+      {
+        "label": "GPCK",
+        "count": 622
+      },
+      {
+        "label": "DF",
+        "count": 120
+      },
+      {
+        "label": "DFG",
+        "count": 43
+      }
+    ],
+    "sab_distribution": [
+      {
+        "label": "RXNORM",
+        "count": 141074
+      }
+    ],
+    "name_length_distribution": [
+      {
+        "label": "0-19",
+        "count": 16292
+      },
+      {
+        "label": "20-39",
+        "count": 62050
+      },
+      {
+        "label": "40-79",
+        "count": 51523
+      },
+      {
+        "label": "80-159",
+        "count": 8847
+      },
+      {
+        "label": "160+",
+        "count": 2362
+      }
+    ],
+    "qc_distribution": [
+      {
+        "label": "ACCEPTED",
+        "count": 141074
+      }
+    ],
+    "mapping_readiness": [
+      {
+        "label": "Mapping-ready",
+        "count": 141074
+      },
+      {
+        "label": "Excluded/review before mapping",
+        "count": 0
+      }
+    ]
+  },
+  "mapping_handoff": {
+    "source": "silver/rxnorm.csv",
+    "temporary_output": "mapping_ready.csv",
+    "natural_key": [
+      "rxcui",
+      "tty",
+      "sab",
+      "display_name"
+    ],
+    "relationship_claim": "TERM_CANDIDATES_ONLY_NOT_VERIFIED_CLINICAL_EQUIVALENCE",
+    "clinical_verified": false,
+    "admissible": true,
+    "note": "RxNorm current prescribable terminology is not all RxNorm, nor does text parsing provide official RXNREL evidence",
+    "mapping_status_distribution": [
+      {
+        "label": "UNMATCHED_REVIEW",
+        "count": 35748
+      },
+      {
+        "label": "CANDIDATE_REVIEW",
+        "count": 4047
+      }
+    ],
+    "candidate_examples": [
+      {
+        "dav_row_id": "100003",
+        "dav_drug_name": "Gludip 4",
+        "candidate_scd_rxcui": "199247",
+        "candidate_scd_name": "glimepiride 4 MG Oral Tablet",
+        "mapping_status": "CANDIDATE_REVIEW",
+        "clinical_verified": "false"
+      },
+      {
+        "dav_row_id": "100024",
+        "dav_drug_name": "Rotalzon",
+        "candidate_scd_rxcui": "979492",
+        "candidate_scd_name": "losartan potassium 50 MG Oral Tablet",
+        "mapping_status": "CANDIDATE_REVIEW",
+        "clinical_verified": "false"
+      },
+      {
+        "dav_row_id": "100032",
+        "dav_drug_name": "Valsartan 80",
+        "candidate_scd_rxcui": "349199",
+        "candidate_scd_name": "valsartan 80 MG Oral Tablet",
+        "mapping_status": "CANDIDATE_REVIEW",
+        "clinical_verified": "false"
+      },
+      {
+        "dav_row_id": "100039",
+        "dav_drug_name": "Predni Ultra 20",
+        "candidate_scd_rxcui": "429199",
+        "candidate_scd_name": "prednisolone 20 MG Oral Tablet",
+        "mapping_status": "CANDIDATE_REVIEW",
+        "clinical_verified": "false"
+      },
+      {
+        "dav_row_id": "100050",
+        "dav_drug_name": "Beclozine 25",
+        "candidate_scd_rxcui": "197536",
+        "candidate_scd_name": "clozapine 25 MG Oral Tablet",
+        "mapping_status": "CANDIDATE_REVIEW",
+        "clinical_verified": "false"
+      },
+      {
+        "dav_row_id": "100052",
+        "dav_drug_name": "Predni Ultra 5",
+        "candidate_scd_rxcui": "198142",
+        "candidate_scd_name": "prednisolone 5 MG Oral Tablet",
+        "mapping_status": "CANDIDATE_REVIEW",
+        "clinical_verified": "false"
+      },
+      {
+        "dav_row_id": "100079",
+        "dav_drug_name": "Mekopred 8",
+        "candidate_scd_rxcui": "197973",
+        "candidate_scd_name": "methylprednisolone 8 MG Oral Tablet",
+        "mapping_status": "CANDIDATE_REVIEW",
+        "clinical_verified": "false"
+      },
+      {
+        "dav_row_id": "100082",
+        "dav_drug_name": "Thiazifar",
+        "candidate_scd_rxcui": "310798",
+        "candidate_scd_name": "hydrochlorothiazide 25 MG Oral Tablet",
+        "mapping_status": "CANDIDATE_REVIEW",
+        "clinical_verified": "false"
+      }
+    ]
+  }
+}

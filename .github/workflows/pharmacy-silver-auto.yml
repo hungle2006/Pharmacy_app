@@ -89,6 +89,8 @@ jobs:
   mapping:
     name: Pharmacy terminology and clinical candidate mappings
     if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
     needs: [validate, sync]
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -115,6 +117,26 @@ jobs:
             python -m silver_mapping.r2_runner
           fi
 
+      - name: Update public RxNorm analysis page after successful publication
+        if: github.ref == 'refs/heads/main' && success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -s rxnorm-reports/rxnorm_eda.html ] || [ ! -s rxnorm-reports/rxnorm_eda.json ]; then
+            echo "No changed RxNorm report; keep the existing public page."
+            exit 0
+          fi
+          cp rxnorm-reports/rxnorm_eda.html rxnorm-eda.html
+          cp rxnorm-reports/rxnorm_eda.json assets/rxnorm-eda.json
+          git add rxnorm-eda.html assets/rxnorm-eda.json
+          if git diff --cached --quiet; then
+            echo "Public RxNorm page unchanged."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'data: update RxNorm EDA dashboard'
+          git push origin HEAD:main || echo '::warning::Unable to push public RxNorm report; R2 source report remains authoritative'
       - name: Attach RxNorm Report 3 + 4 for presentation
         if: always()
         uses: actions/upload-artifact@v4
