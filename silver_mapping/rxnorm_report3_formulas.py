@@ -145,7 +145,7 @@ def inferential_formulas(multivariate):
     # Welch standard error here is INFERRED from rounded diff and t.
     derived_se=abs(ab["difference"]/ab["t"]) if ab.get("t") else None
     pooled=abs(ab["difference"]/ab["cohen_d"]) if ab.get("cohen_d") else None
-    diff=ab["difference"]
+    diff=ab.get("difference")
     ci=ab.get("ci95_normal_approx")
     coh_high=coh["distribution"][2]
     k=coh["n_comparable_rxcui"]
@@ -167,44 +167,61 @@ def inferential_formulas(multivariate):
             "Thứ hạng bằng nhau được gán trung bình thứ hạng (tied ranks)."
         ),
     ])+'</div>'
-    t_blocks=[
-        formula(
-            "Welch's t-test: công thức kiểm định",
-            "t = (Mean₁ − Mean₂) / √(s₁²/n₁ + s₂²/n₂)",
-            f"IN vs SCD: ({vi(ab['mean_a'],3)} − {vi(ab['mean_b'],3)}) / {vi(derived_se,4)} ≈ {vi(ab['t'],4)}",
-            "Độ dài tên IN thấp hơn SCD; chênh lệch là độ dài tên, không phải tác dụng thuốc.",
-            f"n₁={vi(ab['n_a'])}; n₂={vi(ab['n_b'])}; SE={vi(derived_se,4)} là sai số chuẩn suy ngược từ t và hiệu số đã làm tròn.",
-            "Để tính SE từ đầu cần phương sai của hai nhóm; báo cáo hiện không lưu hai phương sai đó."
-        ),
-        formula(
-            "Bậc tự do Welch–Satterthwaite",
-            "df = (s₁²/n₁+s₂²/n₂)² / [(s₁²/n₁)²/(n₁−1)+(s₂²/n₂)²/(n₂−1)]",
-            f"df được chương trình tính từ dữ liệu gốc: {vi(ab['df'],2)}",
-            "Welch không ép hai nhóm phải có phương sai bằng nhau.",
-            "Các phương sai gốc không có trong bảng JSON; không tự đặt số để thay vào."
-        ),
-        formula(
-            "Cohen's d: độ lớn hiệu ứng",
-            "d = (Mean₁ − Mean₂) / s_pooled",
-            f"d = {vi(diff,3)} / {vi(pooled,3)} ≈ {vi(ab['cohen_d'],3)}",
-            "Dấu âm là do lấy IN trừ SCD; độ lớn khoảng 0,678 đáng lưu ý.",
-            "s_pooled được suy ngược từ d làm tròn; giá trị chỉ xấp xỉ."
-        ),
-        formula(
-            "Khoảng tin cậy hiệu số trung bình 95%",
-            "CI₉₅% ≈ (Mean₁−Mean₂) ± 1,96 × SE",
-            f"{vi(diff,3)} ± 1,96 × {vi(derived_se,4)} ≈ [{vi(ci[0],3)}; {vi(ci[1],3)}] ký tự",
-            "Cả khoảng ở phía âm, phù hợp với tên IN ngắn hơn SCD.",
-            "Đây là khoảng xấp xỉ chuẩn mà code công bố, không phải khoảng dùng phân vị t chính xác."
-        ),
-        formula(
-            "Holm: điều chỉnh p-value cho nhiều phép thử",
-            "p_adj,(i) = maxⱼ≤i[min(1, (m−j+1)×p_(j))], sau khi xếp p tăng dần",
-            f"m=3; SCD/SBD ở vị trí 2: 2 × {second['p_value']:.4g} ≈ {second['p_holm']:.4g}",
-            "Kết quả vẫn nhỏ hơn 0,05 sau điều chỉnh.",
-            "p cực nhỏ có thể tràn số về 0 trong máy tính; không diễn giải là xác suất bằng 0."
-        ),
-    ]
+    if ab.get("status") != "computed":
+        t_blocks=[
+            formula("Welch's t-test: công thức kiểm định",
+                    "t = (Mean₁ − Mean₂) / √(s₁²/n₁+s₂²/n₂)",
+                    "Chưa tính được t từ ví dụ kiểm thử này: nhóm có quá ít RxCUI độc lập.",
+                    "Dữ liệu thực tế sẽ thay bằng trung bình, SE và kết quả t khi hai nhóm đủ quan sát."),
+            formula("Bậc tự do Welch–Satterthwaite",
+                    "df = (s₁²/n₁+s₂²/n₂)² / [(s₁²/n₁)²/(n₁−1)+(s₂²/n₂)²/(n₂−1)]",
+                    "Không có df khi kiểm định không áp dụng.", "Không tạo số thay thế."),
+            formula("Cohen's d: độ lớn hiệu ứng", "d=(Mean₁−Mean₂)/s_pooled",
+                    "Không tính d khi hai nhóm không đủ điều kiện.", "Cần phân biệt độ mạnh hiệu ứng với p-value."),
+            formula("Khoảng tin cậy CI₉₅%", "CI₉₅% ≈ Δ ± 1,96×SE",
+                    "Không ước lượng khi kiểm định không áp dụng.", "Không suy diễn độ chính xác từ dữ liệu quá ít."),
+            formula("Holm: điều chỉnh p-value", "p_adj,(i)=maxⱼ≤i[min(1,(m−j+1)×p_(j))]",
+                    "Chỉ hiệu chỉnh những kiểm định có p-value hợp lệ.", "Không ghi p=0 nếu chưa tính.")
+        ]
+    else:
+        t_blocks=[
+            formula(
+                "Welch's t-test: công thức kiểm định",
+                "t = (Mean₁ − Mean₂) / √(s₁²/n₁ + s₂²/n₂)",
+                f"IN vs SCD: ({vi(ab['mean_a'],3)} − {vi(ab['mean_b'],3)}) / {vi(derived_se,4)} ≈ {vi(ab['t'],4)}",
+                "Độ dài tên IN thấp hơn SCD; chênh lệch là độ dài tên, không phải tác dụng thuốc.",
+                f"n₁={vi(ab['n_a'])}; n₂={vi(ab['n_b'])}; SE={vi(derived_se,4)} là sai số chuẩn suy ngược từ t và hiệu số đã làm tròn.",
+                "Để tính SE từ đầu cần phương sai của hai nhóm; báo cáo hiện không lưu hai phương sai đó."
+            ),
+            formula(
+                "Bậc tự do Welch–Satterthwaite",
+                "df = (s₁²/n₁+s₂²/n₂)² / [(s₁²/n₁)²/(n₁−1)+(s₂²/n₂)²/(n₂−1)]",
+                f"df được chương trình tính từ dữ liệu gốc: {vi(ab['df'],2)}",
+                "Welch không ép hai nhóm phải có phương sai bằng nhau.",
+                "Các phương sai gốc không có trong bảng JSON; không tự đặt số để thay vào."
+            ),
+            formula(
+                "Cohen's d: độ lớn hiệu ứng",
+                "d = (Mean₁ − Mean₂) / s_pooled",
+                f"d = {vi(diff,3)} / {vi(pooled,3)} ≈ {vi(ab['cohen_d'],3)}",
+                "Dấu âm là do lấy IN trừ SCD; độ lớn khoảng 0,678 đáng lưu ý.",
+                "s_pooled được suy ngược từ d làm tròn; giá trị chỉ xấp xỉ."
+            ),
+            formula(
+                "Khoảng tin cậy hiệu số trung bình 95%",
+                "CI₉₅% ≈ (Mean₁−Mean₂) ± 1,96 × SE",
+                f"{vi(diff,3)} ± 1,96 × {vi(derived_se,4)} ≈ [{vi(ci[0],3)}; {vi(ci[1],3)}] ký tự",
+                "Cả khoảng ở phía âm, phù hợp với tên IN ngắn hơn SCD.",
+                "Đây là khoảng xấp xỉ chuẩn mà code công bố, không phải khoảng dùng phân vị t chính xác."
+            ),
+            formula(
+                "Holm: điều chỉnh p-value cho nhiều phép thử",
+                "p_adj,(i) = maxⱼ≤i[min(1, (m−j+1)×p_(j))], sau khi xếp p tăng dần",
+                f"m=3; SCD/SBD ở vị trí 2: 2 × {second['p_value']:.4g} ≈ {second['p_holm']:.4g}",
+                "Kết quả vẫn nhỏ hơn 0,05 sau điều chỉnh.",
+                "p cực nhỏ có thể tràn số về 0 trong máy tính; không diễn giải là xác suất bằng 0."
+            ),
+        ]
     out["ttest"] = '<div class="r3-formula-grid">'+"".join(t_blocks)+'</div>'
     out["chi"]='<div class="r3-formula-grid">'+''.join([
         formula(
