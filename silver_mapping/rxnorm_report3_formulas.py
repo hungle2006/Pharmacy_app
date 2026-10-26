@@ -154,6 +154,7 @@ def inferential_formulas(multivariate):
                   else "Dữ liệu kiểm thử không đủ số cặp hợp lệ để minh họa phép nhân p.")
     coh_high=coh["distribution"][2]
     k=coh["n_comparable_rxcui"]
+    highpct=(vi(100*coh_high["count"]/k,2)+"%") if k else "không áp dụng (M=0)"
     out={}
     out["correlation"] = '<div class="r3-formula-grid">'+''.join([
         formula(
@@ -275,7 +276,7 @@ def inferential_formulas(multivariate):
         formula(
             "Tỷ lệ RxCUI có coherence cao",
             "High% = (Số RxCUI có C≥0,7 / Số RxCUI có ≥2 tên) × 100%",
-            f"({vi(coh_high['count'])} / {vi(k)}) × 100% = {vi(100*coh_high['count']/k,2)}%",
+            f"({vi(coh_high['count'])} / {vi(k)}) × 100% = {highpct}",
             "Ưu tiên rà soát mã coherence thấp khi hệ thống Mapping dựa vào chuỗi tên.",
             "Ngưỡng 0,3 và 0,7 do chương trình quy ước để phân nhóm, không phải tiêu chuẩn y khoa."
         ),
