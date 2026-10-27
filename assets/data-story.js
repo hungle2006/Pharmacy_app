@@ -57,8 +57,8 @@ function renderQuality(){
 function renderPattern(){
  let rows,total,title,scope,unit,reading,meaning,limit;
  if(pattern==='country'){
-  rows=gold?.countries;total=gold?.summary.products;title='Sản phẩm trong danh mục đến từ những quốc gia nào?';scope='DAV · CƠ CẤU DANH MỤC';unit='Đơn vị: sản phẩm DAV phân biệt. Không phải thị phần bán hàng.';
-  const top=rows?.[0];reading=top?`${top.name} đứng đầu với ${num(top.value)} / ${num(total)} sản phẩm.`:'';meaning='Danh mục cho thấy cơ cấu nguồn cung được ghi nhận, không cho biết quốc gia nào bán được nhiều nhất.';limit=7;
+  rows=gold?.countries;total=gold?.summary.products;title='Sản phẩm trong danh mục đến từ những quốc gia nào?';scope='DAV · CƠ CẤU DANH MỤC';unit='Đơn vị: sản phẩm DAV phân biệt. Nhãn quốc gia giữ nguyên nguồn; Ấn Độ / India chưa gộp. Không phải thị phần bán hàng.';
+  const top=rows?.[0];reading=top?`${top.name} đứng đầu với ${num(top.value)} / ${num(total)} sản phẩm.`:'';meaning='Danh mục cho thấy nguồn cung được ghi nhận, không phải doanh số. Ấn Độ và India đang là hai nhãn nguồn riêng: cần chuẩn hóa cách ghi trước khi so sánh giữa các quốc gia.';limit=7;
  }else if(pattern==='tty'){
   rows=rx?.report_4_statistics.tty_distribution?.map(r=>({name:r.tty??r.label,value:r.count}));total=rx?.report_4_statistics.n_terms;title='Tên gọi trong RxNorm có những vai trò nào?';scope='RXNORM · LOẠI THUẬT NGỮ TTY';unit='Đơn vị: dòng thuật ngữ đủ điều kiện mapping; không phải sản phẩm DAV.';
   const top=rows?.[0];reading=top?`${label(top.name)} có ${num(top.value)} dòng. Đây là số tên, không phải số thuốc khác nhau.`:'';meaning='Khi so khớp tên thuốc cần biết đang so tên hoạt chất, tên lâm sàng hay tên thương hiệu.';limit=7;
