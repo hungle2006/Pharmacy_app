@@ -155,7 +155,7 @@
       const res=await fetch('/api/market-forecast',{cache:'no-store'});
       const payload=await res.json();
       if(!res.ok||payload.kind!=='dav-market-price-trend')throw Error(payload.notice||'Báo cáo thị trường chưa được công bố');
-      report=payload;
+      report=payload;document.dispatchEvent(new CustomEvent('pharmabiz:market-report',{detail:report}));
       const nExperimental=[3,6,12].filter(h=>hasNumber(report.horizons?.[String(h)]?.experimental_change_pct)).length;
       const nav=document.querySelector('#nav [data-view="market-forecast"]');
       if(nav){
