@@ -65,7 +65,7 @@ def render_presentation(report):
             f'<section class="report-step" id="{id_}" data-report="{report_no}" aria-labelledby="{id_}-title">'
             f'<header class="step-heading"><span class="step-kicker">REPORT {report_no} <i>/</i> {index:02d}</span>'
             f'<h2 id="{id_}-title">{h(title)}</h2><p>{h(lead)}</p></header>' + body +
-            '<aside class="speaker-note"><span>GỢI Ý THUYẾT TRÌNH</span><p>“' + h(speech) + '”</p></aside></section>'))
+            '</section>'))
 
     total = e['total_rows']
     concepts = e['distinct_rxcui_mapping_ready']
@@ -262,11 +262,11 @@ def render_presentation(report):
     research_css = (assets / 'research.css').read_text(encoding='utf-8')
     chart_js = (assets / 'chart-system.js').read_text(encoding='utf-8')
     return ('<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-        '<meta name="description" content="Report 3–4 RxNorm: khám phá dữ liệu, công thức, kiểm định và biểu đồ có lời giải thích; hỗ trợ chế độ thuyết trình.">' +
+        '<script>if(!new URLSearchParams(location.search).has("detail")&&!location.hash)location.replace("/?view=reports");</script><meta name="description" content="Report 3–4 RxNorm: khám phá dữ liệu, công thức, kiểm định và biểu đồ có lời giải thích và nguồn dữ liệu.">' +
         '<title>RxNorm · Report 3 & 4 | PharmaBiz</title>' + STYLE + chart_style + '<style>' + css + common_css + research_css + '</style></head><body class="report-page">' +
         '<a href="#main" class="skip-link">Đến nội dung</a><header class="topbar"><a class="brand" href="/" aria-label="PharmaBiz trang chủ"><span class="brand-icon">P<span>+</span></span><b>PharmaBiz<small>DATA RESEARCH</small></b></a>' +
         '<div class="report-switch" role="group" aria-label="Chọn báo cáo"><button data-filter="all" aria-pressed="true">Tất cả</button><button data-filter="3" aria-pressed="false">Report 3</button><button data-filter="4" aria-pressed="false">Report 4</button></div>' +
-        '<div class="top-actions"><button class="ui-theme-button" data-ui-theme aria-label="Chuyển giao diện sáng/tối">☾</button><button id="notes-toggle" aria-pressed="true" title="Ẩn/hiện gợi ý thuyết trình">Lời dẫn</button><button id="present-toggle" class="primary" aria-pressed="false">Trình chiếu <span>↗</span></button></div></header>' +
+        '<div class="top-actions"><button class="ui-theme-button" data-ui-theme aria-label="Chuyển giao diện sáng/tối">☾</button><button id="present-toggle" class="primary" aria-pressed="false">Trình chiếu <span>↗</span></button></div></header>' +
         '<button id="menu-toggle" aria-expanded="false" aria-controls="sidebar">☰ Mục lục</button><aside id="sidebar"><div class="sidebar-title"><span>RXNORM STUDY</span><h1>Hiểu dữ liệu.<br>Đọc bằng chứng.</h1><p>Report 3 & 4</p></div><nav aria-label="Mục lục báo cáo">' + nav +
         '</nav><div class="sidebar-footer"><a href="/?view=overview">← Tổng quan thị trường</a><a href="/disease-lookup.html">Tra cứu bệnh ↗</a><span class="status-dot"></span> Snapshot có nguồn kiểm chứng<br><small>Dữ liệu Silver · RxNorm</small></div></aside>' +
         '<main id="main" tabindex="-1"><div class="page-intro"><div><span class="eyebrow">RXNORM / RESEARCH REPORT</span><p>Khám phá dữ liệu → Trực quan hóa → Mapping</p></div><button id="print-report">In / lưu PDF</button></div>' +

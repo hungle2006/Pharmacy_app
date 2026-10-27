@@ -72,7 +72,7 @@
     go(current);
     if (presenting) toast('Dùng ← → để chuyển chủ đề · Esc để thoát · ⛶ để toàn màn hình');
   });
-  document.getElementById('notes-toggle').addEventListener('click', event => {
+  document.getElementById('notes-toggle')?.addEventListener('click', event => {
     const hidden = document.body.classList.toggle('hide-notes');
     event.currentTarget.setAttribute('aria-pressed', String(!hidden));
   });

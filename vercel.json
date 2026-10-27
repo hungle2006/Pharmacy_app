@@ -23,6 +23,9 @@
     },
     "api/story.js": {
       "maxDuration": 30
+    },
+    "api/report-data.js": {
+      "maxDuration": 60
     }
   },
   "buildCommand": "npm run build",
