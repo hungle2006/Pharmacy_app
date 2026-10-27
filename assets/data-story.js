@@ -8,7 +8,8 @@ const money=v=>num(v)+' ₫';
 let gold=null,rx=null,relations=null,source='dav',pattern='country',stat='distribution',loading=false;
 const names={SY:'SY · Tên đồng nghĩa',PSN:'PSN · Tên kê đơn',SCD:'SCD · Thuốc lâm sàng',SCDC:'SCDC · Thành phần thuốc',TMSY:'TMSY · Đồng nghĩa viết hoa',SBD:'SBD · Thuốc có thương hiệu',IN:'IN · Hoạt chất',VERIFIED_SCD:'Đã xác minh SCD',UNMAPPED:'Chưa liên kết',UNMATCHED_REVIEW:'Chưa khớp · Cần rà soát',CANDIDATE_REVIEW:'Có ứng viên · Cần rà soát',INGREDIENT_SET_ONLY:'Khớp tập hoạt chất',SCD_MATCH_REVIEW_REQUIRED:'SCD cần kiểm tra',PARTIAL_INGREDIENT_MAPPING:'Khớp một phần hoạt chất',INGREDIENT_STRENGTH_FORM_CONFLICT:'Xung đột cấu hình',NO_SCD_FOR_INGREDIENT_SET:'Chưa có SCD phù hợp',AMBIGUOUS_SCD:'Nhiều SCD ứng viên'};
 const label=v=>names[v]||v;
-const unavailable='<p class="error-note">Chưa đọc được nguồn này. Không thay bằng số liệu mẫu. Bấm “Tải lại nguồn” phía trên để thử lại.</p>';
+const unavailableMessage='<p class="error-note">Chưa đọc được nguồn này. Không thay bằng số liệu mẫu. Bấm “Tải lại nguồn” phía trên để thử lại.</p>';
+let unavailable='<p class="waiting">Đang đọc số liệu từ nguồn…</p>';
 const tip=(name,value)=>`tabindex="0" data-tip="${esc(name)}" data-value="${esc(value)}" aria-label="${esc(name+': '+value)}"`;
 function table(head,rows){return '<div class="source-table"><table><thead><tr>'+head.map(x=>'<th scope="col">'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';}
 function evidence(element,head,rows,method){$(element).innerHTML='<p>'+esc(method)+'</p>'+table(head,rows);}
@@ -20,7 +21,7 @@ function bars(rows,{total=null,unit='bản ghi',percent=false,max=null,digits=0}
  return '<div class="chart-caption"><span>'+(percent?'Tỷ lệ có thông tin':'Số '+esc(unit))+'</span><span>Thang từ 0 · '+(percent?'100%':num(scale,digits))+'</span></div>'+rows.map(r=>{
   const v=Number(r.value),width=Math.min(100,Math.max(0,v/scale*100));
   const value=percent?num(v,1)+'%':num(v,digits);
-  return '<div class="chart-row"><span class="chart-row-label">'+esc(label(r.name))+'</span><div class="bar-track" '+tip(label(r.name),value+' '+(percent?'':unit))+'><div class="story-bar" style="width:'+width+'%;'+(r.name==='Khác'?'background:var(--chart-other)':'')+'"></div></div><strong>'+value+(total!==null&&!percent?'<small>'+pct(v,total)+'</small>':'')+'</strong></div>';
+  return '<div class="chart-row"><span class="chart-row-label">'+esc(label(r.name))+'</span><div class="bar-track" '+tip(label(r.name),value+' '+(percent?'':unit))+'><div class="story-bar" style="width:'+width+'%;'+(['Khác','Chưa phân chương'].includes(r.name)?'background:var(--chart-other)':'')+'"></div></div><strong>'+value+(total!==null&&!percent?'<small>'+pct(v,total)+'</small>':'')+'</strong></div>';
  }).join('');
 }
 function grouped(rows,limit=7){const sorted=rows.map(r=>({...r,value:Number(r.value)})).sort((a,b)=>b.value-a.value);if(sorted.length<=limit)return sorted;return [...sorted.slice(0,limit-1),{name:'Khác',value:sorted.slice(limit-1).reduce((s,r)=>s+r.value,0)}];}
@@ -63,7 +64,7 @@ function renderPattern(){
   const top=rows?.[0];reading=top?`${label(top.name)} có ${num(top.value)} dòng. Đây là số tên, không phải số thuốc khác nhau.`:'';meaning='Khi so khớp tên thuốc cần biết đang so tên hoạt chất, tên lâm sàng hay tên thương hiệu.';limit=7;
  }else if(pattern==='icd'){
   rows=relations?.disease?.chapters?.map(r=>({name:r.name==='Chưa phân chương'?r.name:'Chương '+r.name,value:r.value}));total=relations?.disease?.total;title='Các mã bệnh được phân bố giữa các chương ra sao?';scope='ICD-10 · PHÂN BỐ DANH MỤC';unit='Đơn vị: dòng mã ICD trong Gold. Không suy ra tỷ lệ người mắc bệnh.';
-  const top=rows?.[0];reading=top?`${top.name} có ${num(top.value)} mã. Chương có nhiều mã có thể chi tiết hơn về cách phân loại.`:'';meaning='Một chương có nhiều mã không có nghĩa bệnh phổ biến hơn. Muốn phân tích dịch tễ phải có dữ liệu ca bệnh.';limit=7;
+  const top=rows?.[0];reading=top?(top.name==='Chưa phân chương'?`${num(top.value)} / ${num(total)} mã chưa có thông tin chương trong Gold. Đây là phần metadata cần bổ sung.`:`${top.name} có ${num(top.value)} mã. Chương có nhiều mã có thể chi tiết hơn về cách phân loại.`):'';meaning=top?.name==='Chưa phân chương'?'Cần rà soát phần chưa phân chương trước khi kết luận cơ cấu danh mục. Số mã nhiều không phản ánh số ca mắc bệnh.':'Một chương có nhiều mã không có nghĩa bệnh phổ biến hơn. Muốn phân tích dịch tễ phải có dữ liệu ca bệnh.';limit=7;
  }else{
   rows=relations?.medi?.systems;total=relations?.medi?.total;title='MEDI sử dụng những hệ mã bệnh nào?';scope='MEDI · HỆ MÃ CỦA QUAN HỆ';unit='Đơn vị: dòng quan hệ MEDI trong Gold; một RxCUI có thể xuất hiện nhiều dòng.';
   const top=rows?.[0];reading=top?`${top.name} xuất hiện ở ${num(top.value)} dòng quan hệ.`:'';meaning='Trước khi nối với ICD-10 Việt Nam, cần kiểm tra hệ mã. Tên gần nhau hay mã giống nhau chưa đủ để bỏ qua khác biệt hệ thống.';limit=7;
@@ -144,12 +145,12 @@ function renderAll(){
 }
 async function get(url){const res=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(45000)});if(!res.ok)throw Error('Nguồn chưa sẵn sàng');return res.json();}
 async function load(){
- if(loading)return;loading=true;$('story-status').textContent='Đang đọc dữ liệu thật từ Gold và snapshot Silver…';
+ if(loading)return;loading=true;unavailable='<p class="waiting">Đang đọc số liệu từ nguồn…</p>';renderAll();$('story-status').textContent='Đang đọc dữ liệu thật từ Gold và snapshot Silver…';
  const jobs=[['gold','/api/analytics?options=0'],['rx','/assets/rxnorm-eda.json'],['relations','/api/story']];
  await Promise.allSettled(jobs.map(async([key,url])=>{const value=await get(url);if(key==='gold'&&value.mode==='database')gold=value;if(key==='rx'&&value.report_3_eda)rx=value;if(key==='relations'&&value.mode==='database')relations=value;renderAll();}));
  const ready=[gold,rx,relations?.disease,relations?.medi].filter(Boolean).length;
  $('story-status').innerHTML='<span>'+ (ready===4?'Đã đọc các nguồn. Biểu đồ dùng số đếm thật; mở “Xem số liệu” để kiểm chứng.':'Đã đọc '+ready+'/4 nguồn. Phần chưa sẵn sàng được ghi rõ; không dùng số liệu thay thế.')+'</span><button id="retry-sources" type="button">Tải lại nguồn ↻</button>';
- loading=false;renderAll();
+ loading=false;unavailable=unavailableMessage;renderAll();
 }
 document.addEventListener('click',e=>{
  const src=e.target.closest('[data-source]');if(src){source=src.dataset.source;document.querySelectorAll('[data-source]').forEach(b=>{const on=b===src;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});renderSource();}
@@ -160,5 +161,5 @@ document.addEventListener('click',e=>{
 document.querySelector('.source-tabs').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...document.querySelectorAll('[data-source]')],i=tabs.indexOf(document.activeElement);const next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;tabs[next].click();tabs[next].focus();});
 const chapters=[...document.querySelectorAll('.chapter')],nav=[...document.querySelectorAll('.chapter-nav a')];
 const observer=new IntersectionObserver(entries=>{for(const e of entries)if(e.isIntersecting){nav.forEach(a=>{const on=a.hash==='#'+e.target.id;a.classList.toggle('active',on);if(on)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});}},{rootMargin:'-15% 0px -60% 0px',threshold:0});chapters.forEach(s=>observer.observe(s));
-C.installTooltips();renderAll();load();
+C.installTooltips();load();
 })();
