@@ -44,7 +44,15 @@ function rankDisease(row, raw) {
     const matched = words.filter(w=>tokens.some(v=>v===w || (w.length>=4 && dice(w,v)>0.72))).length;
     const coverage = words.length ? matched/words.length : 0;
     const similarity = dice(q,val);
-    let s = 20*coverage+55*similarity;
+    let sequenceMatch = 0;
+    if (words.length>1 && tokens.length>=words.length) {
+      for (let start=0;start<=tokens.length-words.length;start++) {
+        let acc=0;
+        for (let j=0;j<words.length;j++) acc+=dice(words[j],tokens[start+j]);
+        sequenceMatch=Math.max(sequenceMatch,acc/words.length);
+      }
+    }
+    let s = 20*coverage+45*similarity+(sequenceMatch>=0.76?18*sequenceMatch:0);
     if (val.startsWith(q+' ')) s+=18;
     else if (val.includes(q)) s+=12;
     if (q.includes(val) && val.length>=6) s+=4;
