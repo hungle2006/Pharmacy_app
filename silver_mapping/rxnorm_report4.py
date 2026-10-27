@@ -16,7 +16,7 @@ def safe(value):
     return html.escape(str(value), quote=True)
 
 def fmt(value, decimals=0):
-    return f"{value:,.{decimals}f}" if isinstance(value, float) else f"{value:,}"
+    return chart_number(value, decimals)
 
 def quantile(sorted_values, p):
     """Linear interpolation, 0-based; n=0 returns None."""
@@ -135,90 +135,81 @@ def compute_report4(mapping_ready_csv):
         "scope_notice":"Không có chuỗi thời gian nhiều kỳ trong bản RxNorm này; không vẽ biểu đồ xu hướng hoặc kiểm định phân phối chuẩn khi thiếu cơ sở."
     }
 
+def chart_number(value, decimals=0):
+    return f"{value:,.{decimals}f}".replace(",", "_k_").replace(".", ",").replace("_k_", ".")
+
+
+def chart_tip(label, value):
+    return f' tabindex="0" data-tip="{safe(label)}" data-value="{safe(value)}"'
+
+
 def svg_bar(rows, title, xfield, yfield, labels=None):
     rows=list(rows)
-    if not rows:
-        return ""
-    W=760; H=310
-    left=52;bottom=260;top=22;plot_w=680;plot_h=228
-    peak=max(int(row[yfield]) for row in rows) or 1
-    step=plot_w/len(rows)
-    parts=[f'<svg class="r4-svg" viewBox="0 0 {W} {H}" role="img" aria-label="{safe(title)}">']
+    if not rows:return ""
+    left=83;right=735;bottom=255;top=30
+    peak=max(int(row[yfield]) for row in rows) or 1;step=(right-left)/len(rows)
+    unit="RxCUI" if title=="Term frequency" else "thuật ngữ"
+    unit_label="Số RxCUI" if unit=="RxCUI" else "Số dòng thuật ngữ"
+    scope="Số tên / RxCUI" if unit=="RxCUI" else "Ký tự / tên" if title=="Histogram length" else "Loại thuật ngữ TTY"
+    parts=[f'<div class="ui-chart-caption"><span>{unit_label}</span><span>{scope}</span></div><svg class="r4-svg" viewBox="0 0 760 310" role="img" aria-label="{safe(title)}">']
     for k in range(5):
-        val=peak*k/4
-        y=bottom-plot_h*k/4
-        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{left+plot_w}" y2="{y:.1f}" class="gridline"/>')
-        parts.append(f'<text x="{left-8}" y="{y+4:.1f}" text-anchor="end" class="ticks">{int(val):,}</text>')
+        val=peak*k/4;y=bottom-(bottom-top)*k/4
+        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{right}" y2="{y:.1f}" class="gridline"/><text x="{left-12}" y="{y+4:.1f}" text-anchor="end" class="ticks">{chart_number(round(val))}</text>')
     for ix,row in enumerate(rows):
-        val=int(row[yfield]);h=plot_h*val/peak
-        x=left+ix*step+step*.14;y=bottom-h;w=step*.72
-        parts.append(f'<rect x="{x:.2f}" y="{y:.2f}" width="{w:.2f}" height="{h:.2f}" rx="3" class="column"><title>{safe(row[xfield])}: {val:,} thuật ngữ</title></rect>')
-        parts.append(f'<text x="{x+w/2:.2f}" y="{bottom+18}" text-anchor="middle" class="ticks">{safe(row[xfield])}</text>')
-    parts.append('</svg>')
-    return "".join(parts)
+        val=int(row[yfield]);height=(bottom-top)*val/peak;gap=.025 if title=="Histogram length" else .12
+        x=left+ix*step+step*gap;width=step*(1-2*gap);y=bottom-height
+        tip=chart_tip(row[xfield],f'{chart_number(val)} {unit}')
+        label_class='ticks bin-label' if title=='Histogram length' else 'ticks'
+        parts.append(f'<rect x="{x:.2f}" y="{y:.2f}" width="{width:.2f}" height="{height:.2f}" rx="2" class="column"{tip}><title>{safe(row[xfield])}: {chart_number(val)} {unit}</title></rect><text x="{x+width/2:.2f}" y="{bottom+25}" text-anchor="middle" class="{label_class}">{safe(row[xfield])}</text>')
+    return ''.join(parts)+'</svg>'
+
 
 def svg_boxplots(groups):
-    if not groups:
-        return ""
-    W=760;H=50+len(groups)*58
-    left=110;right=720
-    xmin=0;xmax=max(10,max(g["whisker_high"] for g in groups))
-    convert=lambda x:left+(right-left)*x/xmax
-    parts=[f'<svg class="r4-svg" viewBox="0 0 {W} {H}" role="img" aria-label="Box plots: độ dài tên theo nhóm TTY">']
-    for tick in range(0,5):
+    if not groups:return ""
+    height=62+len(groups)*57;left=94;right=720;peak=max(10,max(g["whisker_high"] for g in groups));position=lambda value:left+(right-left)*value/peak
+    parts=[f'<div class="ui-chart-caption"><span>Độ dài tên · ký tự</span><span>Q1 / Trung vị / Q3 · Râu 1,5 × IQR</span></div><svg class="r4-svg" viewBox="0 0 760 {height}" role="img" aria-label="Box plots: độ dài tên theo nhóm TTY">']
+    for tick in range(5):
         x=left+(right-left)*tick/4
-        parts.append(f'<line x1="{x:.1f}" y1="18" x2="{x:.1f}" y2="{H-22}" class="gridline"/><text x="{x:.1f}" y="{H-7}" text-anchor="middle" class="ticks">{xmax*tick/4:.0f}</text>')
+        parts.append(f'<line x1="{x:.1f}" y1="20" x2="{x:.1f}" y2="{height-32}" class="gridline"/><text x="{x:.1f}" y="{height-10}" text-anchor="middle" class="ticks">{chart_number(peak*tick/4,0)}</text>')
     for i,g in enumerate(groups):
-        y=43+i*58
-        a=convert(g["whisker_low"]);b=convert(g["whisker_high"])
-        q1=convert(g["q1"]);q3=convert(g["q3"]);med=convert(g["median"])
-        parts.append(f'<text x="8" y="{y+4}" class="box-label">{safe(g["tty"])}</text>')
-        parts.append(f'<line x1="{a:.1f}" y1="{y}" x2="{b:.1f}" y2="{y}" class="whisker"/>')
-        for x in (a,b):
-            parts.append(f'<line x1="{x:.1f}" y1="{y-10}" x2="{x:.1f}" y2="{y+10}" class="whisker"/>')
-        parts.append(f'<rect x="{q1:.1f}" y="{y-16}" width="{max(1,q3-q1):.1f}" height="32" rx="4" class="box-fill"><title>{safe(g["tty"])} · Trung vị {g["median"]}, Q1 {g["q1"]}, Q3 {g["q3"]}, outliers {g["outliers"]}</title></rect>')
-        parts.append(f'<line x1="{med:.1f}" y1="{y-16}" x2="{med:.1f}" y2="{y+16}" class="median"/>')
-    return "".join(parts)+"</svg>"
+        y=44+i*57;a=position(g["whisker_low"]);b=position(g["whisker_high"]);q1=position(g["q1"]);q3=position(g["q3"]);median=position(g["median"])
+        parts.append(f'<text x="10" y="{y+4}" class="box-label">{safe(g["tty"])}</text><line x1="{a:.1f}" y1="{y}" x2="{b:.1f}" y2="{y}" class="whisker"/>')
+        for x in (a,b):parts.append(f'<line x1="{x:.1f}" y1="{y-9}" x2="{x:.1f}" y2="{y+9}" class="whisker"/>')
+        info=f'Q1 {chart_number(g["q1"],1)} · Trung vị {chart_number(g["median"],1)} · Q3 {chart_number(g["q3"],1)} ký tự · {chart_number(g["outliers"])} ngoại lai'
+        parts.append(f'<rect x="{q1:.1f}" y="{y-15}" width="{max(1,q3-q1):.1f}" height="30" rx="3" class="box-fill"{chart_tip(g["tty"],info)}><title>{safe(info)}</title></rect><line x1="{median:.1f}" y1="{y-15}" x2="{median:.1f}" y2="{y+15}" class="median"/>')
+    return ''.join(parts)+'</svg>'
+
 
 def svg_donut(items):
-    if not items:
-        return ""
-    total=sum(i["count"] for i in items)
-    palette=["#0e847d","#50a6a0","#9fd3cf","#f4ae6c","#a599df","#4a819e","#d3dce1"]
-    radius=78; circumference=2*math.pi*radius;used=0
-    parts=['<div class="r4-pie-layout"><svg class="r4-donut" viewBox="0 0 230 230" role="img" aria-label="Cơ cấu TTY theo số thuật ngữ"><circle cx="115" cy="115" r="78" fill="none" stroke="#ebf0f3" stroke-width="35"/>']
-    for i,item in enumerate(items):
-        amount=item["count"]/total*circumference
-        offset=-used
-        parts.append(f'<circle cx="115" cy="115" r="78" fill="none" stroke="{palette[i%len(palette)]}" stroke-width="35" stroke-dasharray="{amount:.4f} {circumference:.4f}" stroke-dashoffset="{offset:.4f}" transform="rotate(-90 115 115)"><title>{safe(item["label"])}: {item["pct"]}%</title></circle>')
-        used+=amount
-    parts.append(f'<text x="115" y="111" class="donut-title" text-anchor="middle">{len(items)-1 if items[-1]["label"]=="Khác" else len(items)}</text><text x="115" y="130" class="donut-sub" text-anchor="middle">nhóm chính</text></svg>')
-    parts.append('<div class="r4-legend">')
-    for i,item in enumerate(items):
-        parts.append(f'<div><i style="background:{palette[i%len(palette)]}"></i><span>{safe(item["label"])}</span><strong>{item["pct"]:.2f}%</strong></div>')
-    return "".join(parts)+"</div></div>"
+    if not items:return ""
+    total=sum(item['count'] for item in items)
+    if not total:return ""
+    palette=['var(--chart-primary)','var(--chart-secondary)','var(--chart-gold)','var(--chart-olive)','var(--chart-rose)','var(--chart-slate)'];tty={"SY":0,"PSN":1,"SCD":2,"SCDC":3,"TMSY":4,"SBD":5}
+    color=lambda item,index:'var(--chart-other)' if item['label']=='Khác' else palette[tty.get(item['label'],index)%len(palette)]
+    used=0;parts=['<div class="ui-chart-caption"><span>Tỷ trọng dòng thuật ngữ đủ điều kiện</span><span>Tổng = 100%</span></div><div class="r4-pie-layout"><svg class="r4-donut" viewBox="0 0 230 230" role="img" aria-label="Cơ cấu TTY theo số thuật ngữ">']
+    for index,item in enumerate(items):
+        share=item['count']/total*100;info=f'{chart_number(item["count"])} thuật ngữ · {chart_number(item["pct"],2)}%'
+        parts.append(f'<circle cx="115" cy="115" r="78" fill="none" stroke="{color(item,index)}" stroke-width="30" pathLength="100" stroke-dasharray="{share:.6f} {100-share:.6f}" stroke-dashoffset="{-used:.6f}" transform="rotate(-90 115 115)"{chart_tip(item["label"],info)}><title>{safe(item["label"])}: {chart_number(item["pct"],2)}%</title></circle>');used+=share
+    parts.append(f'<text x="115" y="112" class="donut-title" text-anchor="middle">{chart_number(total)}</text><text x="115" y="134" class="donut-sub" text-anchor="middle">thuật ngữ</text></svg><div class="r4-legend">')
+    for index,item in enumerate(items):parts.append(f'<div><i style="background:{color(item,index)}"></i><span>{safe(item["label"])}</span><strong>{chart_number(item["pct"],2)}%</strong></div>')
+    return ''.join(parts)+'</div></div>'
+
 
 def svg_scatter(rows):
-    if not rows:
-        return ""
-    W=760;H=310;left=58;right=724;top=20;bottom=255
-    max_x=max(2,max(r["terms"] for r in rows));max_y=max(10,max(r["avg_name_length"] for r in rows))
-    xscale=lambda n:left+(right-left)*math.log2(max(1,n))/math.log2(max_x)
-    yscale=lambda n:bottom-(bottom-top)*n/max_y
-    p=[f'<svg class="r4-svg" viewBox="0 0 {W} {H}" role="img" aria-label="Scatter: số thuật ngữ trên RxCUI và độ dài tên trung bình">']
-    for t in range(5):
-        val=max_y*t/4;y=yscale(val)
-        p.append(f'<line x1="{left}" y1="{y:.1f}" x2="{right}" y2="{y:.1f}" class="gridline"/><text x="{left-9}" y="{y+3:.1f}" text-anchor="end" class="ticks">{val:.0f}</text>')
-    xt=1
-    while xt<=max_x:
-        xx=xscale(xt)
-        p.append(f'<text x="{xx:.1f}" y="{bottom+18}" text-anchor="middle" class="ticks">{xt}</text>')
-        xt*=2
-    for r in rows:
-        x=xscale(r["terms"]);y=yscale(r["avg_name_length"])
-        p.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2.7" class="scatter-dot"><title>RxCUI {safe(r["rxcui"])}: {r["terms"]} tên, trung bình {r["avg_name_length"]} ký tự</title></circle>')
-    p.append('<text x="400" y="301" text-anchor="middle" class="ticks">Số thuật ngữ / RxCUI (trục X log₂)</text></svg>')
-    return "".join(p)
+    if not rows:return ""
+    left=83;right=730;top=30;bottom=255;max_x=max(2,max(row['terms'] for row in rows));max_y=max(10,max(row['avg_name_length'] for row in rows))
+    xscale=lambda value:left+(right-left)*math.log2(max(1,value))/math.log2(max_x);yscale=lambda value:bottom-(bottom-top)*value/max_y
+    parts=['<div class="ui-chart-caption"><span>Y · Độ dài tên trung bình (ký tự)</span><span>Mỗi điểm = 1 RxCUI trong mẫu minh họa</span></div><svg class="r4-svg" viewBox="0 0 760 315" role="img" aria-label="Scatter: số thuật ngữ trên RxCUI và độ dài tên trung bình">']
+    for tick in range(5):
+        value=max_y*tick/4;y=yscale(value)
+        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{right}" y2="{y:.1f}" class="gridline"/><text x="{left-12}" y="{y+4:.1f}" text-anchor="end" class="ticks">{chart_number(value,0)}</text>')
+    tick=1
+    while tick<=max_x:
+        x=xscale(tick);parts.append(f'<text x="{x:.1f}" y="{bottom+22}" text-anchor="middle" class="ticks">{tick}</text>');tick*=2
+    for row in rows:
+        label='RxCUI '+str(row['rxcui']);info=f'{row["terms"]} tên · Độ dài TB {chart_number(row["avg_name_length"],2)} ký tự'
+        parts.append(f'<circle cx="{xscale(row["terms"]):.1f}" cy="{yscale(row["avg_name_length"]):.1f}" r="3.1" class="scatter-dot"{chart_tip(label,info)}><title>{safe(label)}: {safe(info)}</title></circle>')
+    parts.append('<text x="400" y="306" text-anchor="middle" class="ticks">X · Số thuật ngữ / RxCUI (trục log₂)</text></svg>');return ''.join(parts)
 
 def panel(index, kind, title, purpose, visual, conclusion):
     return (f'<article class="r4-chart-card"><div class="r4-chart-head"><span class="r4-number">{index:02d}</span><div><span class="r4-kind">{safe(kind)}</span><h3>{safe(title)}</h3><p>{safe(purpose)}</p></div></div>'+
@@ -245,11 +236,11 @@ def render_sections(d):
     # Four classic course chart families + second frequency comparison.
     allpanels=[
         panel(1,"Bar / Column chart","Phân bố các loại thuật ngữ TTY","Biến phân loại → so sánh số lượng theo nhóm.",svg_bar(group_totals,"TTY groups","label","count"),f'{top["label"]} là nhóm nhiều nhất ({fmt(top["count"])} dòng). Cột thể hiện số thuật ngữ, không phải số thuốc khác nhau.'),
-        panel(2,"Histogram","Phân bố độ dài tên thuốc / thuật ngữ","Biến định lượng độ dài display_name (ký tự) → histogram với các khoảng 10 ký tự.",svg_bar(d["histogram_name_length"],"Histogram length","bin","count"),f'Trung vị {name["median"]:.1f} ký tự, trung bình {name["mean"]:.1f}; quan sát độ lệch giữa hai chỉ số để nhận biết phân phối bất đối xứng.'),
+        panel(2,"Histogram","Phân bố độ dài tên thuốc / thuật ngữ","Biến định lượng độ dài display_name (ký tự) → histogram với các khoảng 10 ký tự.",svg_bar(d["histogram_name_length"],"Histogram length","bin","count"),f'Trung vị {chart_number(name["median"],1)} ký tự, trung bình {chart_number(name["mean"],1)}; quan sát độ lệch giữa hai chỉ số để nhận biết phân phối bất đối xứng.'),
         panel(3,"Box plot","Độ phân tán tên theo loại thuật ngữ","Đối chiếu median, Q1, Q3 và whiskers 1.5×IQR giữa 6 nhóm TTY nhiều nhất.",svg_boxplots(d["boxplot_by_tty"]),'Nhóm có hộp dài có biến thiên độ dài tên lớn hơn. Các giá trị ngoại lai không vẽ riêng; số lượng được tính trong dữ liệu thống kê.'),
         panel(4,"Pie / Doughnut chart","Cơ cấu các nhóm TTY","Biến phân loại → tỷ trọng top 6 nhóm so với phần còn lại.",svg_donut(d["tty_composition"]),'Tỷ lệ phần trăm tính trên tổng số dòng thuật ngữ đủ điều kiện mapping; không phải cơ cấu sản phẩm DAV.'),
-        panel(5,"Histogram / Frequency","Số thuật ngữ trên mỗi RxCUI","Biến số đếm → tần suất RxCUI có 1, 2, 3, 4–5, 6–10, 11–20 hoặc ≥21 tên.",svg_bar(d["histogram_terms_per_rxcui"],"Term frequency","bin","count"),f'Có {fmt(d["n_rxcui"])} mã RxCUI; trung bình {terms["mean"]:.2f} thuật ngữ/mã, trung vị {terms["median"]:.1f}.'),
-        panel(6,"Scatter plot","Số tên/RxCUI và độ dài tên trung bình","Hai biến định lượng trên mỗi RxCUI; hiển thị mẫu phân tầng có tính minh họa.",svg_scatter(d["scatter_illustrative"]),f'Tương quan Pearson trên TOÀN BỘ {fmt(d["n_rxcui"])} RxCUI = {d["pearson_all_rxcui"] if d["pearson_all_rxcui"] is not None else "không xác định"}; các điểm chỉ là mẫu {d["scatter_sample_size"]} mã, không khẳng định quan hệ nhân quả.')
+        panel(5,"Histogram / Frequency","Số thuật ngữ trên mỗi RxCUI","Biến số đếm → tần suất RxCUI có 1, 2, 3, 4–5, 6–10, 11–20 hoặc ≥21 tên.",svg_bar(d["histogram_terms_per_rxcui"],"Term frequency","bin","count"),f'Có {fmt(d["n_rxcui"])} mã RxCUI; trung bình {chart_number(terms["mean"],2)} thuật ngữ/mã, trung vị {chart_number(terms["median"],1)}.'),
+        panel(6,"Scatter plot","Số tên/RxCUI và độ dài tên trung bình","Hai biến định lượng trên mỗi RxCUI; hiển thị mẫu phân tầng có tính minh họa.",svg_scatter(d["scatter_illustrative"]),f'Tương quan Pearson trên TOÀN BỘ {fmt(d["n_rxcui"])} RxCUI = {chart_number(d["pearson_all_rxcui"],4) if d["pearson_all_rxcui"] is not None else "không xác định"}; các điểm chỉ là mẫu {d["scatter_sample_size"]} mã, không khẳng định quan hệ nhân quả.')
     ]
     return (css+'<section class="r4-start" id="report-4"><div class="r4-overline">Report 4 · Statistical data visualization</div><h2>RxNorm dưới góc nhìn thống kê.</h2><p class="r4-lead">Áp dụng kiến thức Chương 6.1–6.4: thống kê mô tả, biến phân loại / định lượng, phân phối, so sánh, cơ cấu và mối quan hệ. Mỗi biểu đồ dùng dữ liệu RxNorm hiện hành, không dùng dữ liệu mô phỏng.</p></section>'+
             '<section><h2>Thống kê mô tả · Độ dài display_name</h2>'+table+'</section><div class="r4-charts">'+''.join(allpanels)+'</div>'+

@@ -257,14 +257,18 @@ def render_presentation(report):
     root = Path(__file__).parent
     css = (root / 'rxnorm_presentation.css').read_text(encoding='utf-8')
     js = (root / 'rxnorm_presentation.js').read_text(encoding='utf-8')
+    assets = root.parent / 'assets'
+    common_css = (assets / 'design-system.css').read_text(encoding='utf-8')
+    research_css = (assets / 'research.css').read_text(encoding='utf-8')
+    chart_js = (assets / 'chart-system.js').read_text(encoding='utf-8')
     return ('<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
         '<meta name="description" content="Report 3–4 RxNorm: khám phá dữ liệu, công thức, kiểm định và biểu đồ có lời giải thích; hỗ trợ chế độ thuyết trình.">' +
-        '<title>RxNorm · Report 3 & 4 | PharmaBiz</title>' + STYLE + chart_style + '<style>' + css + '</style></head><body>' +
+        '<title>RxNorm · Report 3 & 4 | PharmaBiz</title>' + STYLE + chart_style + '<style>' + css + common_css + research_css + '</style></head><body class="report-page">' +
         '<a href="#main" class="skip-link">Đến nội dung</a><header class="topbar"><a class="brand" href="/" aria-label="PharmaBiz trang chủ"><span class="brand-icon">P<span>+</span></span><b>PharmaBiz<small>DATA RESEARCH</small></b></a>' +
         '<div class="report-switch" role="group" aria-label="Chọn báo cáo"><button data-filter="all" aria-pressed="true">Tất cả</button><button data-filter="3" aria-pressed="false">Report 3</button><button data-filter="4" aria-pressed="false">Report 4</button></div>' +
-        '<div class="top-actions"><button id="notes-toggle" aria-pressed="true" title="Ẩn/hiện gợi ý thuyết trình">Lời dẫn</button><button id="present-toggle" class="primary" aria-pressed="false">Trình chiếu <span>↗</span></button></div></header>' +
+        '<div class="top-actions"><button class="ui-theme-button" data-ui-theme aria-label="Chuyển giao diện sáng/tối">☾</button><button id="notes-toggle" aria-pressed="true" title="Ẩn/hiện gợi ý thuyết trình">Lời dẫn</button><button id="present-toggle" class="primary" aria-pressed="false">Trình chiếu <span>↗</span></button></div></header>' +
         '<button id="menu-toggle" aria-expanded="false" aria-controls="sidebar">☰ Mục lục</button><aside id="sidebar"><div class="sidebar-title"><span>RXNORM STUDY</span><h1>Hiểu dữ liệu.<br>Đọc bằng chứng.</h1><p>Report 3 & 4</p></div><nav aria-label="Mục lục báo cáo">' + nav +
-        '</nav><div class="sidebar-footer"><span class="status-dot"></span> Snapshot có nguồn kiểm chứng<br><small>Dữ liệu Silver · RxNorm</small></div></aside>' +
+        '</nav><div class="sidebar-footer"><a href="/?view=overview">← Tổng quan thị trường</a><a href="/disease-lookup.html">Tra cứu bệnh ↗</a><span class="status-dot"></span> Snapshot có nguồn kiểm chứng<br><small>Dữ liệu Silver · RxNorm</small></div></aside>' +
         '<main id="main" tabindex="-1"><div class="page-intro"><div><span class="eyebrow">RXNORM / RESEARCH REPORT</span><p>Khám phá dữ liệu → Trực quan hóa → Mapping</p></div><button id="print-report">In / lưu PDF</button></div>' +
         ''.join(x[3] for x in sections) +
         '<footer class="provenance"><b>Nguồn & phương pháp</b><p>Dữ liệu ' + h(report['source']) + ' · Kết xuất ' + h(report['generated_utc']) +
@@ -272,4 +276,4 @@ def render_presentation(report):
         '</p><p>Thống kê mô tả tính trên snapshot sẵn có (phương sai tổng thể, ddof=0). Q1/Q3 nội suy tuyến tính. Biểu đồ dùng bản ghi đủ điều kiện mapping. Không có chuỗi thời gian. Kiểm định mang tính khám phá; không diễn giải nhân quả.</p></details></footer></main>' +
         '<div class="bottom-controls"><div class="progress-track"><span id="progress-fill"></span></div><div class="bottom-content"><div><span id="current-report">REPORT 3</span><b id="current-title">Bối cảnh & câu hỏi</b></div>' +
         '<div class="step-controls"><button id="prev-step" aria-label="Chủ đề trước">← <span>Trước</span></button><output id="step-counter" aria-live="polite">01 / ' + str(len(sections)) + '</output><button id="next-step" aria-label="Chủ đề tiếp theo"><span>Tiếp</span> →</button><button id="fullscreen-toggle" title="Toàn màn hình" aria-label="Toàn màn hình">⛶</button></div></div></div>' +
-        '<div id="toast" role="status"></div><script>' + js + '</script></body></html>')
+        '<div id="toast" role="status"></div><script>' + chart_js + ';PharmaCharts.installTooltips();' + js + '</script></body></html>')

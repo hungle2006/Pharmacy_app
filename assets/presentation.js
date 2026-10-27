@@ -4,9 +4,9 @@
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt=v=>v===null||v===undefined?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:0});
   const money=v=>v===null||v===undefined?'—':fmt(v)+' ₫';
-  const short=v=>Number(v)>=1e6?(Number(v)/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1})+'M':Number(v)>=1e3?(Number(v)/1e3).toLocaleString('vi-VN',{maximumFractionDigits:1})+'k':fmt(v);
+  const short=v=>window.PharmaCharts.compact(v);
   const displayName=v=>({'EXPECTED_WHOLESALE_PRICE_VAT':'Giá bán buôn dự kiến (VAT)','VERIFIED_SCD':'Đã xác minh SCD','UNMAPPED':'Chưa liên kết','INGREDIENT_SET_ONLY':'Khớp tập hoạt chất','SCD_MATCH_REVIEW_REQUIRED':'SCD cần kiểm tra','PARTIAL_INGREDIENT_MAPPING':'Khớp một phần hoạt chất','INGREDIENT_STRENGTH_FORM_CONFLICT':'Xung đột cấu hình','NO_SCD_FOR_INGREDIENT_SET':'Chưa có SCD phù hợp','AMBIGUOUS_SCD':'Nhiều SCD ứng viên'}[v]||v);
-  const colors=['#3d8961','#78b797','#b4d1ac','#d6dfa7','#a8bacd','#ced9ce','#ecdfc3'];
+  const C=window.PharmaCharts;
   const views=[
     ['overview','◫','Tổng quan thị trường','THE BIG PICTURE','Góc nhìn toàn cảnh từ dữ liệu dược Việt Nam.'],
     ['lookup','⌕','Tra cứu thuốc','DRUG DISCOVERY','Tìm thuốc DAV, tra cứu hoạt chất, giá và bằng chứng RxNorm trực tiếp từ Neon Gold.'],
@@ -31,31 +31,60 @@
   function table(headers,rows){return '<div class="table-scroll"><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map((x,i)=>'<td>'+(i===0?'<strong>'+esc(x)+'</strong>':esc(x))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';}
   function card(n,title,body){return '<article class="story-card"><div class="eyebrow">'+esc(n)+'</div><h3>'+esc(title)+'</h3><p>'+esc(body)+'</p></article>';}
   function metric(label,value,detail,icon){return '<article class="metric"><div class="metric-top"><span>'+esc(label)+'</span><span class="metric-icon">'+icon+'</span></div><div class="metric-value">'+esc(value)+'</div><div class="metric-note">'+esc(detail)+'</div></article>';}
-  function bars(items,key,unit='sản phẩm'){if(!items?.length)return empty();let max=Math.max(...items.map(i=>Number(i.value)),1);return items.map((r,i)=>'<div class="bar-row"><button class="bar-label" title="'+esc(r.name)+'" '+(key?'data-filter="'+esc(r.name)+'" data-key="'+key+'"':'')+'>'+esc(r.name)+'</button><div class="bar-track" '+tip(r.name,fmt(r.value)+' '+unit)+'><div class="bar-fill" style="width:'+Math.max(1,Number(r.value)/max*100)+'%;animation-delay:'+i*.04+'s"></div></div><b>'+fmt(r.value)+'</b></div>').join('');}
+  function bars(items,key,unit='sản phẩm'){if(!items?.length)return empty();let max=Math.max(...items.map(i=>Number(i.value)),1);return items.map((r,i)=>'<div class="bar-row"><button class="bar-label" title="'+esc(r.name)+'" '+(key?'data-filter="'+esc(r.name)+'" data-key="'+key+'"':'')+'>'+esc(r.name)+'</button><div class="bar-track" '+tip(r.name,fmt(r.value)+' '+unit)+'><div class="bar-fill" style="width:'+Math.max(0,Number(r.value)/max*100)+'%;animation-delay:'+i*.04+'s"></div></div><b>'+fmt(r.value)+'</b></div>').join('');}
   function donut(input,key,label){
     if(!input?.length)return empty();
-    const total=input.reduce((s,x)=>s+Number(x.value),0);if(!total)return empty();
-    const items=input.slice(0,5).map(x=>({...x}));if(input.length>5)items.push({name:'Các nhóm khác',value:input.slice(5).reduce((s,x)=>s+Number(x.value),0),other:true});
-    let acc=0;
-    const circles=items.map((r,i)=>{let p=Number(r.value)/total*100;const out='<circle class="donut-segment" cx="110" cy="110" r="77" fill="none" stroke="'+colors[i]+'" stroke-width="24" pathLength="100" stroke-dasharray="'+p+' '+(100-p)+'" stroke-dashoffset="'+(-acc)+'" transform="rotate(-90 110 110)" '+tip(r.name,fmt(r.value)+' sản phẩm · '+p.toFixed(1)+'%')+(key&&!r.other?' data-filter="'+esc(r.name)+'" data-key="'+key+'"':'')+'><title>'+esc(r.name)+' '+p.toFixed(1)+'%</title></circle>';acc+=p;return out;}).join('');
-    return '<div class="donut-wrap"><svg viewBox="0 0 220 220" role="img" aria-label="'+esc(label)+'">'+circles+'<text x="110" y="110" text-anchor="middle" fill="#34553c" font-family="Manrope, sans-serif" font-size="27" font-weight="600">'+short(total)+'</text><text x="110" y="130" text-anchor="middle" fill="#a0b09a" font-size="9">sản phẩm</text></svg><div class="donut-legend">'+items.map((r,i)=>'<button '+(key&&!r.other?'data-filter="'+esc(r.name)+'" data-key="'+key+'"':'disabled')+' title="'+esc(r.name)+'"><i class="legend-dot" style="background:'+colors[i]+'"></i><span>'+esc(r.name)+'</span><b>'+((Number(r.value)/total)*100).toFixed(1)+'%</b></button>').join('')+'</div></div>';
+    const total=input.reduce((sum,row)=>sum+Number(row.value),0);if(!total)return empty();
+    const items=input.slice(0,5).map(x=>({...x}));
+    if(input.length>5)items.push({name:'Các nhóm khác',value:input.slice(5).reduce((sum,row)=>sum+Number(row.value),0),other:true});
+    let accumulated=0;
+    const circles=items.map((row,index)=>{
+      const share=Number(row.value)/total*100;
+      const mark='<circle class="donut-segment" cx="115" cy="115" r="78" fill="none" stroke="'+C.color(row.name,index)+'" stroke-width="30" pathLength="100" stroke-dasharray="'+share+' '+(100-share)+'" stroke-dashoffset="'+(-accumulated)+'" transform="rotate(-90 115 115)" '+tip(row.name,fmt(row.value)+' sản phẩm · '+C.percent(share))+(key&&!row.other?' data-filter="'+esc(row.name)+'" data-key="'+key+'"':'')+'><title>'+esc(row.name)+' '+C.percent(share)+'</title></circle>';
+      accumulated+=share;return mark;
+    }).join('');
+    return '<div class="donut-wrap"><svg viewBox="0 0 230 230" role="img" aria-label="'+esc(label)+'">'+circles+'<text x="115" y="112" text-anchor="middle" font-size="27" font-weight="700">'+short(total)+'</text><text x="115" y="134" text-anchor="middle" font-size="12">sản phẩm</text></svg><div class="donut-legend">'+items.map((row,index)=>'<button '+(key&&!row.other?'data-filter="'+esc(row.name)+'" data-key="'+key+'"':'disabled')+' title="'+esc(row.name)+'"><i class="legend-dot" style="background:'+C.color(row.name,index)+'"></i><span>'+esc(row.name)+'</span><b>'+C.percent(Number(row.value)/total*100)+'</b></button>').join('')+'</div></div>';
   }
   function histogram(){
-    const labels=['< 1k','1–5k','5–10k','10–50k','50–100k','≥ 100k'],bins=Array(6).fill(0);(data.bins||[]).forEach(x=>bins[Number(x.bucket)]=Number(x.value));const max=Math.max(...bins,1);if(!bins.some(Boolean))return empty('Chưa có giá VND hợp lệ để tạo phân phối.');
-    let svg='';for(let i=0;i<5;i++){let y=25+i*43;svg+='<line x1="42" y1="'+y+'" x2="590" y2="'+y+'" stroke="#edf2e9" stroke-dasharray="3 5"/><text x="32" y="'+(y+4)+'" text-anchor="end" fill="#a6b399" font-size="9">'+short(max*(1-i/4))+'</text>';}
-    bins.forEach((v,i)=>{let h=v/max*172,x=63+i*86;svg+='<rect class="chart-bar" x="'+x+'" y="'+(197-h)+'" width="45" height="'+h+'" rx="5" fill="'+colors[i%4]+'" '+tip(labels[i]+' VND',fmt(v)+' quan sát')+'><title>'+labels[i]+' VND: '+fmt(v)+'</title></rect><text x="'+(x+22)+'" y="221" text-anchor="middle" fill="#97a990" font-size="9">'+labels[i]+'</text>';});
-    return '<svg viewBox="0 0 615 239" class="chart-svg" role="img" aria-label="Phân phối giá quan sát tính bằng VND">'+svg+'</svg>'+note('Trục X: giá VND theo đơn vị nguồn. Trục Y: số quan sát. Lọc đơn vị và loại giá để thu hẹp phạm vi diễn giải.');
+    const labels=['< 1','1–5','5–10','10–50','50–100','≥ 100'];
+    const bins=Array(6).fill(0);(data.bins||[]).forEach(row=>{bins[Number(row.bucket)]=Number(row.value);});
+    const peak=Math.max(...bins,1),scale=peak>=1000?1000:1;if(!bins.some(Boolean))return empty('Chưa có giá VND hợp lệ để tạo phân phối.');
+    const left=83,right=735,top=32,bottom=255,step=(right-left)/bins.length;
+    let marks='';
+    for(let tick=0;tick<5;tick++){
+      const y=bottom-(bottom-top)*tick/4;
+      marks+='<line class="chart-gridline" x1="'+left+'" x2="'+right+'" y1="'+y+'" y2="'+y+'"/><text x="'+(left-12)+'" y="'+(y+4)+'" text-anchor="end">'+C.number(peak*tick/4/scale,scale===1?0:1)+'</text>';
+    }
+    bins.forEach((value,index)=>{
+      const height=value/peak*(bottom-top),x=left+index*step+step*.1,width=step*.8;
+      marks+='<rect class="chart-bar" x="'+x+'" y="'+(bottom-height)+'" width="'+width+'" height="'+height+'" rx="2" '+tip(labels[index]+' nghìn VND',fmt(value)+' quan sát')+'><title>'+esc(labels[index])+': '+fmt(value)+'</title></rect><text x="'+(x+width/2)+'" y="278" text-anchor="middle">'+esc(labels[index])+'</text>';
+    });
+    return '<div class="ui-chart-caption"><span>Số quan sát'+(scale===1000?' (nghìn)':'')+'</span><span>Giá · nghìn VND / đơn vị nguồn</span></div><svg viewBox="0 0 760 310" class="chart-svg" role="img" aria-label="Số quan sát theo nhóm giá VND">'+marks+'</svg>'+note('Các cột là tần suất của nhóm giá có bề rộng khác nhau; không phải mật độ phân phối. Lọc hoạt chất, loại giá và đơn vị để so sánh phù hợp.');
   }
   function trend(field='value'){
-    field=trendMode||field;const source=data.timeline||[];const month=r=>Number(r.name.slice(0,4))*12+Number(r.name.slice(5,7));const end=source.length?month(source.at(-1)):0;const rows=source.filter(x=>x[field]!==null&&Number.isFinite(Number(x[field]))&&(trendRange==='all'||month(x)>end-Number(trendRange)));if(!rows.length)return trendControls(field)+empty('Chưa có quan sát giá có ngày hợp lệ trong khoảng thời gian này.');
-    const max=Math.max(...rows.map(x=>Number(x[field])),1),left=48,right=610,top=25,bottom=208,step=(right-left)/Math.max(1,rows.length-1);
-    const monthValue=r=>Number(r.name.slice(0,4))*12+Number(r.name.slice(5,7));const firstMonth=monthValue(rows[0]),monthSpan=Math.max(1,monthValue(rows.at(-1))-firstMonth);
-    const points=rows.map(r=>[rows.length===1?(left+right)/2:left+(monthValue(r)-firstMonth)/monthSpan*(right-left),bottom-Number(r[field])/max*(bottom-top)]);
-    let svg='<defs><linearGradient id="trend-fill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#88c89f" stop-opacity=".25"/><stop offset="1" stop-color="#88c89f" stop-opacity="0"/></linearGradient></defs>';
-    for(let i=0;i<5;i++){const y=top+i*(bottom-top)/4;svg+='<line x1="'+left+'" x2="'+right+'" y1="'+y+'" y2="'+y+'" stroke="#edf2e9" stroke-dasharray="3 5"/><text x="'+(left-10)+'" y="'+(y+3)+'" text-anchor="end" fill="#a6b499" font-size="9">'+short(max*(1-i/4))+'</text>';}
-    const coords=points.map(p=>p.join(',')).join(' ');if(rows.length>1)svg+='<path d="M '+points[0][0]+' '+bottom+' L '+points.map(p=>p.join(' ')).join(' L ')+' L '+points.at(-1)[0]+' '+bottom+' Z" fill="url(#trend-fill)"/><polyline class="chart-line" points="'+coords+'" fill="none" stroke="#499e6b" stroke-width="2.6" stroke-linejoin="round"/>';
-    let lastLabelX=-Infinity;points.forEach((p,i)=>{const r=rows[i],value=field==='median'?money(r.median):fmt(r.value)+' quan sát';svg+='<circle class="chart-point" cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="#fff" stroke="#5eaa7b" stroke-width="2" '+tip(r.name,value)+'><title>'+esc(r.name)+' '+esc(value)+'</title></circle>';if(i===0||i===rows.length-1||(p[0]-lastLabelX>=85&&right-p[0]>=85)){lastLabelX=p[0];svg+='<text x="'+p[0]+'" y="232" fill="#a0b194" font-size="9" text-anchor="middle">'+esc(r.name)+'</text>';}});
-    return trendControls(field)+'<svg viewBox="0 0 645 247" class="chart-svg" role="img" aria-label="'+(field==='median'?'Giá trung vị theo tháng':'Số quan sát giá theo tháng')+'">'+svg+'</svg><div class="chart-legend"><span><i class="legend-dot" style="background:#5eaa7b"></i>'+(field==='median'?'Giá trung vị (VND)':'Quan sát có giá VND')+'</span><span>'+esc(rows[0].name)+' → '+esc(rows.at(-1).name)+'</span></div>'+note(field==='median'?'Trung vị theo tháng chịu ảnh hưởng của cơ cấu sản phẩm. Đây là các quan sát trong database, chưa phải chỉ số tăng giảm giá thị trường.':'Các tháng không có dữ liệu không được nội suy. Số quan sát giá phản ánh dữ liệu đã thu thập, không đại diện doanh số.');
+    field=trendMode||field;const source=data.timeline||[];
+    const month=row=>Number(row.name.slice(0,4))*12+Number(row.name.slice(5,7));
+    const end=source.length?month(source.at(-1)):0;
+    const rows=source.filter(row=>row[field]!==null&&Number.isFinite(Number(row[field]))&&(trendRange==='all'||month(row)>end-Number(trendRange)));
+    if(!rows.length)return trendControls(field)+empty('Chưa có quan sát giá có ngày hợp lệ trong khoảng thời gian này.');
+    const peak=Math.max(...rows.map(row=>Number(row[field])),1),scale=peak>=1e6?1e6:peak>=1000?1000:1,left=83,right=730,top=30,bottom=255;
+    const first=month(rows[0]),span=Math.max(1,month(rows.at(-1))-first);
+    const points=rows.map(row=>[rows.length===1?(left+right)/2:left+(month(row)-first)/span*(right-left),bottom-Number(row[field])/peak*(bottom-top)]);
+    let marks='';
+    for(let tick=0;tick<5;tick++){
+      const y=bottom-(bottom-top)*tick/4;
+      marks+='<line class="chart-gridline" x1="'+left+'" x2="'+right+'" y1="'+y+'" y2="'+y+'"/><text x="'+(left-12)+'" y="'+(y+4)+'" text-anchor="end">'+C.number(peak*tick/4/scale,scale===1?0:1)+'</text>';
+    }
+    let lastLabelX=-Infinity;
+    points.forEach((point,index)=>{
+      const row=rows[index],value=field==='median'?money(row.median):fmt(row.value)+' quan sát';
+      if(index>0&&month(row)-month(rows[index-1])===1)marks+='<line class="chart-line" x1="'+points[index-1][0]+'" y1="'+points[index-1][1]+'" x2="'+point[0]+'" y2="'+point[1]+'"/>';
+      marks+='<circle class="chart-point" cx="'+point[0]+'" cy="'+point[1]+'" r="3.5" '+tip(row.name,value)+'><title>'+esc(row.name)+' '+esc(value)+'</title></circle>';
+      if(index===0||index===rows.length-1||(point[0]-lastLabelX>=(innerWidth<=760?230:130)&&right-point[0]>=(innerWidth<=760?230:130))){
+        lastLabelX=point[0];marks+='<text x="'+point[0]+'" y="282" text-anchor="'+(index===0?'start':index===rows.length-1?'end':'middle')+'">'+esc(row.name)+'</text>';
+      }
+    });
+    return trendControls(field)+'<div class="ui-chart-caption"><span>'+(field==='median'?'Giá trung vị':'Số quan sát')+(scale===1e6?' (triệu)':scale===1000?' (nghìn)':'')+(field==='median'?' · VND':'')+'</span><span>'+esc(rows[0].name)+' → '+esc(rows.at(-1).name)+'</span></div><svg viewBox="0 0 760 310" class="chart-svg" role="img" aria-label="'+(field==='median'?'Giá trung vị theo tháng':'Số quan sát giá theo tháng')+'">'+marks+'</svg>'+note(field==='median'?'Trung vị theo tháng chịu ảnh hưởng của cơ cấu sản phẩm; chưa phải chỉ số tăng giảm giá thị trường. Các tháng thiếu dữ liệu không được nội suy.':'Số quan sát phản ánh dữ liệu đã thu thập, không đại diện doanh số. Các tháng thiếu dữ liệu không được nối hoặc nội suy.');
   }
   function comparison(){const items=data.comparable||[];if(!items.length)return empty('Chưa có nhóm đủ thông tin và ít nhất hai sản phẩm để so sánh.');return table(['Hoạt chất · Hàm lượng','Dạng / Đơn vị / Loại giá','Sản phẩm','Nhà SX','P10','Trung vị','P90'],items.map(x=>[x.ingredient+' · '+x.strength,x.dosage_form+' / '+x.unit+' / '+displayName(x.price_type),fmt(x.products),fmt(x.makers),money(x.p10),money(x.median),money(x.p90)]))+note('Nhóm theo hoạt chất, hàm lượng, dạng bào chế, đơn vị và loại giá. Chưa chuẩn hóa đường dùng, quy cách đóng gói hoặc thời điểm; cần kiểm tra trước quyết định mua sắm.');}
   function overview(){
@@ -93,7 +122,7 @@
     const total=Number(s.observations)||0, maxPage=Math.max(1,Math.ceil(total/12));$('records-count').textContent=fmt(total)+' quan sát';$('range').textContent='Hiển thị '+(total?(page-1)*12+1:0)+'–'+Math.min(page*12,total)+' / '+fmt(total)+' bản ghi';$('pageinfo').textContent=page+' / '+maxPage;$('prev').disabled=page<=1;$('next').disabled=page>=maxPage;
   }
   function options(o){for(const [id,title] of [['ingredient','Tất cả hoạt chất'],['country','Tất cả quốc gia'],['kind','Tất cả loại giá'],['unit','Tất cả đơn vị']]){const current=$(id).value;$(id).innerHTML='<option value="">'+title+'</option>'+(o?.[id]||[]).map(x=>'<option value="'+esc(x)+'">'+esc(id==='kind'?displayName(x):x)+'</option>').join('');$(id).value=current;}}
-  function setStatus(error,text){$('status').classList.toggle('error',error);$('status').innerHTML='<span class="signal"></span><span>'+esc(text)+'</span>';$('connection').classList.toggle('error',error);$('connection').textContent=error?'KẾT NỐI GIÁN ĐOẠN':'NEON CONNECTED';$('db-status').textContent=error?'Nguồn chưa sẵn sàng':'Database connected';$('db-dot').style.background=error?'#c29862':'';}
+  function setStatus(error,text){$('status').classList.toggle('error',error);$('status').innerHTML='<span class="signal"></span><span>'+esc(text)+'</span>';$('connection').classList.toggle('error',error);$('connection').textContent=error?'KẾT NỐI GIÁN ĐOẠN':'NEON CONNECTED';$('db-status').textContent=error?'Nguồn chưa sẵn sàng':'Dữ liệu đang kết nối';$('db-dot').style.background=error?'#c29862':'';}
   async function load(){
     controller?.abort();controller=new AbortController();const activeController=controller;const current=++seq;$('content').classList.add('loading');$('status').innerHTML='<span class="signal"></span><span>Đang cập nhật phân tích từ database…</span>';const abortTimer=setTimeout(()=>activeController.abort(),45000);
     try{const response=await fetch('/api/analytics?'+filters(),{signal:activeController.signal,cache:'no-store'});const result=await response.json();if(!response.ok||result.mode!=='database')throw new Error(result.notice||'Không thể đọc nguồn dữ liệu.');if(current!==seq)return;data=result;if(data.options){options(data.options);optionsLoaded=true;}setStatus(false,'Dữ liệu thật từ Neon · Tổng hợp toàn bộ phạm vi bộ lọc · Cập nhật '+new Date(data.refreshedAt).toLocaleString('vi-VN')+' · Giá và số sản phẩm không đại diện doanh số.');render();}
@@ -146,5 +175,5 @@
     element.innerHTML='<span>'+(active.length?'Phạm vi đang lọc:':'Toàn bộ danh mục')+'</span>'+active.map(([id,l])=>'<button data-remove-filter="'+id+'" aria-label="Bỏ lọc '+esc(l)+'">'+l+': '+esc(displayName($(id).value))+' ×</button>').join('')+'<span>· '+fmt(data.summary.products)+' sản phẩm · '+esc(data.summary.date_from||'—')+' → '+esc(data.summary.date_to||'—')+'</span>';
   }
 
-  const requested=new URLSearchParams(location.search).get('view');navigate(views.some(v=>v[0]===requested)?requested:'overview');if(requested==='lookup'){$('cover').hidden=true;$('app').hidden=false;$('page-title').setAttribute('tabindex','-1');}load();fetchInventory();
+  const requested=new URLSearchParams(location.search).get('view');navigate(views.some(v=>v[0]===requested)?requested:'overview');if(views.some(v=>v[0]===requested)){$('cover').hidden=true;$('app').hidden=false;$('page-title').setAttribute('tabindex','-1');}load();fetchInventory();
 })();

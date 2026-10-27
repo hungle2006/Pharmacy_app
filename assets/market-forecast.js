@@ -6,6 +6,7 @@
   const esc=x=>String(x??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
   const integer=x=>Number(x||0).toLocaleString('vi-VN',{maximumFractionDigits:0});
   const pct=x=>!Number.isFinite(Number(x))||x==null?'—':(Number(x)>0?'+':'')+Number(x).toLocaleString('vi-VN',{maximumFractionDigits:2})+'%';
+  const sharePct=x=>window.PharmaCharts.percent(x,1);
   const n=x=>typeof x==='number'&&Number.isFinite(x)?x:0;
   let report=null,active=false,horizon=6,loading=false;
 
@@ -115,18 +116,18 @@
     ];
     const up=Math.min(100,Math.max(0,n(item.share_increase_pct)));
     const stable=Math.min(100,Math.max(0,n(item.share_stable_pct)));
-    $('market-distribution').innerHTML=
+    $('market-distribution').innerHTML=parts.some(part=>part.value>0)?
       '<div class="market-distribution-layout">'+
-      '<div class="market-donut" role="img" aria-label="Tỷ lệ tăng '+pct(up)+', giữ nguyên '+pct(stable)+
-      ', giảm '+pct(item.share_decrease_pct)+'" style="--market-increase:'+up+'%;--market-stable-end:'+
+      '<div class="market-donut" role="img" aria-label="Tỷ lệ tăng '+sharePct(up)+', giữ nguyên '+sharePct(stable)+
+      ', giảm '+sharePct(item.share_decrease_pct)+'" style="--market-increase:'+up+'%;--market-stable-end:'+
       Math.min(100,up+stable)+'%"><div class="market-donut-center"><strong>'+
       integer(item.n_products)+'</strong><span>mã thuốc</span></div></div>'+
       '<div class="market-donut-legend">'+parts.map(p=>
         '<div class="market-distribution-line"><div class="market-distribution-title"><span>'+esc(p.name)+
-        '</span><strong>'+pct(p.value)+'</strong></div>'+
-        '<div class="market-track"><div class="market-track-fill '+p.kind+
+        '</span><strong>'+sharePct(p.value)+'</strong></div>'+
+        '<div class="market-track" tabindex="0" data-tip="'+esc(p.name)+'" data-value="'+sharePct(p.value)+' số thuốc trong lịch sử"><div class="market-track-fill '+p.kind+
         '" style="width:'+Math.min(100,Math.max(0,p.value))+'%"></div></div></div>'
-      ).join('')+'</div></div>';
+      ).join('')+'</div></div>':'<p class="market-muted">Chưa có số cặp giá lịch sử để tính tỷ trọng tăng, giữ nguyên và giảm.</p>';
     const timeline=item.yearly_history||[];
     const max=Math.max(5,...timeline.map(x=>Math.abs(n(x.median_change_pct))));
     $('market-timeline').innerHTML=timeline.length
@@ -134,7 +135,7 @@
         const amount=n(row.median_change_pct);
         const span=Math.round(Math.abs(amount)/max*48);
         return '<div class="market-timeline-row"><span class="market-year">'+row.year+'</span>'+
-          '<div class="market-timeline-track"><div class="market-axis"></div><span class="market-timebar '+(amount>=0?'up':'down')+
+          '<div class="market-timeline-track" tabindex="0" data-tip="Năm '+row.year+'" data-value="Trung vị '+pct(amount)+' · '+integer(row.n_products)+' thuốc"><div class="market-axis"></div><span class="market-timebar '+(amount>=0?'up':'down')+
           '" style="width:'+span+'%;'+(amount>=0?'left:50%':'right:50%')+'"></span></div>'+
           '<strong>'+pct(amount)+'</strong><small>'+integer(row.n_products)+' thuốc</small></div>';
       }).join('')

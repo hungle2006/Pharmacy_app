@@ -162,7 +162,7 @@ test('Drug Lookup workspace is wired into navigation and usable on phones',()=>{
     assert.match(html,new RegExp('id="'+id+'"'));
   assert.match(app,/\['lookup','⌕','Tra cứu thuốc'/);
   assert.match(app,/pharmabiz:lookup-view/);
-  assert.match(app,/if\(requested==='lookup'\)/);
+  assert.match(app,/if\(views\.some\(v=>v\[0\]===requested\)\)/);
   assert.match(lookup,/mode','products'/);
   assert.match(lookup,/\/api\/rxnorm\?/);
   assert.match(css,/@media\(max-width:760px\)/);
