@@ -62,7 +62,11 @@ function makerScatter(rows){
  const a=(rows||[]).filter(r=>finite(r.ingredients)&&finite(r.value));if(!a.length)return note('Không có nhà sản xuất đủ dữ liệu để vẽ.');
  const maxX=Math.max(1,...a.map(r=>n(r.ingredients))),maxY=Math.max(1,...a.map(r=>n(r.value))),left=80,right=775,top=35,bottom=295;
  let marks='';for(let t=0;t<=4;t++){const xx=left+(right-left)*t/4,yy=bottom-(bottom-top)*t/4;marks+='<line x1="'+left+'" x2="'+right+'" y1="'+yy+'" y2="'+yy+'" class="depth-gridline"/><text x="65" y="'+(yy+5)+'" text-anchor="end">'+num(maxY*t/4)+'</text><text x="'+xx+'" y="322" text-anchor="middle">'+num(maxX*t/4)+'</text>';}
- a.forEach((r,i)=>{const x=left+n(r.ingredients)/maxX*(right-left),y=bottom-n(r.value)/maxY*(bottom-top);marks+='<circle cx="'+x+'" cy="'+y+'" r="7" class="depth-dot" '+tip(r.name,num(r.ingredients)+' hoạt chất · '+num(r.value)+' sản phẩm')+'/><text x="'+(x+11)+'" y="'+(y-9)+'" class="depth-point-label">'+(i+1)+'</text>';});
+ const points=a.map(r=>({x:left+n(r.ingredients)/maxX*(right-left),y:bottom-n(r.value)/maxY*(bottom-top)})),placed=[];
+ a.forEach((r,i)=>{const {x,y}=points[i];const offsets=[[12,-14],[14,19],[-28,-12],[-30,19],[25,-3],[-39,-3],[12,-28]];
+ const [dx,dy]=offsets.find(([dx,dy])=>{const px=x+dx,py=y+dy;return !placed.some(p=>Math.abs(p.x-px)<23&&Math.abs(p.y-py)<17)&&!points.some((p,j)=>j!==i&&Math.abs(p.x-(px+7))<16&&Math.abs(p.y-(py-5))<14);})||offsets.at(-1);
+ placed.push({x:x+dx,y:y+dy});
+ marks+='<circle cx="'+x+'" cy="'+y+'" r="6" class="depth-dot" '+tip(r.name,num(r.ingredients)+' hoạt chất · '+num(r.value)+' sản phẩm')+'/><text x="'+(x+dx)+'" y="'+(y+dy)+'" class="depth-point-label">'+(i+1)+'</text>';});
  return '<div class="depth-axis"><span>Trục dọc: số sản phẩm</span><span>Mỗi chấm: một nhà sản xuất</span></div><div class="depth-svg-scroll"><svg viewBox="0 0 850 365" class="depth-svg" role="img" aria-label="Số hoạt chất và sản phẩm trong top nhà sản xuất">'+marks+'<text x="430" y="355" text-anchor="middle">Trục ngang: số tên hoạt chất phân biệt</text></svg></div>'+source(['Chấm','Nhà sản xuất','Sản phẩm','Hoạt chất'],a.map((r,i)=>[i+1,r.name,num(r.value),num(r.ingredients)]),'Chỉ top '+a.length+' nhà sản xuất theo số sản phẩm. Không đại diện toàn bộ thị trường, không kết luận nhân quả.');
 }
 function qualityBars(q){

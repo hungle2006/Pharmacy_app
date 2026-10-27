@@ -157,12 +157,13 @@ test('Drug Lookup workspace is wired into navigation and usable on phones',()=>{
   const app=fs.readFileSync(require('node:path').join(__dirname,'../assets/presentation.js'),'utf8');
   const lookup=fs.readFileSync(require('node:path').join(__dirname,'../assets/drug-lookup.js'),'utf8');
   const css=fs.readFileSync(require('node:path').join(__dirname,'../assets/drug-lookup.css'),'utf8');
-  for(const id of ['start-lookup','lookup-panel','lookup-form','lookup-search','lookup-results',
+  for(const id of ['lookup-panel','lookup-form','lookup-search','lookup-results',
     'lookup-details','lookup-tab-dav','lookup-tab-rx','lookup-prev','lookup-next'])
     assert.match(html,new RegExp('id="'+id+'"'));
   assert.match(app,/\['lookup','⌕','Tra cứu thuốc'/);
   assert.match(app,/pharmabiz:lookup-view/);
-  assert.match(app,/if\(views\.some\(v=>v\[0\]===requested\)\)/);
+  assert.match(app,/navigate\(views\.some\(v=>v\[0\]===requested\)\?requested:'overview',true\)/);
+  assert.doesNotMatch(html,/id="cover"|id="return-cover"|id="show-intro"|assets\/scene3d\.js/);
   assert.match(lookup,/mode','products'/);
   assert.match(lookup,/\/api\/rxnorm\?/);
   assert.match(css,/@media\(max-width:760px\)/);
