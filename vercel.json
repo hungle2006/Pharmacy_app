@@ -20,6 +20,9 @@
     },
     "api/disease-lookup.js": {
       "maxDuration": 30
+    },
+    "api/story.js": {
+      "maxDuration": 30
     }
   },
   "buildCommand": "npm run build",
