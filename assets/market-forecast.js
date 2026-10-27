@@ -11,6 +11,7 @@
   let report=null,active=false,horizon=6,loading=false;
 
   const hasNumber=value=>typeof value==='number'&&Number.isFinite(value);
+  const score=value=>hasNumber(value)?value.toFixed(5):'—';
   function badge(status,experimental) {
     return status==='approved'
       ?'<span class="market-chip market-chip-ok">Đã vượt kiểm định</span>'
@@ -40,7 +41,7 @@
         ' · test: '+integer(item.n_test)+' · vòng cuốn chiếu: '+integer(item.n_walkforward_folds)+'</p>';
     }
     const entries=comparisons.map(model=>'<tr><td>'+esc(modelNames[model.name]||model.name)+'</td>'+
-      '<td>'+esc(Number(model.validation_log_mae).toFixed(5))+'</td>'+
+      '<td>'+esc(score(model.validation_log_mae))+'</td>'+
       '<td>'+pct(model.validation_gain_pct)+'</td></tr>').join('');
     const hasTest=typeof item.test_gain_fraction==='number';
     const ci=item.test_gain_ci95_pct_points;
@@ -54,7 +55,7 @@
       '</div>'+
       '<div class="market-model-scroll"><table class="market-model-table"><thead><tr>'+
       '<th>Mô hình</th><th>Validation log-MAE</th><th>So với baseline</th></tr></thead><tbody>'+
-      '<tr><td>Giữ nguyên giá (baseline)</td><td>'+esc(Number(item.validation_baseline_log_mae||0).toFixed(5))+'</td><td>0%</td></tr>'+
+      '<tr><td>Giữ nguyên giá (baseline)</td><td>'+esc(score(item.validation_baseline_log_mae))+'</td><td>0%</td></tr>'+
       entries+'</tbody></table></div>'+
       '<p class="market-footnote"><strong>Độ bất định:</strong> '+
       (hasTest&&Array.isArray(ci)?'Khoảng bootstrap 95% cho mức cải thiện MAE trên test: '+pct(ci[0])+' đến '+pct(ci[1])+'. ':'Chưa đủ điều kiện ước lượng khoảng cải thiện trên test. ')+
@@ -118,17 +119,14 @@
     const stable=Math.min(100,Math.max(0,n(item.share_stable_pct)));
     $('market-distribution').innerHTML=parts.some(part=>part.value>0)?
       '<div class="market-distribution-layout">'+
-      '<div class="market-donut" role="img" aria-label="Tỷ lệ tăng '+sharePct(up)+', giữ nguyên '+sharePct(stable)+
-      ', giảm '+sharePct(item.share_decrease_pct)+'" style="--market-increase:'+up+'%;--market-stable-end:'+
-      Math.min(100,up+stable)+'%"><div class="market-donut-center"><strong>'+
-      integer(item.n_products)+'</strong><span>mã thuốc</span></div></div>'+
+      '<div class="depth-stack" role="img" aria-label="Cơ cấu biến động lịch sử, tổng 100%">'+parts.map((p,i)=>'<div tabindex="0" data-tip="'+esc(p.name)+'" data-value="'+sharePct(p.value)+' mã thuốc" style="width:'+Math.max(0,p.value)+'%;background:'+['var(--chart-secondary)','var(--chart-stable)','var(--chart-gold)'][i]+'"></div>').join('')+'</div>'+
       '<div class="market-donut-legend">'+parts.map(p=>
         '<div class="market-distribution-line"><div class="market-distribution-title"><span>'+esc(p.name)+
         '</span><strong>'+sharePct(p.value)+'</strong></div>'+
         '<div class="market-track" tabindex="0" data-tip="'+esc(p.name)+'" data-value="'+sharePct(p.value)+' số thuốc trong lịch sử"><div class="market-track-fill '+p.kind+
         '" style="width:'+Math.min(100,Math.max(0,p.value))+'%"></div></div></div>'
       ).join('')+'</div></div>':'<p class="market-muted">Chưa có số cặp giá lịch sử để tính tỷ trọng tăng, giữ nguyên và giảm.</p>';
-    const timeline=item.yearly_history||[];
+    const timeline=(item.yearly_history||[]).filter(row=>hasNumber(row.median_change_pct));
     const max=Math.max(5,...timeline.map(x=>Math.abs(n(x.median_change_pct))));
     $('market-timeline').innerHTML=timeline.length
       ?timeline.map(row=>{

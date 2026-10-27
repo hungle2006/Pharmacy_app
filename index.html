@@ -13,27 +13,19 @@
 <link rel="stylesheet" href="/assets/workspace.css">
 <link rel="stylesheet" href="/assets/task-narratives.css">
 <link rel="stylesheet" href="/assets/refinement.css">
+<link rel="stylesheet" href="/assets/task-depth.css">
 </head>
 <body class="workspace-page">
-<section class="cover" id="cover" aria-label="Giới thiệu PharmaBiz">
-  <canvas id="scene" aria-hidden="true"></canvas>
-  <div class="cover-grid" aria-hidden="true"></div>
-  <header class="cover-nav"><a class="brand" href="/" aria-label="PharmaBiz"><span class="brand-symbol">P</span><span>Pharma<span class="accent">Biz</span></span></a><div class="cover-actions"><span class="cover-edition">VIETNAM MARKET INTELLIGENCE <i></i> 2026</span><button class="theme-toggle" data-theme-toggle aria-label="Chuyển giao diện sáng/tối"><span data-theme-icon aria-hidden="true">☾</span><span data-theme-label>Tối</span></button></div></header>
-  <div class="cover-copy"><div class="eyebrow"><span class="signal"></span> PHARMACEUTICAL BUSINESS INTELLIGENCE</div><h1>Dữ liệu rõ ràng.<br>Quyết định <span>vững vàng.</span></h1><p>Khám phá thị trường dược Việt Nam bằng dữ liệu thật.<br>Phân tích giá, danh mục và nguồn cung trong<br class="desktop"> một không gian trực quan.</p><div class="cover-cta"><button id="start" class="start-btn">Khám phá dữ liệu <span>↗</span></button><button id="start-lookup" class="cover-lookup-btn" type="button">⌕ &nbsp; Tra cứu thuốc</button><a class="cover-lookup-btn" href="/disease-lookup.html">✚ &nbsp; Tra cứu bệnh</a></div><div class="cover-tags"><span>DAV</span><i></i><span>RxNorm</span><i></i><span>ICD-10</span><i></i><span>MEDI</span></div></div>
-  <div class="scene-label label-one"><span class="signal"></span> CONNECTED INTELLIGENCE<small>One workspace. Multiple perspectives.</small></div>
-  <div class="scene-label label-two"><span>01 / DATA IN MOTION</span><small>Di chuyển chuột để khám phá không gian</small></div>
-  <footer class="cover-footer"><span>DESIGNED FOR DATA. BUILT FOR INSIGHT.</span><span>Pharmaceutical Pricing & Market Analysis <b>↗</b></span></footer>
-</section>
-<div class="app" id="app" hidden>
+<div class="app" id="app">
   <div class="mobile-backdrop" id="backdrop" hidden></div>
   <aside class="sidebar" id="sidebar">
-    <a class="brand" href="/" aria-label="PharmaBiz trang mở đầu"><span class="brand-symbol">P</span><span>Pharma<span class="accent">Biz</span></span></a>
+    <a class="brand" href="/" aria-label="PharmaBiz tổng quan"><span class="brand-symbol">P</span><span>Pharma<span class="accent">Biz</span></span></a>
     <div class="workspace-title"><span>PHARMACEUTICAL INTELLIGENCE</span><b>THỊ TRƯỜNG DƯỢC VIỆT NAM</b></div>
     <div class="nav-caption">PHÂN TÍCH</div><nav id="nav" aria-label="Điều hướng phân tích"></nav>
-    <div class="workspace-links"><span>TRA CỨU &amp; NGHIÊN CỨU</span><a href="/disease-lookup.html">Tra cứu bệnh <span>↗</span></a></div><div class="sidebar-bottom"><div class="database-status"><span class="signal" id="db-dot"></span><div><strong id="db-status">Đang kết nối dữ liệu</strong><small>Neon · PostgreSQL</small></div><span>↗</span></div><button id="return-cover" class="back-cover">💊 &nbsp; Viên thuốc 3D</button><div class="sidebar-note">Built on evidence.<br>Designed for better decisions.</div></div>
+    <div class="workspace-links"><span>TRA CỨU &amp; NGHIÊN CỨU</span><a href="/disease-lookup.html">Tra cứu bệnh <span>↗</span></a></div><div class="sidebar-bottom"><div class="database-status"><span class="signal" id="db-dot"></span><div><strong id="db-status">Đang kết nối dữ liệu</strong><small>Neon · PostgreSQL</small></div><span>↗</span></div><div class="sidebar-note">Built on evidence.<br>Designed for better decisions.</div></div>
   </aside>
   <div class="main">
-    <header class="topbar"><div class="breadcrumb"><button class="icon-button mobile-toggle" id="menu" aria-label="Mở menu" aria-expanded="false">☰</button><span>Workspace</span><span class="slash">/</span><strong id="crumb">Tổng quan</strong></div><div class="topbar-right"><span class="live-badge" id="connection">ĐANG KẾT NỐI</span><button class="theme-toggle" data-theme-toggle aria-label="Chuyển giao diện sáng/tối"><span data-theme-icon aria-hidden="true">☾</span><span data-theme-label>Tối</span></button><button class="icon-button" id="refresh" title="Làm mới dữ liệu" aria-label="Làm mới dữ liệu">↻</button><button id="show-intro" class="icon-button" title="Xem viên thuốc 3D" aria-label="Xem viên thuốc 3D">💊</button><button id="present" class="icon-button" title="Toàn màn hình" aria-label="Toàn màn hình">⛶</button><span class="avatar">PB</span></div></header>
+    <header class="topbar"><div class="breadcrumb"><button class="icon-button mobile-toggle" id="menu" aria-label="Mở menu" aria-expanded="false">☰</button><span>Workspace</span><span class="slash">/</span><strong id="crumb">Tổng quan</strong></div><div class="topbar-right"><span class="live-badge" id="connection">ĐANG KẾT NỐI</span><button class="theme-toggle" data-theme-toggle aria-label="Chuyển giao diện sáng/tối"><span data-theme-icon aria-hidden="true">☾</span><span data-theme-label>Tối</span></button><button class="icon-button" id="refresh" title="Làm mới dữ liệu" aria-label="Làm mới dữ liệu">↻</button><button id="present" class="icon-button" title="Toàn màn hình" aria-label="Toàn màn hình">⛶</button><span class="avatar">PB</span></div></header>
     <main class="content" id="content">
       <div class="page-head"><div><div class="eyebrow" id="page-kicker">THE BIG PICTURE</div><h1 id="page-title">Tổng quan thị trường<span>.</span></h1><p id="page-desc">Góc nhìn toàn cảnh từ dữ liệu dược Việt Nam.</p></div><button id="export" class="button secondary">↓ &nbsp; Xuất trang dữ liệu</button></div>
       <div id="status" role="status" aria-live="polite" class="status-strip"><span class="signal"></span><span>Đang tải các chỉ số từ nguồn dữ liệu…</span></div>
@@ -98,6 +90,7 @@
           <p class="market-footnote" id="market-method"></p>
           <p class="market-footnote"><strong>Phạm vi:</strong> <span id="market-source">Dữ liệu DAV từ Neon Gold</span>. Đây không phải chỉ số giá thị trường được cân theo doanh số, và không phải tư vấn mua bán thuốc.</p>
         </article>
+        <div id="market-history-ranges"></div>
         <article class="market-article market-validation-panel">
           <div class="market-card-heading"><h3>So sánh thuật toán & kiểm định cuốn chiếu</h3><span class="market-chip">WALK-FORWARD</span></div>
           <p class="market-muted">So sánh xu hướng có trọng số thời gian, phân cấp nhóm thuốc, hồi quy có biến thời gian và baseline giá không đổi. Chỉ tập validation chọn mô hình; tập test cuối độc lập.</p>
@@ -113,5 +106,5 @@
 </div>
 <div class="chart-tooltip" id="tooltip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
-<script src="/assets/chart-system.js" defer></script><script src="/assets/scene3d.js" defer></script><script src="/assets/drug-lookup.js" defer></script><script src="/assets/market-forecast.js" defer></script><script src="/assets/reports.js" defer></script><script src="/assets/task-narratives.js" defer></script><script src="/assets/presentation.js" defer></script>
+<script src="/assets/chart-system.js" defer></script><script src="/assets/drug-lookup.js" defer></script><script src="/assets/market-forecast.js" defer></script><script src="/assets/reports.js" defer></script><script src="/assets/task-depth.js" defer></script><script src="/assets/task-narratives.js" defer></script><script src="/assets/presentation.js" defer></script>
 </body></html>
