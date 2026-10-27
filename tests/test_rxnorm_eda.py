@@ -29,8 +29,8 @@ class RxnormEdaTests(unittest.TestCase):
             self.assertEqual(report["report_3_eda"]["distinct_rxcui_mapping_ready"],2)
             self.assertEqual(report["report_3_eda"]["excluded_reasons"][0]["label"],"DUPLICATE_CONCEPT_TERM")
             self.assertTrue(r.exists() and h.exists())
-            self.assertIn("Report 3",h.read_text())
-            self.assertIn("Report 4",h.read_text())
+            self.assertIn("Khảo sát dữ liệu",h.read_text())
+            self.assertIn("Trực quan hóa thống kê",h.read_text())
             with out.open() as file:
                 rows=list(csv.DictReader(file))
             self.assertEqual(len(rows),2)

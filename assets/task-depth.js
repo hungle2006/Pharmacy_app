@@ -123,7 +123,7 @@ function quality(d){
  const q=d.quality||{},m=d.mapping||{},worst=completeness(q)[0],statuses=(m.statuses||[]).map(r=>({...r,name:statusLabels[r.name]||r.name}));
  return findings([['ƯU TIÊN BỔ SUNG',worst?.name||'—',num(worst?.missing)+' / '+num(q.total)+' sản phẩm thiếu.'],['MAPPING CHẤP NHẬN',m.unavailable?'—':pct(m.accepted,m.total),num(m.accepted)+' / '+num(m.total)+' dòng toàn bảng.'],['CẦN RÀ SOÁT',num(m.review),'Cờ review độc lập với kiểm tra khóa; không cộng các cờ.']])+
  step('01','Kiểm tra khả năng dùng theo mục đích','Thiếu dạng hoặc hàm lượng ảnh hưởng so giá và mapping. Đủ tên vẫn chưa chứng minh tên đã chuẩn hóa đúng.')+
- panel('quality-fields','Độ đầy đủ theo trường DAV','Bộ lọc sản phẩm hiện tại · xếp theo số thiếu giảm dần',qualityBars(q),'Đơn vị có thể từ quan sát giá hoặc hồ sơ DAV. Phép đo này khác hồ sơ thô của từng bảng trong Report 3.')+
+ panel('quality-fields','Độ đầy đủ theo trường DAV','Bộ lọc sản phẩm hiện tại · xếp theo số thiếu giảm dần',qualityBars(q),'Đơn vị có thể từ quan sát giá hoặc hồ sơ DAV. Phép đo này khác hồ sơ thô của từng bảng trong Phân tích thống kê dữ liệu.')+
  step('02','Tách trạng thái liên kết khỏi các cờ','Trạng thái loại trừ nhau; accepted / review / khóa hợp lệ là các phép kiểm tra độc lập.')+
  grid(panel('quality-status','Trạng thái DAV ↔ RxNorm','Toàn bảng mapping · độc lập bộ lọc sản phẩm',m.unavailable?note('Chưa đọc được bảng mapping.'):ranking(statuses,{unit:'dòng mapping',total:m.total,limit:10,share:false}),'Giữ riêng xung đột, ứng viên và chưa khớp để xác định cách xử lý.'),
  panel('quality-flags','Các cờ kỹ thuật độc lập','Mỗi tỷ lệ trên '+num(m.total)+' dòng mapping',m.unavailable?note('Nguồn mapping chưa sẵn sàng.'):flagBars(m),'Khóa SCD hợp lệ là kiểm tra kỹ thuật; chưa chứng minh tương đương điều trị.'))+
@@ -160,9 +160,9 @@ function forecastIntervals(report){
  '<div class="depth-axis"><span>'+num(low,1)+'%</span><span>Vạch dọc = 0% · '+num(high,1)+'%</span></div>'+a.map(r=>'<div class="depth-range-row"><div><b>'+r.h+' THÁNG</b><span>'+num(r.n_products)+' mã thuốc</span><small>'+num(r.n_pairs)+' cặp giá</small></div><div class="depth-range-track" '+tip(r.h+' tháng','P10 '+num(r.p10_pct,2)+'% · Trung vị '+num(r.historical_change_pct,2)+'% · P90 '+num(r.p90_pct,2)+'%')+'><em style="left:'+x(0)+'%"></em><i style="left:'+x(r.p10_pct)+'%;width:'+(x(r.p90_pct)-x(r.p10_pct))+'%"></i><b style="left:'+x(r.historical_change_pct)+'%"></b></div><strong>'+num(r.historical_change_pct,2)+'%</strong></div>').join('')+source(['Kỳ hạn','Mã thuốc','Cặp giá','P10 (%)','Trung vị (%)','P90 (%)'],a.map(r=>[r.h+' tháng',num(r.n_products),num(r.n_pairs),num(r.p10_pct,2),num(r.historical_change_pct,2),num(r.p90_pct,2)]),'Nguồn /api/market-forecast · mỗi kỳ hạn có tập thuốc và cặp giá riêng.'),
  'Đoạn ngang thể hiện phân bố thay đổi đã quan sát; chấm là trung vị. Đây không phải khoảng dự báo hoặc khoảng tin cậy. Không so cỡ mẫu các kỳ như cùng một đoàn hệ.');
 }
-document.addEventListener('pharmabiz:market-report',event=>{const host=document.getElementById('market-history-ranges');if(host&&event.detail?.kind==='dav-market-price-trend')host.innerHTML=forecastIntervals(event.detail);});
+document.addEventListener('pharmabiz:market-report',event=>{const host=document.getElementById('market-history-ranges');if(host&&event.detail?.kind==='dav-market-price-trend')host.innerHTML=forecastIntervals(event.detail)+PharmaStudy.interpretation('market-forecast',{market:event.detail});});
 
-function render(view,d){active={view,d};const fn={overview,pricing,competition,portfolio,quality}[view];return fn?fn(d):'';}
+function render(view,d){active={view,d};const fn={overview,pricing,competition,portfolio,quality}[view];return fn?fn(d)+PharmaStudy.interpretation(view,{data:d}):'';}
 document.addEventListener('click',event=>{
  const button=event.target.closest('[data-depth-key]');if(!button||!active)return;
  const key=button.dataset.depthKey,val=button.dataset.depthValue;if(!Object.hasOwn(state,key))return;

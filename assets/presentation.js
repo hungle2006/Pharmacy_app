@@ -15,12 +15,12 @@
     ['competition','▥','Phân tích cạnh tranh','COMPETITIVE LANDSCAPE','Nhà sản xuất, độ phủ hoạt chất và quy mô danh mục.'],
     ['portfolio','◇','Danh mục sản phẩm','PORTFOLIO ANALYTICS','Khám phá cơ cấu quốc gia, hoạt chất và dạng bào chế.'],
     ['quality','✓','Chất lượng dữ liệu','TRUST THE DATA','Độ đầy đủ, trạng thái mapping và khả năng sử dụng dữ liệu.'],
-    ['business','◎','Business Understanding','FROM DATA TO DECISIONS','Câu hỏi kinh doanh, KPI và giá trị của dashboard.'],
-    ['workflow','⬡','Data Understanding','CONNECTED DATA','Nguồn dữ liệu, luồng xử lý và kiến trúc phân tích.'],
-    ['reports','▧','Report 3 & 4','DATA EXPLORER','Khám phá và trực quan hóa từng bảng: cấu trúc, chất lượng, phân bố và bước xử lý tiếp theo.'],
+    ['business','◎','Đề tài & mục tiêu nghiên cứu','FROM DATA TO DECISIONS','Bài toán tích hợp dữ liệu dược, mục tiêu ứng dụng và tiêu chí đánh giá nghiên cứu.'],
+    ['workflow','⬡','Nguồn dữ liệu & tích hợp','CONNECTED DATA','Vai trò DAV, RxNorm, ICD và MEDI; đơn vị bản ghi và luồng Bronze → Silver → Gold.'],
+    ['reports','▧','Phân tích thống kê dữ liệu','STATISTICAL DATA ANALYSIS','Khảo sát cấu trúc, độ đầy đủ và phân bố trên 9 bảng Gold; đọc kết quả cùng đơn vị và nguồn.'],
     ['eda','◷','EDA dữ liệu','EXPLORE THE DATA','Khám phá DAV, RxNorm, ICD-10 và MEDI: nhìn phân bố trước khi kết luận.'],
     ['preparation','⚒','Làm sạch dữ liệu','DATA PREPARATION','Giữ nguồn, chuẩn hóa, kiểm tra thiếu và trùng, theo dõi phần cần rà soát.'],
-    ['modeling','⌁','Modeling & Evaluation','MODELS & EVIDENCE','Thuật toán, chia dữ liệu theo thời gian, sai số và quality gate của mô hình đang chạy.']
+    ['modeling','⌁','Mô hình hóa & đánh giá','MODELS & EVIDENCE','Thuật toán, chia dữ liệu theo thời gian, sai số và quality gate của mô hình đang chạy.']
   ];
   let data=null,inventory=null,page=1,view='overview',controller=null,seq=0,timeout=null,toastTimer,optionsLoaded=false,trendRange='all',trendMode=null;
   const theory=()=>['business','workflow','eda','preparation','modeling','reports'].includes(view);
@@ -105,6 +105,7 @@
     return '<div class="equal-grid">'+panel('Độ đầy đủ của danh mục','Tính trên sản phẩm phân biệt trong phạm vi bộ lọc',completeness,'COMPLETENESS')+panel('Trạng thái DAV → RxNorm','Toàn bộ bảng mapping, không áp dụng bộ lọc sản phẩm',m.unavailable?empty('Chưa đọc được bảng mapping.'):bars((m.statuses||[]).map(x=>({...x,name:displayName(x.name)})),null,'bản ghi mapping'),'FULL MAPPING TABLE')+'</div><div class="cards-three">'+card('01 / ACCEPTED','Mapping được chấp nhận',m.unavailable?'Chưa có dữ liệu.':fmt(m.accepted)+' / '+fmt(m.total)+' dòng có accepted_for_serving = 1. Trạng thái này lấy trực tiếp từ dữ liệu nguồn.')+card('02 / REVIEW','Cần kiểm tra thủ công',m.unavailable?'Chưa có dữ liệu.':fmt(m.review)+' dòng có review_required = 1. Nên ưu tiên kiểm tra hoạt chất, hàm lượng, dạng và bằng chứng mapping.')+card('03 / RELATION','Tính hợp lệ của khóa',m.unavailable?'Chưa có dữ liệu.':fmt(m.valid_fk)+' dòng có selected_scd_fk_valid = 1. Khóa hợp lệ là điều kiện kỹ thuật, chưa chứng minh quan hệ lâm sàng.')+'</div>'+panel('Giới hạn cần kiểm soát','Đọc các chỉ số cùng định nghĩa',table(['Phạm vi','Cách diễn giải'],[['Sản phẩm','COUNT(DISTINCT dav_row_id), tránh nhân bản do một sản phẩm có nhiều giá.'],['Giá quan sát','Chỉ tính giá không âm, đồng VND hoặc chưa ghi currency; cần rà soát nguồn.'],['Độ đầy đủ','Trường không trống; chưa đo mức chính xác ngữ nghĩa.'],['Mapping','Trạng thái do nguồn cung cấp, không tự gán chính xác.'],['Phân tích giá','Tách loại giá, đơn vị và cấu hình; chưa có doanh số hoặc thị phần.']]));}
   function render(){
     const special=theory()||lookupView()||marketForecastView();
+    $('task-reading-intro').hidden=special;$('task-reading-intro').innerHTML=special?'':PharmaTasks.intro(view,data);
     $('lookup-panel').hidden=!lookupView();
     $('market-forecast-panel').hidden=!marketForecastView();
     $('status').hidden=lookupView()||marketForecastView();
@@ -115,7 +116,7 @@
     if(!data){$('metrics').innerHTML=[['Sản phẩm','◫'],['Hoạt chất','◇'],['Nhà sản xuất','▥'],['Giá trung vị','↗']].map(([l,i])=>metric(l,'—','Đang chờ dữ liệu nguồn',i)).join('');$('visuals').innerHTML=panel('Kết nối dữ liệu phân tích','Không sử dụng số liệu mô phỏng','<div class="empty"><strong>Đang chờ dữ liệu từ Neon</strong>Nhấn làm mới để thử lại nếu kết nối chưa sẵn sàng.</div>');$('records').innerHTML='<tr><td colspan="5">Chưa có dữ liệu nguồn.</td></tr>';$('records-count').textContent='—';$('range').textContent='Chưa có bản ghi';$('pageinfo').textContent='—';$('prev').disabled=true;$('next').disabled=true;return;}
     const s=data.summary||{};renderFilterContext();
     $('metrics').innerHTML=view==='pricing'?metric('Giá P10',money(s.p10),'Phân vị 10% · VND','↓')+metric('Giá trung vị',money(s.median),'Phân vị 50% · VND','◫')+metric('Giá P90',money(s.p90),'Phân vị 90% · VND','↑')+metric('Quan sát có giá',fmt(s.priced),'Giá không âm · VND','▤'):metric('Sản phẩm phân biệt',fmt(s.products),'ID sản phẩm DAV trong bộ lọc','◫')+metric('Tên hoạt chất nguồn',fmt(s.ingredients),'Tên phân biệt từ dữ liệu nguồn','◇')+metric('Nhà sản xuất',fmt(s.manufacturers),'Tên nhà sản xuất phân biệt','▥')+metric('Giá trung vị',money(s.median),fmt(s.priced)+' quan sát giá VND','↗');
-    $('visuals').innerHTML=PharmaTasks.intro(view,data)+'<div id="depth-analytical">'+PharmaDepth.render(view,data)+'</div>';
+    $('visuals').innerHTML='<div id="depth-analytical">'+PharmaDepth.render(view,data)+'</div>';
     $('records').innerHTML=(data.records||[]).map(r=>'<tr><td><strong>'+esc(r.drug_name||'Chưa có tên')+'</strong><small>'+esc([r.ingredient,r.strength].filter(Boolean).join(' · ')||'—')+'</small></td><td>'+esc(r.manufacturer||'—')+'</td><td>'+esc(r.country||'—')+'</td><td>'+esc(displayName(r.price_type)||'—')+'<small>'+esc(r.unit||'Chưa có đơn vị')+'</small></td><td class="numeric"><strong>'+money(r.price_vnd)+'</strong><small>'+esc(r.snapshot_date?String(r.snapshot_date).slice(0,10):'Chưa có ngày')+'</small></td></tr>').join('')||'<tr><td colspan="5">Không có bản ghi phù hợp.</td></tr>';
     const total=Number(s.observations)||0, maxPage=Math.max(1,Math.ceil(total/12));$('records-count').textContent=fmt(total)+' quan sát';$('range').textContent='Hiển thị '+(total?(page-1)*12+1:0)+'–'+Math.min(page*12,total)+' / '+fmt(total)+' bản ghi';$('pageinfo').textContent=page+' / '+maxPage;$('prev').disabled=page<=1;$('next').disabled=page>=maxPage;
   }
@@ -133,6 +134,21 @@
   function navIcon(id){const paths={overview:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',lookup:'M21 21l-5-5 M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',pricing:'M3 18l5-5 4 2 8-10 M15 5h5v5',competition:'M4 21V9h5v12 M10 21V3h5v18 M16 21v-8h5v8',portfolio:'M3 7l9-4 9 4-9 4z M3 12l9 4 9-4 M3 17l9 4 9-4',quality:'M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z M8 12l3 3 5-6',business:'M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5',workflow:'M4 3h6v6H4z M14 15h6v6h-6z M7 9v9h7 M10 6h7v9',reports:'M4 3h16v18H4z M8 16v-4 M12 16V7 M16 16v-6',eda:'M4 19V5 M4 19h17 M8 14l4-6 4 3 4-6',preparation:'M4 7h16 M7 3v8 M4 17h16 M16 13v8',modeling:'M3 17l5-7 5 4 7-10 M3 21h18','market-forecast':'M3 17l6-6 4 3 8-10 M16 4h5v5'};return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+paths[id]+'"/></svg>';}
   $('nav').innerHTML=views.map((v,i)=>(v[0]==='business'?'<div class="nav-divider"></div><div class="nav-caption">NGHIÊN CỨU DỮ LIỆU</div>':'')+'<button class="nav-button" data-view="'+v[0]+'"><span class="nav-icon">'+navIcon(v[0])+'</span><span>'+v[2]+'</span><span class="nav-arrow">↗</span></button>').join('');
   document.addEventListener('click',e=>{const range=e.target.closest('[data-trend-range]');if(range){trendRange=range.dataset.trendRange;render();return;}const mode=e.target.closest('[data-trend-mode]');if(mode){trendMode=mode.dataset.trendMode;render();return;}const remove=e.target.closest('[data-remove-filter]');if(remove){$(remove.dataset.removeFilter).value='';page=1;load();return;}const nav=e.target.closest('[data-view]');if(nav)navigate(nav.dataset.view);const filter=e.target.closest('[data-filter]');if(filter){const key=filter.dataset.key;const id=key==='q'?'search':key;if($(id)){if(id!=='search'&&![...$(id).options].some(o=>o.value===filter.dataset.filter))return;$(id).value=filter.dataset.filter;page=1;load();toast('Đã lọc: '+filter.dataset.filter);}}});
+  let entranceTimer;
+  $('start').onclick=()=>{
+    if($('start').disabled)return;
+    navigate(view);$('cover').classList.add('entering');$('start').disabled=true;
+    entranceTimer=setTimeout(()=>{$('cover').hidden=true;$('app').hidden=false;$('cover').classList.remove('entering');$('start').disabled=false;$('page-title').setAttribute('tabindex','-1');$('page-title').focus({preventScroll:true});},matchMedia('(prefers-reduced-motion:reduce)').matches?0:520);
+  };
+  $('logout').onclick=()=>{
+    clearTimeout(entranceTimer);closeMenu();$('tooltip').hidden=true;
+    $('app').hidden=true;$('cover').hidden=false;$('cover').classList.remove('entering');$('start').disabled=false;
+    document.dispatchEvent(new CustomEvent('pharmabiz:lookup-view',{detail:{active:false}}));
+    document.dispatchEvent(new CustomEvent('pharmabiz:market-forecast-view',{detail:{active:false}}));
+    const url=new URL(location);url.searchParams.set('view','intro');url.hash='';history.replaceState(null,'',url);
+    if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+    window.scrollTo(0,0);$('start').focus({preventScroll:true});
+  };
   $('menu').onclick=()=>{const open=!$('sidebar').classList.contains('open');$('sidebar').classList.toggle('open',open);$('backdrop').hidden=!open;$('menu').setAttribute('aria-expanded',String(open));};$('backdrop').onclick=closeMenu;
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();$('tooltip').hidden=true;}if((e.key==='Enter'||e.key===' ')&&e.target.matches('circle[data-filter]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
   document.addEventListener('pharmabiz:task-context',()=>{if(theory())render();});
@@ -172,5 +188,5 @@
     element.innerHTML='<span>'+(active.length?'Phạm vi đang lọc:':'Toàn bộ danh mục')+'</span>'+active.map(([id,l])=>'<button data-remove-filter="'+id+'" aria-label="Bỏ lọc '+esc(l)+'">'+l+': '+esc(displayName($(id).value))+' ×</button>').join('')+'<span>· '+fmt(data.summary.products)+' sản phẩm · '+esc(data.summary.date_from||'—')+' → '+esc(data.summary.date_to||'—')+'</span>';
   }
 
-  const requested=new URLSearchParams(location.search).get('view');navigate(views.some(v=>v[0]===requested)?requested:'overview',true);load();fetchInventory();
+  const requested=new URLSearchParams(location.search).get('view'),direct=views.some(v=>v[0]===requested);navigate(direct?requested:'overview',direct);if(direct){$('cover').hidden=true;$('app').hidden=false;}load();fetchInventory();
 })();

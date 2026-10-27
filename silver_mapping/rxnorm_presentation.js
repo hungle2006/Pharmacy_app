@@ -26,7 +26,7 @@
     });
     filters.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === filter)));
     document.querySelectorAll('.nav-group').forEach(group => { group.hidden = filter !== 'all' && group.dataset.report !== filter; });
-    document.getElementById('current-report').textContent = `REPORT ${current.dataset.report}`;
+    document.getElementById('current-report').textContent = `PHẦN ${current.dataset.report}`;
     document.getElementById('current-title').textContent = titleOf(current);
     document.getElementById('step-counter').textContent = `${String(index + 1).padStart(2, '0')} / ${String(visible.length).padStart(2, '0')}`;
     document.getElementById('progress-fill').style.width = `${100 * (index + 1) / visible.length}%`;

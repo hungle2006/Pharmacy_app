@@ -1,4 +1,4 @@
-"""Data-backed, self-contained Report 3/4 reading and presentation experience."""
+"""Data-backed, self-contained Phân tích thống kê reading and presentation experience."""
 from html import escape
 from pathlib import Path
 import re
@@ -72,7 +72,7 @@ def render_presentation(report):
     multiple = m['cross_column_quality']['concepts_with_multiple_names']
     multi_pct = 100 * multiple / concepts if concepts else 0
     step('overview', '3', 'Bối cảnh & câu hỏi', 'Trước khi ghép thuốc, hãy hiểu dữ liệu.',
-         'Report 3 khám phá và kiểm tra RxNorm. Report 4 dùng biểu đồ để giải thích những gì đã tìm thấy.',
+         'Khảo sát dữ liệu khám phá và kiểm tra RxNorm. Trực quan hóa thống kê dùng biểu đồ để giải thích những gì đã tìm thấy.',
          '<div class="hero-statement">Một mã khái niệm.<br><em>Nhiều cách gọi tên.</em></div>' +
          cards([('Bản ghi nguồn', vi(total), 'dòng thuật ngữ'), ('RxCUI đủ điều kiện', vi(concepts), 'mã khái niệm khác nhau'),
                 ('Loại thuật ngữ TTY', vi(m['cross_column_quality']['tty_unique_values']), 'nhóm phân loại'),
@@ -127,7 +127,7 @@ def render_presentation(report):
              ('IQR', vi(name['iqr']) + ' ký tự', 'Độ rộng của 50% phần giữa: Q3 − Q1.')]) +
          note('σ² phản ánh mức phân tán của ĐỘ DÀI TÊN. Căn bậc hai của σ² là SD, có đơn vị ký tự nên dễ diễn giải hơn. SD không phải độ lệch của mọi tên và không suy ra 68% dữ liệu khi chưa biết phân phối.') +
          detail('Xem công thức trung bình, phương sai & độ lệch chuẩn', '<div class="r3-formula-grid">' + ''.join(qcards[4:]) + '</div>'),
-         f'Tên có độ dài trung bình {vi(name["mean"], 2)} ký tự, trong khi trung vị là {vi(name["median"])}. Sự chênh lệch này gợi ý phân bố kéo dài về phía tên dài. Độ lệch chuẩn {vi(name["std_dev"], 2)} ký tự cho thấy độ dài không đồng đều; biểu đồ ở Report 4 sẽ giúp nhìn rõ hơn.')
+         f'Tên có độ dài trung bình {vi(name["mean"], 2)} ký tự, trong khi trung vị là {vi(name["median"])}. Sự chênh lệch này gợi ý phân bố kéo dài về phía tên dài. Độ lệch chuẩn {vi(name["std_dev"], 2)} ký tự cho thấy độ dài không đồng đều; biểu đồ ở Trực quan hóa thống kê sẽ giúp nhìn rõ hơn.')
 
     labels = {'terms_per_rxcui': 'Số tên / RxCUI', 'avg_name_length': 'Độ dài tên TB', 'max_name_length': 'Độ dài tên lớn nhất', 'distinct_tty_per_rxcui': 'Số loại TTY / RxCUI'}
     corr_rows = [[labels[q['x']], labels[q['y']], vi(q['n']), vi(q['pearson_r'], 4), vi(q['spearman_rho'], 4)] for q in m['correlations']]
@@ -197,7 +197,7 @@ def render_presentation(report):
          note('Coherence ở đây là nhất quán từ vựng. Tên ít trùng từ có thể do viết tắt, thương hiệu hoặc cách gọi khác; không tự động là dữ liệu sai.'),
          'Nhóm đo mức giao nhau của các từ giữa các tên cùng mã. Điểm thấp giúp chọn trường hợp cần rà soát. Đây không phải kiểm định độ tin cậy thang đo và cũng không xác nhận tương đương điều trị.')
 
-    step('report-3-summary', '3', 'Kết luận Report 3', 'Từ số liệu đến quyết định xử lý.',
+    step('report-3-summary', '3', 'Kết luận Khảo sát dữ liệu', 'Từ số liệu đến quyết định xử lý.',
          'Mỗi kết quả cần dẫn đến một hành động cụ thể trước khi ghép DAV với RxNorm.',
          table(['Phát hiện', 'Ý nghĩa', 'Quyết định xử lý'], [
              (f'{vi(e["mapping_ready_rate_pct"], 2)}% dòng đủ điều kiện', 'Đạt quy tắc kỹ thuật hiện hành', 'Chuyển sang tạo ứng viên mapping.'),
@@ -206,11 +206,11 @@ def render_presentation(report):
              ('TTY liên quan đến độ dài tên', 'Không nên coi mọi loại tên là đồng nhất', 'Phân biệt IN, SCD, SBD khi chọn đối tượng ghép.'),
              ('Một số mã có coherence thấp', 'Cần kiểm tra khác biệt cách viết', 'Ưu tiên rà soát, không xóa tự động.')]) +
          detail('Vì sao không dùng mọi phép kiểm định?', table(['Phép thử', 'Lý do không áp dụng'], [(q['test'], q['reason']) for q in m['not_applicable']])) +
-         note('Report 3 trả lời dữ liệu là gì, chất lượng đến đâu và khác nhau ở điểm nào. Report 4 sẽ làm các kết quả đó dễ nhìn bằng biểu đồ.'),
+         note('Khảo sát dữ liệu trả lời dữ liệu là gì, chất lượng đến đâu và khác nhau ở điểm nào. Trực quan hóa thống kê sẽ làm các kết quả đó dễ nhìn bằng biểu đồ.'),
          'Sau EDA, nhóm giữ các tên hợp lệ, phân biệt loại thuật ngữ và chuẩn bị tập dữ liệu đủ điều kiện mapping. Các kiểm định phục vụ hiểu dữ liệu, không thay thế bước xác minh chuyên môn.')
 
     step('report-4', '4', 'Chọn biểu đồ', 'Cùng một dữ liệu, mỗi biểu đồ trả lời một câu hỏi.',
-         'Report 4 · Data Visualization — vận dụng nội dung thống kê mô tả và trực quan hóa của Chương 6.1–6.4.',
+         'Trực quan hóa thống kê · Data Visualization — vận dụng nội dung thống kê mô tả và trực quan hóa của Chương 6.1–6.4.',
          '<div class="visual-index">' + ''.join(f'<a href="#chart-{i+1}"><span>0{i+1}</span><b>{h(k)}</b><small>{h(q)}</small></a>' for i, (k,q) in enumerate([
              ('Bar chart', 'Loại TTY nào có nhiều thuật ngữ?'), ('Histogram', 'Độ dài tên tập trung ở đâu?'),
              ('Box plot', 'Nhóm nào có tên phân tán hơn?'), ('Doughnut chart', 'Mỗi nhóm chiếm tỷ trọng bao nhiêu?'),
@@ -224,7 +224,7 @@ def render_presentation(report):
         ('Độ phân tán giữa nhóm', 'Tên của nhóm TTY nào biến động nhiều hơn?', 'Mỗi hộp chứa 50% phần giữa: Q1 đến Q3. Vạch bên trong là trung vị; râu đến quan sát xa nhất trong ngưỡng 1,5 × IQR. Điểm ngoại lai chưa được vẽ riêng.', 'Độ dài tên theo TTY', 'So sánh vị trí trung vị để biết tên nhóm nào thường dài hơn; so độ rộng hộp để biết mức phân tán ở phần giữa. Ngoại lai là tín hiệu rà soát, không mặc định dữ liệu lỗi.'),
         ('Tỷ trọng các nhóm', 'Mỗi nhóm chiếm bao nhiêu phần trăm?', 'Doughnut dùng 6 nhóm đứng đầu và phần còn lại. Mẫu số là tổng dòng thuật ngữ đủ điều kiện mapping; các phần cộng lại thành 100% sau sai số làm tròn.', 'Tỷ lệ / dòng thuật ngữ', 'Biểu đồ tròn thể hiện cơ cấu trong toàn bộ thuật ngữ được phân tích. Phần Khác gom các nhóm còn lại, không phải dữ liệu thiếu.'),
         ('Số tên trên mỗi mã', 'Một RxCUI thường có bao nhiêu tên?', 'Đơn vị đếm đã đổi sang RxCUI: cột 1 là số mã chỉ có một tên. Các khoảng 4–5, 6–10… gom nhiều giá trị nên đây là tần suất nhóm, không so mật độ như khoảng có bề rộng bằng nhau.', 'Số RxCUI theo số thuật ngữ', f'Có {vi(multiple)} mã có nhiều tên, tương đương {vi(multi_pct, 2)}%. Đây là lý do không thể xóa tất cả các dòng trùng RxCUI.'),
-        ('Mối liên hệ giữa hai biến', 'Có nhiều tên thì tên trung bình dài hơn không?', f'Mỗi điểm là một RxCUI trong mẫu minh họa phân tầng gồm {vi(s["scatter_sample_size"])} mã; trục X dùng log₂. Hệ số Pearson tính trên toàn bộ {vi(s["n_rxcui"])} RxCUI, không chỉ các điểm được vẽ.', 'Số tên và độ dài TB / RxCUI', 'Scatter giúp quan sát xu hướng, độ phân tán và những mã nổi bật. Không suy ra quan hệ nhân quả; đọc cùng Pearson và Spearman ở Report 3.'),
+        ('Mối liên hệ giữa hai biến', 'Có nhiều tên thì tên trung bình dài hơn không?', f'Mỗi điểm là một RxCUI trong mẫu minh họa phân tầng gồm {vi(s["scatter_sample_size"])} mã; trục X dùng log₂. Hệ số Pearson tính trên toàn bộ {vi(s["n_rxcui"])} RxCUI, không chỉ các điểm được vẽ.', 'Số tên và độ dài TB / RxCUI', 'Scatter giúp quan sát xu hướng, độ phân tán và những mã nổi bật. Không suy ra quan hệ nhân quả; đọc cùng Pearson và Spearman ở Khảo sát dữ liệu.'),
     ]
     for i, (label, title, reading, unit, speech) in enumerate(chart_guides):
         step(f'chart-{i+1}', '4', label, title, unit,
@@ -237,7 +237,7 @@ def render_presentation(report):
     dist = handoff.get('mapping_status_distribution', [])
     examples = handoff.get('candidate_examples', [])
     step('conclusion', '4', 'Tổng kết & mapping', 'Hiểu dữ liệu trước, tạo ứng viên sau.',
-         'Report 3 giải thích dữ liệu và kiểm định. Report 4 giúp người nghe nhìn thấy bằng chứng.',
+         'Khảo sát dữ liệu giải thích dữ liệu và kiểm định. Trực quan hóa thống kê giúp người nghe nhìn thấy bằng chứng.',
          '<div class="process"><span>RxNorm Silver</span><b>→</b><span>EDA & QC</span><b>→</b><span>Mapping-ready</span><b>→</b><span>Ứng viên DAV ↔ RxNorm</span></div>' +
          '<div class="question-grid"><div><b>Giữ đúng đơn vị</b><p>Phân biệt dòng thuật ngữ, mã RxCUI và sản phẩm DAV.</p></div>'
          '<div><b>Đọc đúng thống kê</b><p>Đọc p cùng hiệu ứng; xem hình dạng phân bố trước khi kết luận.</p></div>'
@@ -249,7 +249,7 @@ def render_presentation(report):
 
     nav = ''
     for report_no in ('3', '4'):
-        nav += f'<div class="nav-group" data-report="{report_no}"><span>REPORT {report_no} · {"KHÁM PHÁ DỮ LIỆU" if report_no == "3" else "TRỰC QUAN HÓA"}</span>'
+        nav += f'<div class="nav-group" data-report="{report_no}"><span>PHẦN {report_no} · {"KHÁM PHÁ DỮ LIỆU" if report_no == "3" else "TRỰC QUAN HÓA"}</span>'
         for index, (id_, rn, label, _) in enumerate(sections):
             if rn == report_no:
                 nav += f'<a href="#{id_}" data-step="{id_}"><small>{index+1:02d}</small>{h(label)}</a>'
@@ -262,18 +262,18 @@ def render_presentation(report):
     research_css = (assets / 'research.css').read_text(encoding='utf-8')
     chart_js = (assets / 'chart-system.js').read_text(encoding='utf-8')
     return ('<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-        '<script>if(!new URLSearchParams(location.search).has("detail")&&!location.hash)location.replace("/?view=reports");</script><meta name="description" content="Report 3–4 RxNorm: khám phá dữ liệu, công thức, kiểm định và biểu đồ có lời giải thích và nguồn dữ liệu.">' +
-        '<title>RxNorm · Report 3 & 4 | PharmaBiz</title>' + STYLE + chart_style + '<style>' + css + common_css + research_css + '</style></head><body class="report-page">' +
+        '<script>if(!new URLSearchParams(location.search).has("detail")&&!location.hash)location.replace("/?view=reports");</script><meta name="description" content="Phân tích thống kê RxNorm: khám phá dữ liệu, công thức, kiểm định và biểu đồ có lời giải thích và nguồn dữ liệu.">' +
+        '<title>RxNorm · Phân tích thống kê | PharmaBiz</title>' + STYLE + chart_style + '<style>' + css + common_css + research_css + '</style></head><body class="report-page">' +
         '<a href="#main" class="skip-link">Đến nội dung</a><header class="topbar"><a class="brand" href="/" aria-label="PharmaBiz trang chủ"><span class="brand-icon">P<span>+</span></span><b>PharmaBiz<small>DATA RESEARCH</small></b></a>' +
-        '<div class="report-switch" role="group" aria-label="Chọn báo cáo"><button data-filter="all" aria-pressed="true">Tất cả</button><button data-filter="3" aria-pressed="false">Report 3</button><button data-filter="4" aria-pressed="false">Report 4</button></div>' +
+        '<div class="report-switch" role="group" aria-label="Chọn báo cáo"><button data-filter="all" aria-pressed="true">Tất cả</button><button data-filter="3" aria-pressed="false">Khảo sát dữ liệu</button><button data-filter="4" aria-pressed="false">Trực quan hóa thống kê</button></div>' +
         '<div class="top-actions"><button class="ui-theme-button" data-ui-theme aria-label="Chuyển giao diện sáng/tối">☾</button><button id="present-toggle" class="primary" aria-pressed="false">Trình chiếu <span>↗</span></button></div></header>' +
-        '<button id="menu-toggle" aria-expanded="false" aria-controls="sidebar">☰ Mục lục</button><aside id="sidebar"><div class="sidebar-title"><span>RXNORM STUDY</span><h1>Hiểu dữ liệu.<br>Đọc bằng chứng.</h1><p>Report 3 & 4</p></div><nav aria-label="Mục lục báo cáo">' + nav +
+        '<button id="menu-toggle" aria-expanded="false" aria-controls="sidebar">☰ Mục lục</button><aside id="sidebar"><div class="sidebar-title"><span>RXNORM STUDY</span><h1>Hiểu dữ liệu.<br>Đọc bằng chứng.</h1><p>Phân tích thống kê</p></div><nav aria-label="Mục lục báo cáo">' + nav +
         '</nav><div class="sidebar-footer"><a href="/?view=overview">← Tổng quan thị trường</a><a href="/disease-lookup.html">Tra cứu bệnh ↗</a><span class="status-dot"></span> Snapshot có nguồn kiểm chứng<br><small>Dữ liệu Silver · RxNorm</small></div></aside>' +
         '<main id="main" tabindex="-1"><div class="page-intro"><div><span class="eyebrow">RXNORM / RESEARCH REPORT</span><p>Khám phá dữ liệu → Trực quan hóa → Mapping</p></div><button id="print-report">In / lưu PDF</button></div>' +
         ''.join(x[3] for x in sections) +
         '<footer class="provenance"><b>Nguồn & phương pháp</b><p>Dữ liệu ' + h(report['source']) + ' · Kết xuất ' + h(report['generated_utc']) +
         '</p><details><summary>Xem SHA-256 và giới hạn phương pháp</summary><p class="hash">' + h(report['source_sha256']) +
         '</p><p>Thống kê mô tả tính trên snapshot sẵn có (phương sai tổng thể, ddof=0). Q1/Q3 nội suy tuyến tính. Biểu đồ dùng bản ghi đủ điều kiện mapping. Không có chuỗi thời gian. Kiểm định mang tính khám phá; không diễn giải nhân quả.</p></details></footer></main>' +
-        '<div class="bottom-controls"><div class="progress-track"><span id="progress-fill"></span></div><div class="bottom-content"><div><span id="current-report">REPORT 3</span><b id="current-title">Bối cảnh & câu hỏi</b></div>' +
+        '<div class="bottom-controls"><div class="progress-track"><span id="progress-fill"></span></div><div class="bottom-content"><div><span id="current-report">KHẢO SÁT DỮ LIỆU</span><b id="current-title">Bối cảnh & câu hỏi</b></div>' +
         '<div class="step-controls"><button id="prev-step" aria-label="Chủ đề trước">← <span>Trước</span></button><output id="step-counter" aria-live="polite">01 / ' + str(len(sections)) + '</output><button id="next-step" aria-label="Chủ đề tiếp theo"><span>Tiếp</span> →</button><button id="fullscreen-toggle" title="Toàn màn hình" aria-label="Toàn màn hình">⛶</button></div></div></div>' +
         '<div id="toast" role="status"></div><script>' + chart_js + ';PharmaCharts.installTooltips();' + js + '</script></body></html>')

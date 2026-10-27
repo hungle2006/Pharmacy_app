@@ -6,10 +6,10 @@ Production: https://pharmacyapp-data.vercel.app/
 
 ## Experience
 
-- Blender-authored GLB capsule with smooth PBR materials, WebGL lighting, orbiting particles and pointer parallax on the introduction screen. Start opens the workspace. Reduced-motion preferences are respected and animation stops when the cover is hidden.
+- Blender-authored GLB capsule with smooth PBR materials, WebGL lighting, orbiting particles and pointer parallax on the introduction screen. The cover has one Start action; Logout returns from the workspace to the 3D introduction. Reduced-motion preferences are respected and animation stops when the cover is hidden.
 - Persistent light/dark theme on both the cover and workspace; higher-contrast readable typography.
 - Database-derived analysis briefs, removable filter chips, 6/12/all-month timeline controls and count/median switching.
-- Responsive dashboard with eight sections: Overview, Pricing, Competition, Portfolio, Data Quality, Business Understanding, Data Understanding, Modeling & Evaluation.
+- Responsive dashboard with thirteen retained tasks for overview, lookup, forecasts, pricing, supply, portfolio, data quality, research goals, integration, statistical profiles, EDA, cleaning and model evaluation.
 - Shared search and filters for ingredient, country, price type and price unit. Chart selections filter the dashboard.
 - SVG charts with accessible labels, interactive tooltips, animations and a presentation layout.
 - Server pagination, 12 observations per page, and CSV export of the current page.
@@ -37,7 +37,7 @@ Grain and definitions:
 - Mapping metrics: full `dav_rxnorm_mapping` table, independently of product filters; accepted/review/FK flags are reported as stored.
 - Source inventory: PostgreSQL row estimates, explicitly marked with `~`. Dashboard KPI use actual aggregation counts.
 
-Catalog size is not sales volume or revenue market share. The Modeling section is a research plan, not a trained forecasting model. The application is for business analytics and does not provide prescribing advice.
+Catalog size is not sales volume or revenue market share. The Modeling section reads the live walk-forward and independent-test report; estimates that do not pass remain explicitly experimental. The application is for business analytics and does not provide prescribing advice.
 
 ## Verification
 
@@ -81,7 +81,7 @@ Tests in `tests/gold-data-pagination.test.js` exercise 2,105 PostgreSQL rows, in
 
 ## Tra cứu thuốc trên PharmaBiz
 
-Mở [PharmaBiz](https://pharmacyapp-data.vercel.app/) rồi chọn **Tra cứu thuốc** ngay ở trang giới thiệu hoặc menu bên trái. Tab **Thuốc Việt Nam** tìm theo tên thuốc, hoạt chất, số đăng ký hoặc nhà sản xuất. Mặc định chỉ dùng dữ liệu DAV hiện tại từ Silver; có thể bỏ chọn để tra cả Gold lịch sử. Mỗi kết quả biểu diễn **một DAV ID** và giá quan sát mới nhất nếu có. Chọn một thuốc để xem hàm lượng, dạng bào chế, thông tin đăng ký, ứng viên RxNorm và bằng chứng thành phần. Tab **RxNorm** tra cứu bằng tên thuật ngữ hoặc RxCUI.
+Mở [PharmaBiz](https://pharmacyapp-data.vercel.app/) nhấn **Start**, rồi chọn **Tra cứu thuốc** trong menu bên trái. Tab **Thuốc Việt Nam** tìm theo tên thuốc, hoạt chất, số đăng ký hoặc nhà sản xuất. Mặc định chỉ dùng dữ liệu DAV hiện tại từ Silver; có thể bỏ chọn để tra cả Gold lịch sử. Mỗi kết quả biểu diễn **một DAV ID** và giá quan sát mới nhất nếu có. Chọn một thuốc để xem hàm lượng, dạng bào chế, thông tin đăng ký, ứng viên RxNorm và bằng chứng thành phần. Tab **RxNorm** tra cứu bằng tên thuật ngữ hoặc RxCUI.
 
 Giao diện hoạt động trực tiếp qua `/api/data?mode=products` và `/api/rxnorm`, có tìm kiếm và phân trang trên toàn bộ Neon Gold; không tạo bản sao, không giới hạn 2.000 dòng. Mọi RxCUI ứng viên chưa xét duyệt được phân biệt rõ với mapping chấp nhận trong Gold. **Không dùng mapping chưa được xác minh để tư vấn điều trị.** Giao diện đáp ứng điện thoại và chế độ sáng/tối; các dashboard phân tích cũ vẫn hoạt động.
 
@@ -110,3 +110,7 @@ A result is counted once per DAV ID. A latest price observation (if any)
 is displayed for convenience. No Gold rows or schema are modified. Source
 mapping and ingredient evidence have not necessarily been clinically
 validated; they do not imply interchangeable medicines or indications.
+
+## Research reading workflow
+
+Each task explains its research question, role in the integrated pharmacy-data system, method, units, source-backed interpretation and next analytical step. The statistical workspace covers all nine Gold tables. Silver terminology inference remains explicitly scoped to its snapshot: Welch comparisons with Holm-adjusted p-values, approximate difference intervals, and a row-normalized TTY-by-length matrix with its independence limitation. The frontend does not rewrite datasets or retrain models.

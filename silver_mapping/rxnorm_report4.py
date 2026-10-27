@@ -1,4 +1,4 @@
-"""Lecture-aligned descriptive statistics and chart rendering for RxNorm Report 4.
+"""Lecture-aligned descriptive statistics and chart rendering for RxNorm Trực quan hóa thống kê.
 
 Course 6.1-6.4: categorical bar/pie, numeric histogram, box plot, scatter.
 No manufactured time series, fitted normal curve, or clinical associations.
@@ -78,7 +78,7 @@ def compute_report4(mapping_ready_csv):
             per_concept[rx][0]+=1
             per_concept[rx][1]+=length
     if not lengths:
-        raise ValueError("Report 4 requires at least one RxNorm term")
+        raise ValueError("Trực quan hóa thống kê requires at least one RxNorm term")
     bins=Counter()
     for length in lengths:
         label=f"{length//10*10}-{length//10*10+9}" if length<100 else "100+"
@@ -242,7 +242,7 @@ def render_sections(d):
         panel(5,"Histogram / Frequency","Số thuật ngữ trên mỗi RxCUI","Biến số đếm → tần suất RxCUI có 1, 2, 3, 4–5, 6–10, 11–20 hoặc ≥21 tên.",svg_bar(d["histogram_terms_per_rxcui"],"Term frequency","bin","count"),f'Có {fmt(d["n_rxcui"])} mã RxCUI; trung bình {chart_number(terms["mean"],2)} thuật ngữ/mã, trung vị {chart_number(terms["median"],1)}.'),
         panel(6,"Scatter plot","Số tên/RxCUI và độ dài tên trung bình","Hai biến định lượng trên mỗi RxCUI; hiển thị mẫu phân tầng có tính minh họa.",svg_scatter(d["scatter_illustrative"]),f'Tương quan Pearson trên TOÀN BỘ {fmt(d["n_rxcui"])} RxCUI = {chart_number(d["pearson_all_rxcui"],4) if d["pearson_all_rxcui"] is not None else "không xác định"}; các điểm chỉ là mẫu {d["scatter_sample_size"]} mã, không khẳng định quan hệ nhân quả.')
     ]
-    return (css+'<section class="r4-start" id="report-4"><div class="r4-overline">Report 4 · Statistical data visualization</div><h2>RxNorm dưới góc nhìn thống kê.</h2><p class="r4-lead">Áp dụng kiến thức Chương 6.1–6.4: thống kê mô tả, biến phân loại / định lượng, phân phối, so sánh, cơ cấu và mối quan hệ. Mỗi biểu đồ dùng dữ liệu RxNorm hiện hành, không dùng dữ liệu mô phỏng.</p></section>'+
+    return (css+'<section class="r4-start" id="report-4"><div class="r4-overline">Trực quan hóa thống kê · Statistical data visualization</div><h2>RxNorm dưới góc nhìn thống kê.</h2><p class="r4-lead">Áp dụng kiến thức Chương 6.1–6.4: thống kê mô tả, biến phân loại / định lượng, phân phối, so sánh, cơ cấu và mối quan hệ. Mỗi biểu đồ dùng dữ liệu RxNorm hiện hành, không dùng dữ liệu mô phỏng.</p></section>'+
             '<section><h2>Thống kê mô tả · Độ dài display_name</h2>'+table+'</section><div class="r4-charts">'+''.join(allpanels)+'</div>'+
             '<div class="r4-note"><strong>Lưu ý phương pháp:</strong> Mean/variance/SD tính theo toàn bộ bản ghi RxNorm hiện có (population, ddof=0). Q1/Q3 dùng nội suy tuyến tính. Box plot dùng whisker đến quan sát xa nhất trong ngưỡng 1.5×IQR. Không có nhiều mốc thời gian nên không tạo line chart diễn biến theo tháng, stacked chart theo thời gian hay suy diễn phân phối chuẩn / T-test. Ứng viên mapping vẫn phải được rà soát chuyên môn.</div>')
 

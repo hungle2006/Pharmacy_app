@@ -1,4 +1,4 @@
-"""Data-grounded verification of lecture-aligned RxNorm Report 4."""
+"""Data-grounded verification of lecture-aligned RxNorm Trực quan hóa thống kê."""
 import csv
 import tempfile
 import unittest
@@ -50,7 +50,7 @@ class Report4Test(unittest.TestCase):
             self.assertEqual(len(stats["scatter_illustrative"]),4)
             self.assertFalse(report["mapping_handoff"]["clinical_verified"])
             view=p.joinpath("eda.html").read_text(encoding="utf-8")
-            for keyword in ("Histogram","Box plot","Scatter plot","Doughnut chart","Standard deviation","Report 4"):
+            for keyword in ("Histogram","Box plot","Scatter plot","Doughnut chart","Standard deviation","Trực quan hóa thống kê"):
                 self.assertIn(keyword,view)
             self.assertIn('CANDIDATE',view) if report["mapping_handoff"].get("mapping_status_distribution") else None
 
