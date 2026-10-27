@@ -31,8 +31,8 @@ const aliases = {
 function rankDisease(row, raw) {
   const query = normalize(raw);
   const q = aliases[query] || query;
-  const vi = normalize(row.disease_name_vi_norm || row.disease_name_vi);
-  const en = normalize(row.disease_name_en_norm || row.disease_name_en);
+  const vi = normalize(row.disease_name_vi || row.disease_name_vi_norm);
+  const en = normalize(row.disease_name_en || row.disease_name_en_norm);
   const code = codeFormat(raw);
   const codeNoDot = code.replace(/\./g,'');
   if (code && (code === row.icd_code || codeNoDot === row.icd_code_nodot)) return 100;
@@ -48,7 +48,13 @@ function rankDisease(row, raw) {
     if (val.startsWith(q+' ')) s+=18;
     else if (val.includes(q)) s+=12;
     if (q.includes(val) && val.length>=6) s+=4;
-    return Math.min(94,s);
+    const extraWords = Math.max(0, tokens.length - words.length);
+    s -= Math.min(9,extraWords*1.2);
+    // Do not promote pregnancy/newborn variants for a generic disease query.
+    for (const qualifier of ['thai ky','tre so sinh']) {
+      if (val.includes(qualifier) && !q.includes(qualifier)) s -= 15;
+    }
+    return Math.max(0,Math.min(94,s));
   };
   return Math.max(score(vi),score(en));
 }
