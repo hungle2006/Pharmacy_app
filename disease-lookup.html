@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Tra cứu mã bệnh ICD-10 gần đúng và khám phá dữ liệu liên quan đến hoạt chất thuốc trên PharmaBiz.">
+<title>Tra cứu bệnh · PharmaBiz</title>
+<style>
+:root{--bg:#f4f7f5;--paper:#fff;--ink:#152927;--muted:#647a73;--border:#dce8e2;--green:#0f8271;--mint:#e8f7f2;--orange:#8a5b24;--soft:#f8faf9;--shadow:0 12px 40px #12392a0b;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1917;--paper:#122421;--ink:#eef9f3;--muted:#afc7bb;--border:#2b4740;--green:#7ddac1;--mint:#193a32;--orange:#e6b373;--soft:#172d28;--shadow:0 10px 36px #0003;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--green);text-decoration:none}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}
+.wrap{max-width:1160px;margin:auto;padding:0 22px}.top{background:var(--paper);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}.top-inner{height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-size:21px;font-weight:900;letter-spacing:-.7px;color:var(--ink)}.brand span{color:var(--green)}.top-links{display:flex;gap:20px;font-size:13px;font-weight:650}.hero{padding:57px 0 27px}.kicker{font-size:11px;letter-spacing:1.6px;color:var(--green);font-weight:900}.hero h1{font-size:clamp(31px,5vw,47px);line-height:1.16;letter-spacing:-1.7px;margin:12px 0}.hero p{max-width:690px;margin:0;color:var(--muted);font-size:16px}
+.search-shell{padding:19px;background:var(--paper);border:1px solid var(--border);border-radius:19px;box-shadow:var(--shadow)}.search-row{display:flex;gap:10px}.searchbox{border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;flex:1;gap:10px;padding:0 16px;background:var(--soft)}.searchbox:focus-within{outline:2px solid var(--green);outline-offset:2px}.searchbox span{font-size:22px;color:var(--green)}.searchbox input{width:100%;border:0;background:transparent;outline:0;padding:16px 0;color:var(--ink);min-width:0}.primary{border:0;border-radius:11px;background:var(--green);color:#fff;font-weight:750;padding:14px 25px}.primary:hover{filter:brightness(1.08)}@media(prefers-color-scheme:dark){.primary{color:#0e251e}}.examples{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:12px;color:var(--muted);font-size:12px}.example{border:1px solid var(--border);background:var(--soft);color:var(--ink);border-radius:999px;padding:5px 12px;font-size:12px}
+.notice{border-radius:11px;border:1px solid var(--border);padding:11px 14px;color:var(--muted);font-size:13px;background:var(--soft);margin-top:16px}.notice strong{color:var(--ink)}.layout{display:grid;grid-template-columns:minmax(0,0.85fr) minmax(0,1.15fr);gap:18px;margin:23px 0 60px;align-items:start}.panel{background:var(--paper);border:1px solid var(--border);border-radius:17px;min-width:0;box-shadow:var(--shadow);overflow:hidden}.panel-head{padding:19px 22px;border-bottom:1px solid var(--border)}.panel-head h2{font-size:17px;margin:0 0 5px}.panel-head p{margin:0;color:var(--muted);font-size:12px}.scroll{max-height:640px;overflow-y:auto}.disease{width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;text-align:left;padding:17px 20px;border:0;border-bottom:1px solid var(--border);background:transparent;color:var(--ink)}.disease:last-child{border-bottom:0}.disease:hover,.disease[aria-selected=true]{background:var(--mint)}.disease[aria-selected=true]{box-shadow:inset 3px 0 0 var(--green)}.disease strong{display:block;font-size:14px;line-height:1.5}.disease small{display:block;color:var(--muted);margin-top:4px}.code{border-radius:7px;background:var(--mint);color:var(--green);padding:4px 8px;font-weight:800;white-space:nowrap;font-size:12px}.empty{padding:30px 22px;text-align:center;color:var(--muted)}.empty b{display:block;color:var(--ink);margin-bottom:6px}.detail{padding:23px}.detail h2{font-size:21px;margin:9px 0}.detail h3{font-size:15px;margin:25px 0 10px}.detail h2+p{color:var(--muted);margin-top:0;font-size:13px}.detail-top{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tag{font-size:11px;font-weight:700;border-radius:20px;color:var(--green);background:var(--mint);padding:5px 10px}.warning{padding:13px 15px;border-radius:10px;background:var(--soft);border:1px solid var(--border);color:var(--muted);font-size:12px;margin:16px 0}.warning strong{color:var(--ink)}.split{display:flex;justify-content:space-between;gap:12px;align-items:center}.count{color:var(--green);font-size:12px;font-weight:800}.meds{display:flex;flex-wrap:wrap;gap:8px}.med{padding:8px 11px;border-radius:8px;border:1px solid var(--border);background:var(--soft);font-size:12px;line-height:1.45;overflow-wrap:anywhere}.med small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.product{border:1px solid var(--border);border-radius:12px;padding:14px 15px;margin:9px 0;background:var(--soft)}.product strong{font-size:14px;display:block}.product p{margin:5px 0 0;color:var(--muted);font-size:12px}.product .code{font-size:10px}.product-top{display:flex;justify-content:space-between;align-items:start;gap:8px}.caution{font-size:12px;color:var(--orange);margin:12px 0 4px}.footer{padding:25px 0 40px;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:760px){.hero{padding-top:30px}.top-links{gap:10px;font-size:11px}.layout{grid-template-columns:1fr}.search-row{flex-direction:column}.primary{width:100%}.detail{padding:17px}.scroll{max-height:330px}.hero h1{letter-spacing:-1px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner wrap"><a class="brand" href="/">pharma<span>biz.</span></a><nav class="top-links"><a href="/">Tổng quan</a><a href="/rxnorm-eda.html#report-4">Báo cáo RxNorm</a></nav></div></header>
+<main class="wrap">
+<section class="hero"><div class="kicker">ICD-10 × MEDI × RXNORM × DAV</div><h1>Tra cứu bệnh <span style="color:var(--green)">thông minh.</span></h1>
+<p>Nhập tên bệnh tiếng Việt có dấu, không dấu, tên tiếng Anh hoặc mã ICD-10. Hệ thống gợi ý các bệnh gần đúng để bạn chọn trước khi xem dữ liệu thuốc liên quan.</p></section>
+<section class="search-shell" aria-label="Tra cứu tên bệnh"><form id="searchForm" class="search-row" role="search">
+<label class="searchbox" for="query"><span aria-hidden="true">⌕</span><input id="query" type="search" maxlength="100" autocomplete="off" placeholder="Ví dụ: viêm phế quản, hen suyen, E11.9..." aria-label="Nhập tên bệnh hoặc mã ICD-10"></label>
+<button class="primary" type="submit">Tra cứu bệnh ↗</button></form>
+<div class="examples">Thử tìm: <button class="example" data-q="viem phe quan">viem phe quan</button><button class="example" data-q="hen suyen">hen suyen</button><button class="example" data-q="tieu duong">tieu duong</button><button class="example" data-q="E11.9">E11.9</button></div></section>
+<div class="notice" role="note"><strong>Gợi ý gần đúng không phải chẩn đoán.</strong> Các bệnh có tên gần nhau có thể có cách điều trị khác nhau. Chọn đúng mã ICD trước khi xem liên kết thuốc.</div>
+<div class="layout">
+<section class="panel" aria-label="Các bệnh phù hợp"><div class="panel-head"><h2>Bệnh phù hợp</h2><p id="searchStatus" role="status" aria-live="polite">Nhập tên bệnh để xem gợi ý từ danh mục ICD-10.</p></div><div id="suggestions" class="scroll"><div class="empty"><b>Bắt đầu bằng tên bệnh</b>Hệ thống hỗ trợ tiếng Việt không dấu và lỗi gõ gần đúng.</div></div></section>
+<section class="panel" aria-label="Dữ liệu thuốc liên quan"><div class="panel-head"><h2>Thông tin liên kết bệnh–thuốc</h2><p>Đối chiếu từ MEDI qua RxNorm và danh mục DAV</p></div><div class="detail" id="detail" aria-live="polite"><div class="empty"><b>Chọn một mã ICD</b>Chưa tìm thuốc khi bệnh chưa được chọn.</div></div></section>
+</div></main>
+<footer class="footer wrap">PharmaBiz · Dữ liệu nghiên cứu, không phải tư vấn điều trị hoặc hệ thống kê đơn.<br>Quan hệ thuốc–bệnh: <a href="https://www.vumc.org/wei-lab/medi" target="_blank" rel="noopener noreferrer">MEDI · Wei Lab (Vanderbilt)</a>. Kiểm tra điều kiện giấy phép CC BY-NC-SA trước khi sử dụng thương mại. Tên bệnh đối chiếu theo ICD Việt Nam và cần xác minh mã khi ra quyết định y tế.</footer>
+<script>
+(function(){
+'use strict';
+const el=id=>document.getElementById(id);
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const state={items:[],selected:'',searchId:0,detailId:0,searchAbort:null,detailAbort:null,timer:null};
+const setStatus=t=>{el('searchStatus').textContent=t;};
+function card(row){
+const active=state.selected===row.icd_code;
+return '<button type="button" class="disease" data-icd="'+esc(row.icd_code)+'" aria-selected="'+active+'"><span><strong>'+esc(row.disease_name_vi||row.disease_name_en||'Không có tên bệnh')+'</strong><small>'+esc(row.disease_name_en||'')+' · '+(row.match_level==='exact'?'Tên/mã trùng khớp':row.match_level==='close'?'Gợi ý gần đúng':'Có thể liên quan')+'</small></span><span class="code">'+esc(row.icd_code)+'</span></button>';
+}
+async function search(){
+const q=el('query').value.trim();
+state.searchAbort&&state.searchAbort.abort();state.detailAbort&&state.detailAbort.abort();
+const id=++state.searchId;state.selected='';state.detailId++;
+el('detail').innerHTML='<div class="empty"><b>Chọn đúng mã bệnh</b>Các kết quả gợi ý chưa tự động xác nhận bệnh.</div>';
+if(q.length<2){state.items=[];el('suggestions').innerHTML='<div class="empty">Nhập ít nhất 2 ký tự.</div>';setStatus('Nhập tên bệnh để tra cứu.');return;}
+const controller=new AbortController();state.searchAbort=controller;setStatus('Đang tìm tên bệnh gần đúng…');
+el('suggestions').innerHTML='<div class="empty">Đang đối chiếu ICD-10…</div>';
+try{
+const response=await fetch('/api/disease-lookup?'+new URLSearchParams({q}),{cache:'no-store',signal:controller.signal});
+const data=await response.json();if(!response.ok)throw Error(data.notice||'Không tải được dữ liệu.');
+if(id!==state.searchId)return;
+state.items=data.suggestions||[];
+setStatus(state.items.length?'Có '+state.items.length+' mã bệnh gợi ý; chọn một mã để xem dữ liệu thuốc.':'Không có tên bệnh phù hợp trong dữ liệu đang có.');
+el('suggestions').innerHTML=state.items.length?state.items.map(card).join(''):'<div class="empty"><b>Chưa tìm thấy mã phù hợp</b>Thử tên đầy đủ hơn, tên tiếng Anh hoặc mã ICD-10.</div>';
+}catch(e){if(controller.signal.aborted||id!==state.searchId)return;setStatus('Không truy vấn được dữ liệu.');el('suggestions').innerHTML='<div class="empty">'+esc(e.message)+'</div>';}
+}
+async function selectDisease(code){
+const disease=state.items.find(x=>x.icd_code===code);if(!disease)return;
+state.selected=code;el('suggestions').innerHTML=state.items.map(card).join('');
+state.detailAbort&&state.detailAbort.abort();const controller=new AbortController();state.detailAbort=controller;const id=++state.detailId;
+el('detail').innerHTML='<div class="empty">Đang đối chiếu MEDI → RxNorm → DAV…</div>';
+try{
+const response=await fetch('/api/disease-lookup?'+new URLSearchParams({icd:code}),{cache:'no-store',signal:controller.signal});
+const data=await response.json();if(!response.ok)throw Error(data.notice||'Không tải được dữ liệu thuốc.');
+if(id!==state.detailId)return;
+const d=data.disease, meds=data.medications||[], products=data.products||[];
+const mediHtml=meds.length?'<div class="meds">'+meds.map(m=>'<div class="med"><b>'+esc(m.drug_description||m.rxnorm_name||'Thuật ngữ chưa có tên')+'</b><small>RxCUI '+esc(m.rxcui)+' · MEDI</small></div>').join('')+'</div>':'<div class="warning">Chưa có quan hệ MEDI–RxNorm khớp đúng mã ICD này trong Gold.</div>';
+const productHtml=products.length?products.map(p=>'<article class="product"><div class="product-top"><strong>'+esc(p.drug_name||'Chưa có tên thuốc')+'</strong><span class="code">DAV</span></div><p><b>Hoạt chất:</b> '+esc(p.ingredient||'Chưa rõ')+'</p><p><b>Hàm lượng / dạng:</b> '+esc([p.strength,p.dosage_form].filter(Boolean).join(' · ')||'Chưa đủ dữ liệu')+'</p><p><b>Số đăng ký:</b> '+esc(p.registration_number||'Chưa có')+'</p><p><b>Nhà sản xuất:</b> '+esc(p.manufacturer||'Chưa có')+'</p><p class="caution">Sản phẩm có liên kết SCD được chấp nhận và chứa hoạt chất có quan hệ dữ liệu MEDI; chưa xác minh chỉ định cho sản phẩm.</p></article>').join(''):'<div class="warning">Chưa có sản phẩm DAV nào đáp ứng đường liên kết RxNorm SCD đã chấp nhận. Không tự tạo thuốc thay thế từ so khớp tên gần đúng.</div>';
+el('detail').innerHTML='<div class="detail-top"><span class="code">'+esc(d.icd_code)+'</span><span class="tag">Đã chọn mã bệnh</span></div>'+
+'<h2>'+esc(d.disease_name_vi||d.disease_name_en)+'</h2><p>'+esc(d.disease_name_en||'')+'</p>'+
+'<div class="warning"><strong>Phạm vi dữ liệu:</strong> Thuốc/hoạt chất dưới đây chỉ có liên quan theo nguồn MEDI. Không phải danh sách thuốc nên dùng, không xác nhận chẩn đoán hay chỉ định điều trị.</div>'+
+'<div class="split"><h3>Hoạt chất / thuật ngữ liên quan</h3><span class="count">'+meds.length+' RxCUI</span></div>'+mediHtml+
+'<div class="split"><h3>Sản phẩm DAV có đường liên kết dữ liệu</h3><span class="count">'+products.length+(products.length===35?'+':'')+' sản phẩm</span></div>'+productHtml+
+'<p class="caution">Một hoạt chất có thể có nhiều chỉ định, chống chỉ định và công thức phối hợp. Việc lựa chọn thuốc phải do nhân viên y tế có chuyên môn đánh giá.</p>';
+}catch(e){if(controller.signal.aborted||id!==state.detailId)return;el('detail').innerHTML='<div class="empty">'+esc(e.message)+'</div>';}
+}
+el('searchForm').addEventListener('submit',event=>{event.preventDefault();clearTimeout(state.timer);search();});
+el('query').addEventListener('input',()=>{clearTimeout(state.timer);state.timer=setTimeout(search,330);});
+el('suggestions').addEventListener('click',event=>{const node=event.target.closest('[data-icd]');if(node)selectDisease(node.dataset.icd);});
+document.querySelectorAll('[data-q]').forEach(button=>button.addEventListener('click',()=>{el('query').value=button.dataset.q;clearTimeout(state.timer);search();}));
+const params=new URLSearchParams(location.search);
+if(params.get('q')){el('query').value=params.get('q').slice(0,100);search();}
+})();
+</script>
+</body></html>
