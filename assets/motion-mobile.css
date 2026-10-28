@@ -10,3 +10,5 @@
 @media(prefers-reduced-motion:reduce){.workspace-page .start-btn,.workspace-page .start-btn::before{animation:none!important}.workspace-page .start-btn span,.workspace-page .cover.entering,.workspace-page .nav-button{transition:none!important}.workspace-page .cover.entering{transform:none}}
 
 .study-body .study-method{margin-top:21px}body:has(#app[hidden]) .mobile-taskbar{display:none!important}
+
+.explore-scale{display:flex;justify-content:space-between;gap:12px;font-size:10px;line-height:1.7;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:7px;margin:12px 0 4px}
