@@ -153,7 +153,7 @@
       (scd?'<div class="lookup-scd"><span>RxCUI · '+esc(scd)+'</span><strong>'+esc(scdName||'Chưa có tên SCD')+'</strong><small>'+esc(p.dose_form_name||'')+'</small></div>':
         '<p class="lookup-muted">Không có mã RxCUI thuốc lâm sàng đủ căn cứ để hiển thị.</p>')+
       (p.ingredient_component_total!==null&&p.ingredient_component_total!==undefined?'<p class="lookup-coverage">Ứng viên hoạt chất: '+fmt(p.ingredient_component_matched)+' / '+fmt(p.ingredient_component_total)+' thành phần</p>':'')+
-      '<h4>Chi tiết bằng chứng thành phần</h4>'+(components||'<p class="lookup-muted">Chưa có dòng bằng chứng thành phần từ Silver.</p>')+
+      PharmaExplore.lookup(d)+'<h4>Chi tiết bằng chứng thành phần</h4>'+(components||'<p class="lookup-muted">Chưa có dòng bằng chứng thành phần từ Silver.</p>')+
       '<p class="lookup-warning">Mã ứng viên chưa được xác minh lâm sàng. Không sử dụng kết quả này để kê đơn hoặc tự điều trị.</p></section>';
     if(raw.catalog_duplicate_status&&raw.catalog_duplicate_status!=='LEGACY_UNRESOLVED')
       details.insertAdjacentHTML('beforeend','<p class="lookup-warning">Sản phẩm cũ đang được đánh dấu nghi trùng với bản Silver; dữ liệu giá và mapping lịch sử chưa bị xóa.</p>');

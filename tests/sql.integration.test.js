@@ -12,9 +12,19 @@ test('PostgreSQL aggregation handles multiple prices, missing prices, filters an
   let q=buildQuery({});let r=(await db.query(q.text,q.params)).rows[0];
   assert.equal(Number(r.summary.products),3);assert.equal(Number(r.summary.observations),5);assert.equal(Number(r.summary.priced),3);assert.equal(Number(r.summary.median),2000);
   assert.equal(Number(r.countries.find(x=>x.name==='Việt Nam').value),2);assert.equal(r.comparable.length,1);assert.equal(Number(r.comparable[0].products),2);assert.equal(Number(r.comparable[0].observations),3);
+  assert.equal(Number(r.coverage.with_price),2);assert.equal(Number(r.coverage.with_dated_price),2);
+  assert.equal(Number(r.coverage.multiple_price_dates),1); // USD row must not create another valid price date.
+  assert.equal(Number(r.coverage.complete_price_rows),3);assert.equal(Number(r.coverage.comparable_price_rows),3);
+  assert.equal(Number(r.coverage.comparison_groups),1);
+  assert.equal(r.missing_patterns.reduce((s,v)=>s+Number(v.value),0),3);
+  assert.equal(Number(r.missing_patterns.find(v=>Number(v.mask)===14).value),1); // Three fields missing on the same product.
+  assert.equal(r.country_form.reduce((s,v)=>s+Number(v.value),0),3);
+  assert.equal(r.maker_sizes.reduce((s,v)=>s+Number(v.makers),0),3);
+  assert.equal(r.price_contexts.reduce((s,v)=>s+Number(v.value),0),3);
   const missing=r.records.find(x=>x.id==='d3');assert.equal(missing.price_vnd,null);
   q=buildQuery({country:'France'});r=(await db.query(q.text,q.params)).rows[0];assert.equal(Number(r.summary.products),1);assert.equal(r.summary.median,null);assert.equal(r.bins.length,0);
   q=buildQuery({country:'Unknown'});r=(await db.query(q.text,q.params)).rows[0];assert.equal(Number(r.summary.products),0);assert.equal(r.records.length,0);
+  assert.equal(Number(r.coverage.products),0);assert.equal(r.missing_patterns.length,0);assert.equal(r.country_form.length,0);
   q=buildQuery({q:"'); DROP TABLE dav_product; --"});r=(await db.query(q.text,q.params)).rows[0];assert.equal(Number(r.summary.products),0);assert.equal(Number((await db.query('SELECT COUNT(*) AS n FROM dav_product')).rows[0].n),3);
   q=buildQuery({page:2});r=(await db.query(q.text,q.params)).rows[0];assert.equal(r.records.length,0);assert.equal(Number(r.summary.products),3);
   q=buildQuery({unit:'Tablet',kind:'declared'});r=(await db.query(q.text,q.params)).rows[0];assert.equal(Number(r.summary.products),2);

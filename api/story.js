@@ -7,6 +7,9 @@ const diseaseQuery=`SELECT COUNT(*) AS total,
  (SELECT COALESCE(NULLIF(TRIM(chapter_code),''),'Chưa phân chương') AS name,COUNT(*) AS value
  FROM public.disease GROUP BY 1) c),'[]') AS chapters FROM public.disease`;
 const mediQuery=`SELECT COUNT(*) AS total,COUNT(DISTINCT rxcui) AS concepts,
+ COUNT(*) FILTER (WHERE code_system='ICD10CM') AS icd10cm,
+ COUNT(*) FILTER (WHERE code_system='ICD10CM' AND disease_icd_code IS NOT NULL) AS with_icd_link,
+ COUNT(*) FILTER (WHERE code_system='ICD10CM' AND disease_icd_code IS NOT NULL AND icd_match_status='EXACT_ICD10_CODE') AS exact_icd_link,
  COUNT(*) FILTER (WHERE disease_icd_code IS NOT NULL AND code_system='ICD10CM'
  AND icd_match_status='EXACT_ICD10_CODE' AND rxnorm_match_status='FOUND_IN_RXNORM_SNAPSHOT') AS eligible,
  COALESCE((SELECT json_agg(c ORDER BY c.value DESC,c.name) FROM

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check assets/presentation.js && node --check assets/drug-lookup.js && node --check assets/scene.js && node --check api/analytics.js && node --check api/data.js && node --check api/rxnorm.js && node --check api/insights.js && node --check src/scene3d.js && node --check api/disease-lookup.js && node --check assets/chart-system.js && node --check assets/data-story.js && node --check api/story.js && node --check assets/task-narratives.js && node --check assets/reports.js && node --check api/report-data.js && node --check assets/task-depth.js && node --check assets/market-forecast.js && node --check assets/research-study.js",
+    "check": "node --check assets/presentation.js && node --check assets/drug-lookup.js && node --check assets/scene.js && node --check api/analytics.js && node --check api/data.js && node --check api/rxnorm.js && node --check api/insights.js && node --check src/scene3d.js && node --check api/disease-lookup.js && node --check assets/chart-system.js && node --check assets/data-story.js && node --check api/story.js && node --check assets/task-narratives.js && node --check assets/reports.js && node --check api/report-data.js && node --check assets/task-depth.js && node --check assets/market-forecast.js && node --check assets/research-study.js && node --check assets/data-exploration.js && node --check assets/motion-mobile.js",
     "build": "esbuild src/scene3d.js --bundle --minify --target=es2020 --outfile=assets/scene3d.js"
   },
   "devDependencies": {

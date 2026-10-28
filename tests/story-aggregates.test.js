@@ -18,6 +18,7 @@ test('story counts different grains separately and eligible MEDI requires the co
   assert.equal(Number(d.total),3);assert.equal(Number(d.named_vi),2);
   assert.deepEqual(d.chapters,[{name:'X',value:2},{name:'Chưa phân chương',value:1}]);
   assert.equal(Number(m.total),5);assert.equal(Number(m.concepts),4);assert.equal(Number(m.eligible),1);
+  assert.equal(Number(m.icd10cm),4);assert.equal(Number(m.with_icd_link),3);assert.equal(Number(m.exact_icd_link),2);
   assert.equal(m.systems.reduce((sum,r)=>sum+r.value,0),Number(m.total));
  }finally{await db.close();}
 });

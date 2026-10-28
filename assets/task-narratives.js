@@ -42,7 +42,7 @@ const stories={
  preparation:['Làm sạch dữ liệu','Từ bản ghi nguồn đến dữ liệu dùng được, cần kiểm tra những gì?','Giữ dữ liệu gốc, chuẩn hóa, kiểm tra thiếu/trùng và giữ trạng thái rà soát.','Gold là đầu ra hiện tại; không suy số dòng đã xóa nếu thiếu thống kê đối chiếu trước–sau.','modeling'],
  modeling:['Mô hình hóa & đánh giá','Mô hình dự báo nào đáng tin hơn cách giữ nguyên giá?','So các thuật toán trên validation theo thời gian, rồi đánh giá test độc lập trước khi công bố.','Mô hình hiện tại dự báo biến động chung theo kỳ hạn, không dự báo giá bán lẻ từng thuốc.','market-forecast']
 };
-function intro(view,data){return PharmaStudy.opening(view);}
+function intro(view,data){return PharmaStudy.opening(view)+PharmaExplore.research(view,{full,rx,links,market,source});}
 
 async function read(url,validate){const response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(45000)});if(!response.ok)throw Error('Nguồn chưa sẵn sàng');const value=await response.json();if(!validate(value))throw Error('Nguồn chưa đúng định dạng');return value;}
 async function loadResearch(force=false){if(researchBusy||researchStarted&&!force)return;researchStarted=true;researchBusy=true;researchError=false;changed();const jobs=[['full','/api/analytics?options=0',v=>v.mode==='database'],['rx','/assets/rxnorm-eda.json',v=>!!v.report_3_eda],['links','/api/story',v=>v.mode==='database']];const outcomes=await Promise.allSettled(jobs.map(async([key,url,valid])=>{const value=await read(url,valid);if(key==='full')full=value;else if(key==='rx')rx=value;else links=value;changed();}));researchError=outcomes.some(r=>r.status==='rejected');researchBusy=false;changed();}

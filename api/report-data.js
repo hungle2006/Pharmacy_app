@@ -27,6 +27,11 @@ function buildProfileQuery(name,columns){
   ctes.push(key+" AS (SELECT COALESCE("+text(column)+",'Chưa có thông tin') AS name,COUNT(*) AS value FROM "+table+' GROUP BY 1)');
   lists.push("COALESCE((SELECT json_agg(g ORDER BY g.value DESC,g.name) FROM "+key+" g),'[]') AS "+key);
  }
+ if(names.has(cfg.category)&&names.has(cfg.secondary)){
+  const cat="COALESCE("+text(cfg.category)+",'Chưa có thông tin')",sec="COALESCE("+text(cfg.secondary)+",'Chưa có thông tin')";
+  ctes.push('cross_distribution AS (SELECT CASE WHEN '+cat+"='Chưa có thông tin' OR "+cat+" IN (SELECT name FROM distribution ORDER BY value DESC,name LIMIT 5) THEN "+cat+" ELSE 'Các nhóm khác' END AS \"row\", CASE WHEN "+sec+"='Chưa có thông tin' OR "+sec+" IN (SELECT name FROM secondary ORDER BY value DESC,name LIMIT 5) THEN "+sec+" ELSE 'Các nhóm khác' END AS \"column\",COUNT(*) AS value FROM "+table+' GROUP BY 1,2)');
+  lists.push("COALESCE((SELECT json_agg(g ORDER BY g.value DESC,g.\"row\",g.\"column\") FROM cross_distribution g),'[]') AS cross_distribution");
+ }
  if(numeric){const bounds=name==='price_record'?[1000,5000,10000,50000,100000]:[20,40,60,100,200];
   ctes.push('bins AS (SELECT CASE '+bounds.map((b,i)=>'WHEN ('+numeric+')<'+b+' THEN '+i+' ').join('')+'ELSE 5 END AS bucket,COUNT(*) AS value FROM '+table+' WHERE ('+numeric+') IS NOT NULL GROUP BY 1)');
   lists.push("COALESCE((SELECT json_agg(b ORDER BY b.bucket) FROM bins b),'[]') AS bins");
@@ -44,7 +49,7 @@ async function handler(req,res){
   const built=buildProfileQuery(name,columns);const [data]=await sql.query(built.text,built.params);const s=data.summary;
   const fields=built.columns.map((c,i)=>({...c,missing:Number(s['m'+i]),unique:Number(s['u'+i])}));
   const stats=built.measure?{field:built.measure,unit:name==='price_record'?'VND theo đơn vị nguồn':'ký tự',n:s.n,mean:s.mean,sd:s.sd,min:s.min,max:s.max,p10:s.p0,q1:s.p1,median:s.p2,q3:s.p3,p90:s.p4}:null;
-  return res.status(200).json({mode:'database',table:name,...catalog[name],catalog:Object.entries(catalog).map(([key,c])=>({key,label:c.label,grain:c.grain})),total:Number(s.total),fields,stats,distribution:data.distribution,secondaryDistribution:data.secondary,bins:data.bins||[],timeline:data.timeline||[],categoryField:built.category,secondaryField:built.secondary,refreshedAt:new Date().toISOString(),source:'Neon Gold · public.'+name,countType:'exact',notice:'Mỗi bảng được tổng hợp bằng một truy vấn SQL, không lấy mẫu; thiếu = NULL hoặc chuỗi rỗng sau TRIM. Unique bỏ giá trị thiếu. Không phải báo cáo số dòng đã xóa trong quá khứ.'});
+  return res.status(200).json({mode:'database',table:name,...catalog[name],catalog:Object.entries(catalog).map(([key,c])=>({key,label:c.label,grain:c.grain})),total:Number(s.total),fields,stats,distribution:data.distribution,secondaryDistribution:data.secondary,crossDistribution:data.cross_distribution||[],bins:data.bins||[],timeline:data.timeline||[],categoryField:built.category,secondaryField:built.secondary,refreshedAt:new Date().toISOString(),source:'Neon Gold · public.'+name,countType:'exact',notice:'Mỗi bảng được tổng hợp bằng một truy vấn SQL, không lấy mẫu; thiếu = NULL hoặc chuỗi rỗng sau TRIM. Unique bỏ giá trị thiếu. Không phải báo cáo số dòng đã xóa trong quá khứ.'});
  }catch(e){console.error('Report profile failed',name,e.name);return res.status(503).json({error:'PROFILE_UNAVAILABLE',table:name});}
 }
 module.exports=handler;module.exports.catalog=catalog;module.exports.buildProfileQuery=buildProfileQuery;

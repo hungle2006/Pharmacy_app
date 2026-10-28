@@ -17,6 +17,12 @@ test('report statistics preserve all rows while numeric price statistics exclude
   const {text,params}=buildProfileQuery('price_record',cols);const r=(await db.query(text,params)).rows[0];
   assert.equal(Number(r.summary.total),6);assert.equal(Number(r.summary.n),3);assert.equal(Number(r.summary.mean),4000/3);assert.equal(Number(r.summary.p2),1000);assert.equal(Number(r.summary.m2),1);
   assert.equal(r.distribution.reduce((s,r)=>s+Number(r.value),0),6);assert.equal(r.bins.reduce((s,r)=>s+Number(r.value),0),3);assert.equal(r.timeline.reduce((s,r)=>s+Number(r.value),0),2);
+  assert.equal(r.cross_distribution.reduce((sum,row)=>sum+Number(row.value),0),6);
+  assert.ok(r.cross_distribution.some(row=>row.column==='Chưa có thông tin'&&Number(row.value)===1));
+  await db.exec("INSERT INTO price_record(unit,price_type) SELECT 'unit-'||u,'C' FROM generate_series(1,6) u CROSS JOIN generate_series(1,3) n;");
+  const rareMissing=(await db.query(text,params)).rows[0];
+  assert.equal(rareMissing.cross_distribution.reduce((sum,row)=>sum+Number(row.value),0),24);
+  assert.ok(rareMissing.cross_distribution.some(row=>row.column==='Chưa có thông tin'&&Number(row.value)===1),'rare missing values stay visible outside the five largest groups');
  }finally{await db.close();}
 });
 test('empty table has zero counts and unavailable numeric statistics, never fabricated zero prices',async()=>{
