@@ -26,6 +26,9 @@
     },
     "api/report-data.js": {
       "maxDuration": 60
+    },
+    "api/feature-price.js": {
+      "maxDuration": 60
     }
   },
   "buildCommand": "npm run build",

@@ -41,12 +41,12 @@ class FeatureInput(BaseModel):
     model_config=ConfigDict(extra='forbid',str_strip_whitespace=True)
     price_type:str=Field(min_length=1,max_length=200)
     unit:str=Field(min_length=1,max_length=100)
-    ingredient:str=Field(min_length=1,max_length=240)
-    strength:str=Field(default='',max_length=240)
-    dosage_form:str=Field(default='',max_length=240)
-    manufacturer:str=Field(default='',max_length=240)
-    country:str=Field(default='',max_length=240)
-    package:str=Field(default='',max_length=240)
+    ingredient:str=Field(min_length=1,max_length=2048)
+    strength:str=Field(default='',max_length=2048)
+    dosage_form:str=Field(default='',max_length=2048)
+    manufacturer:str=Field(default='',max_length=2048)
+    country:str=Field(default='',max_length=2048)
+    package:str=Field(default='',max_length=2048)
 
 @app.get('/feature-price/report')
 def feature_report():
