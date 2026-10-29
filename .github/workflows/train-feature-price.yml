@@ -1,0 +1,60 @@
+name: Train Feature Price Estimator
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'ml_price/feature_*.py'
+      - 'ml_price/upload_features.py'
+      - 'ml_price/tests/test_feature_price.py'
+      - '.github/workflows/train-feature-price.yml'
+permissions:
+  contents: read
+concurrency:
+  group: pharmacy-feature-price
+  cancel-in-progress: false
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: ml_price/requirements-train.txt
+      - run: python -m pip install -r ml_price/requirements-train.txt
+      - name: Verify independent splits, calibration and inference
+        run: python -m unittest ml_price.tests.test_feature_price -v
+      - name: Train and test on actual Neon Gold
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.NEON_DATABASE_URL }}
+        run: python -m ml_price.feature_price
+      - name: Summarize held-out test results
+        run: |
+          python - <<'PY'
+          import os,json
+          from pathlib import Path
+          r=json.loads(Path('models/features/report.json').read_text())
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('## Feature price estimation: actual Gold holdout\n\n')
+              f.write('| Unit | Status | Unique products | Test | MAE VND | Baseline MAE | Gain % | 90% interval coverage % |\n|---|---|---:|---:|---:|---:|---:|---:|\n')
+              for e in r['segments']:
+                  if 'metrics' in e:
+                      f.write(f"|{e['unit']}|{e['status']}|{e['n_clean']}|{e['n_test']}|{e['metrics']['mae_vnd']}|{e['baseline_metrics']['mae_vnd']}|{e['test_gain_pct']}|{e['interval']['test_coverage_pct']}|\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: feature-price-evaluation-${{ github.run_number }}
+          path: models/features/report.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Publish feature models and full evaluation to private R2
+        env:
+          ML_R2_ENDPOINT: ${{ secrets.ML_R2_ENDPOINT || secrets.R2_ENDPOINT }}
+          ML_R2_BUCKET: ${{ secrets.ML_R2_BUCKET || secrets.R2_BUCKET }}
+          ML_R2_ACCESS_KEY_ID: ${{ secrets.ML_R2_ACCESS_KEY_ID || secrets.R2_ACCESS_KEY_ID }}
+          ML_R2_SECRET_ACCESS_KEY: ${{ secrets.ML_R2_SECRET_ACCESS_KEY || secrets.R2_SECRET_ACCESS_KEY }}
+        run: python -m ml_price.upload_features

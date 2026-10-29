@@ -29,3 +29,40 @@ def market_forecast():
     if store.report is None:
         raise HTTPException(status_code=503,detail="MARKET_REPORT_NOT_READY")
     return store.report
+
+# Additive feature-based price estimation. Market forecasts retain their API.
+import hmac
+import os
+from fastapi import Header
+from pydantic import BaseModel, Field, ConfigDict
+from ml_price.feature_store import feature_store
+
+class FeatureInput(BaseModel):
+    model_config=ConfigDict(extra='forbid',str_strip_whitespace=True)
+    price_type:str=Field(min_length=1,max_length=200)
+    unit:str=Field(min_length=1,max_length=100)
+    ingredient:str=Field(min_length=1,max_length=240)
+    strength:str=Field(default='',max_length=240)
+    dosage_form:str=Field(default='',max_length=240)
+    manufacturer:str=Field(default='',max_length=240)
+    country:str=Field(default='',max_length=240)
+    package:str=Field(default='',max_length=240)
+
+@app.get('/feature-price/report')
+def feature_report():
+    feature_store.refresh()
+    if feature_store.report is None:raise HTTPException(503,detail='FEATURE_REPORT_NOT_READY')
+    return feature_store.report
+
+@app.post('/feature-price/predict')
+def feature_predict(payload:FeatureInput,x_api_key:str=Header(default='')):
+    expected=os.getenv('ML_API_KEY','')
+    if not expected:raise HTTPException(503,detail='FEATURE_AUTH_NOT_CONFIGURED')
+    if not hmac.compare_digest(expected,x_api_key):raise HTTPException(401,detail='UNAUTHORIZED')
+    try:
+        return feature_store.predict(payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(422,detail=str(exc)) from None
+    except Exception as exc:
+        print('Feature prediction unavailable:',type(exc).__name__,flush=True)
+        raise HTTPException(503,detail='FEATURE_MODEL_UNAVAILABLE') from None
