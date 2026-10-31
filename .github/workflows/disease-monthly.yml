@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: Train again even if Parquet content is unchanged
+        description: Force an additional run even if this month already completed
         type: boolean
         default: false
       approve_new_benchmark:

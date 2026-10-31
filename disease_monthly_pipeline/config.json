@@ -3,12 +3,15 @@
   "model_repo": "leminhhung0101/disease_model",
   "base_model": "FacebookAI/xlm-roberta-base",
   "benchmark_version": "v1",
-  "parquet_patterns": ["*.parquet", "**/*.parquet"],
-  "skip_unchanged": true,
+  "parquet_patterns": [
+    "*.parquet",
+    "**/*.parquet"
+  ],
+  "skip_unchanged": false,
   "epochs": 3,
   "batch_size": 8,
   "max_length": 256,
-  "learning_rate": 0.00002,
+  "learning_rate": 2e-05,
   "minimum_validation_macro_f1": 0.0,
   "promotion_tolerance": 0.0
 }

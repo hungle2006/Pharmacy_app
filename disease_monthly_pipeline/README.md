@@ -19,7 +19,7 @@ GitHub Actions có lịch **09:17 ngày 1 mỗi tháng, giờ Việt Nam** (`17 
 7. Upload model hoàn chỉnh, tokenizer, metrics và manifest vào `versions/<run_id>/` của model repo. Chỉ cập nhật `deployment.json` sau khi validation đạt ngưỡng cấu hình và không kém model hiện hành trên cùng benchmark. Không dùng test để chọn model.
 8. API dự đoán nạp artifact theo commit SHA cố định trong pointer. Có thể gọi Render Deploy Hook sau promotion; với chế độ proxy, model mới cũng tự được Modal nạp sau tối đa khoảng 60 giây, không bắt buộc redeploy Render.
 
-**Không có Parquet thay đổi:** mặc định kiểm tra hàng tháng nhưng bỏ qua GPU, tránh train lặp tốn phí. Chọn `force` trong Run workflow nếu chủ động muốn train lại. Lịch không tự tải dữ liệu mới từ nguồn bên ngoài; bạn cần thêm/cập nhật Parquet trong `disease_data`.
+**Mặc định mỗi tháng tạo một lần train mới**, kể cả Parquet chưa đổi, đúng lịch cập nhật model bạn yêu cầu. File không đổi được lấy từ cache. Lần gọi lặp trong cùng tháng với cùng dữ liệu/cấu hình sẽ bỏ qua; chọn `force` để chủ động chạy thêm. Nếu muốn chỉ train khi dữ liệu đổi để tiết kiệm, đặt `skip_unchanged=true` trong config. Lịch không tự tải dữ liệu mới từ nguồn bên ngoài; bạn cần thêm/cập nhật Parquet trong `disease_data`.
 
 ## Bố trí mã trong GitHub
 

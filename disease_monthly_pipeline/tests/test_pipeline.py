@@ -110,3 +110,18 @@ def test_publish_artifact_before_atomic_pointer_and_exclude_pickle(tmp_path,monk
  assert calls[1]['parent_commit']=='c'*40
  pointer=json.loads((tmp_path/'deployment.json').read_text())
  assert pointer['artifact_revision']=='a'*40
+
+def test_monthly_retrain_but_no_duplicate_same_month(tmp_path,monkeypatch):
+ import pipeline
+ rows=fixture_rows();write(tmp_path/'base.parquet',rows)
+ cfg={'dataset_repo':'owner/data','model_repo':'owner/model','base_model':'base','benchmark_version':'v1','skip_unchanged':False}
+ monkeypatch.setattr(pipeline,'config',lambda:cfg)
+ monkeypatch.setattr(pipeline,'snapshot_dataset',lambda *a:(tmp_path,['base.parquet'],{'dataset_revision':'sha','data_fingerprint':'fp','files':[]}))
+ monkeypatch.setattr(pipeline,'read_pointer',lambda *a:None)
+ monkeypatch.setattr(pipeline,'month',lambda:'2026-10')
+ first=pipeline.prepare_run(tmp_path/'storage')
+ (tmp_path/'storage/last_processed.json').write_text(json.dumps({'signature':first['signature'],'period':'2026-10'}))
+ assert pipeline.prepare_run(tmp_path/'storage')['status']=='skipped_completed_this_month'
+ monkeypatch.setattr(pipeline,'month',lambda:'2026-11')
+ next_month=pipeline.prepare_run(tmp_path/'storage')
+ assert next_month['status']=='prepared' and next_month['run_id']!=first['run_id']
