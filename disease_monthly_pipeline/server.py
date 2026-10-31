@@ -23,6 +23,17 @@ class Input(BaseModel):
  top_k:int=Field(default=5,ge=1,le=10)
 @app.get('/health')
 async def health():return {'status':'ok','backend':backend(),'scope':'process health; model is loaded on first authenticated prediction'}
+@app.get('/report',dependencies=[Depends(authorized)])
+async def report():
+ try:
+  if backend()=='modal':
+   import modal
+   fn=modal.Function.from_name(os.getenv('MODAL_APP_NAME','disease-monthly-pipeline'),'report')
+   return await asyncio.wait_for(fn.remote.aio(),timeout=45)
+  from model_report import get_report
+  return await asyncio.to_thread(get_report)
+ except asyncio.TimeoutError:raise HTTPException(504,'Report timed out; retry later')
+ except Exception:raise HTTPException(503,'Report unavailable')
 @app.post('/predict',dependencies=[Depends(authorized)])
 async def predict(body:Input):
  try:

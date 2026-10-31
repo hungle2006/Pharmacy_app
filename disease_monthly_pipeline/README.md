@@ -130,3 +130,8 @@ python -m pytest -q tests
 ```
 
 Đã kiểm tra nhiều shard, trùng dữ liệu, holdout cố định, ngăn chuyển train sang test, bỏ QA thiếu nhãn, snapshot pin commit, promotion theo validation, API key và proxy. Blueprint được kiểm tra JSON Schema hiện hành; cần Render CLI/API validation khi đã có repo/workspace và quyền truy cập. Chưa chạy job GPU, chưa ghi model HF, chưa tạo Render service nếu chưa cấu hình secrets và xác nhận workspace.
+
+
+## Pharmacy dashboard integration
+
+The dashboard now includes `/?view=disease-predict` and a Transformer tab under Modeling & Evaluation. See `../DISEASE_TASK_SETUP.md` for the complete deployment sequence and environment mapping. Vercel uses server-only `DISEASE_API_URL` and `DISEASE_API_KEY` to proxy this API; keep the price service variables unchanged. The authenticated `/report` route reads only the promoted release metrics via the lightweight Modal `report` function, without loading model weights. Redeploy both Modal and Render after adding this function.

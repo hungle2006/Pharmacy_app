@@ -6,7 +6,7 @@ app=modal.App('disease-monthly-pipeline')
 volume=modal.Volume.from_name('disease-monthly-storage',create_if_missing=True,version=2)
 secrets=[modal.Secret.from_name('disease-training')]
 locks=modal.Dict.from_name('disease-monthly-locks',create_if_missing=True)
-source=['config.json','data_pipeline.py','prepare_train_ready.py','release.py','pipeline.py','train.py','inference.py']
+source=['config.json','data_pipeline.py','prepare_train_ready.py','release.py','pipeline.py','train.py','inference.py','model_report.py']
 image=modal.Image.debian_slim(python_version='3.11').pip_install_from_requirements(str(ROOT/'requirements-train.txt'))
 for name in source:image=image.add_local_file(str(ROOT/name),'/app/'+name)
 
@@ -61,3 +61,9 @@ def predict(text,top_k=5):
  environment()
  from inference import predict_text
  return predict_text(text,top_k)
+
+@app.function(image=image,cpu=.125,memory=512,timeout=120,max_containers=2,volumes={'/storage':volume},secrets=secrets)
+def report():
+ environment()
+ from model_report import get_report
+ return get_report()

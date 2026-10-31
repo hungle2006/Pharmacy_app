@@ -16,6 +16,8 @@
     LEGACY_ACCEPTED_MAPPING_NO_NEW_CANDIDATE:'Mapping được chấp nhận từ dữ liệu cũ, chưa có ứng viên Silver mới',
     LEGACY_SCD_ID_RESOLVED_NAME_ONLY:'Đã tra được tên SCD từ mã cũ; chưa xác minh quan hệ lâm sàng'
   };
+  const initialQuery=(new URLSearchParams(location.search).get('q')||'').slice(0,200);
+  if(initialQuery)$('lookup-search').value=initialQuery;
   const state={active:false,mode:'dav',page:1,size:20,query:'',items:[],total:0,totalPages:0,selection:null,controller:null,detailController:null,requestId:0,detailRequestId:0,loaded:false,debounce:null};
   const results=$('lookup-results'),details=$('lookup-details'),message=$('lookup-message');
   const status=(messageText,kind='normal')=>{
@@ -330,3 +332,4 @@
   });
   document.addEventListener('pharmabiz:lookup-refresh',()=>{state.page=1;search();});
 })();
+

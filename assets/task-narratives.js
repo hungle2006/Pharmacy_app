@@ -87,8 +87,8 @@ function marketModeling(){
 }
 let modelingFamily='features';
 function modeling(){
- const tabs='<div class="task-tabs fp-model-tabs" role="group" aria-label="Bài toán mô hình hóa"><button data-model-family="features" aria-pressed="'+(modelingFamily==='features')+'">Giá theo đặc trưng thuốc</button><button data-model-family="market" aria-pressed="'+(modelingFamily==='market')+'">Biến động thị trường · 3/6/12 tháng</button></div>';
- return tabs+(modelingFamily==='features'?PharmaFeaturePrice.evaluation():marketModeling()+PharmaDepth.research('modeling',{full,rx,links,market})+PharmaStudy.interpretation('modeling',{full,rx,links,market}));
+ const tabs='<div class="task-tabs fp-model-tabs" role="group" aria-label="Bài toán mô hình hóa"><button data-model-family="features" aria-pressed="'+(modelingFamily==='features')+'">Giá theo đặc trưng thuốc</button><button data-model-family="disease" aria-pressed="'+(modelingFamily==='disease')+'">Nhận diện nhãn bệnh · Transformer</button><button data-model-family="market" aria-pressed="'+(modelingFamily==='market')+'">Biến động thị trường · 3/6/12 tháng</button></div>';
+ return tabs+(modelingFamily==='disease'?PharmaDisease.evaluation():modelingFamily==='features'?PharmaFeaturePrice.evaluation():marketModeling()+PharmaDepth.research('modeling',{full,rx,links,market})+PharmaStudy.interpretation('modeling',{full,rx,links,market}));
 }
 function render(view){if(view==='modeling')return modeling();if(view==='reports')return PharmaReports.render();const body=view==='business'?business():view==='workflow'?workflow():view==='eda'?eda():view==='preparation'?preparation():view==='modeling'?modeling():'';return body+PharmaDepth.research(view,{full,rx,links,market})+PharmaStudy.interpretation(view,{full,rx,links,market,edaSource:source})+(view==='eda'&&source==='rxnorm'&&rx?PharmaStudy.inference(rx):'');}
 function decorate(view,data){
@@ -101,3 +101,4 @@ document.addEventListener('pharmabiz:market-report',e=>{if(e.detail?.kind==='dav
 function refresh(view){if(view==='reports'){PharmaReports.load(true);return;}if(view==='modeling')loadModel(true);else if(['business','workflow','eda','preparation'].includes(view))loadResearch(true);}
 window.PharmaTasks=Object.freeze({intro,render,decorate,load,refresh});
 })();
+
