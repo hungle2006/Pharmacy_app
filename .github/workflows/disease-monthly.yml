@@ -1,0 +1,66 @@
+name: Disease model - monthly refresh
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Force an additional run even if this month already completed
+        type: boolean
+        default: false
+      approve_new_benchmark:
+        description: Explicitly allow promoting a model evaluated on a new benchmark version
+        type: boolean
+        default: false
+  schedule:
+    # 09:17 Vietnam time, day 1 of every month. GitHub schedules are best effort.
+    - cron: '17 2 1 * *'
+permissions:
+  contents: read
+concurrency:
+  group: disease-monthly-submit
+  cancel-in-progress: false
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: disease_monthly_pipeline
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_ENVIRONMENT: main
+      FORCE_TRAIN: ${{ inputs.force || false }}
+      APPROVE_BENCHMARK: ${{ inputs.approve_new_benchmark || false }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install submission client
+        run: pip install 'modal>=1.2,<2'
+      - name: Validate authentication settings
+        run: |
+          python - <<'PY'
+          import os
+          for name in ('MODAL_TOKEN_ID', 'MODAL_TOKEN_SECRET'):
+              if not os.environ.get(name):
+                  raise SystemExit('Missing GitHub Actions secret: ' + name)
+          PY
+      - name: Deploy current Modal application code
+        run: modal deploy modal_app.py
+      - name: Submit detached training job
+        run: |
+          python - <<'PY'
+          import os, subprocess, sys
+          args = [sys.executable, 'scripts/submit.py']
+          if os.environ['FORCE_TRAIN'].lower() == 'true':
+              args.append('--force')
+          if os.environ['APPROVE_BENCHMARK'].lower() == 'true':
+              args.append('--approve-new-benchmark')
+          subprocess.run(args, check=True)
+          PY
+      - name: Save Modal job reference
+        uses: actions/upload-artifact@v4
+        with:
+          name: disease-modal-submission
+          path: disease_monthly_pipeline/submission.json
