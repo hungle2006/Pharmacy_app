@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: pharmacy-disease-monthly-api
+    runtime: python
+    plan: free
+    rootDir: disease_monthly_pipeline
+    buildCommand: pip install -r requirements-api.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /health
+    autoDeployTrigger: 'off'
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: INFERENCE_BACKEND
+        value: modal
+      - key: MODAL_APP_NAME
+        value: disease-monthly-pipeline
+      - key: MODAL_TOKEN_ID
+        sync: false
+      - key: MODAL_TOKEN_SECRET
+        sync: false
+      - key: API_KEY
+        generateValue: true
