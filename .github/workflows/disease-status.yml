@@ -19,7 +19,7 @@ jobs:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
       MODAL_ENVIRONMENT: main
-      CALL_IDS: ${{ inputs.call_ids || 'fc-01M6B41SZVKSNYM5CNWDE65F3Q' }}
+      CALL_IDS: ${{ inputs.call_ids || 'fc-01M6B4E4WTB9JM4G8Y2VFSV20Q' }}
     steps:
       - uses: actions/setup-python@v5
         with:
