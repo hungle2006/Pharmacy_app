@@ -55,3 +55,13 @@ và chính sách riêng có trong SOURCE_NOTICES.md và từng bản ghi.
 CI kiểm tra ranh giới mục, tên trang đổi, đoạn có dấu quyền bên thứ ba, nhãn mơ
 hồ, quota, giữ nguyên holdout, chống trùng và giữ một nhóm/URL qua các lần chạy.
 Không hứa accuracy tăng từ số lượng trang: phải đo model trên benchmark cố định.
+
+## Khi website tạm thời không truy cập được
+
+Mỗi URL có bản trích đã kiểm tra kèm SHA256 và thời điểm lấy, được lưu trong cấu
+hình. Luôn thử HTTP và robots trước. Với lỗi HTTP/kết nối, dùng bản lấy thành công
+gần nhất hoặc bản đã duyệt; ghi retrieval_mode và giữ lỗi gốc trong báo cáo.
+sources_ok chỉ đếm nguồn lấy trực tiếp, sources_with_content tính cả bản lưu.
+Không gọi bản lưu là nội dung vừa crawl. Bản lưu quá 31 ngày chỉ làm tham chiếu,
+không thêm vào train. Không fallback khi robots cấm, tiêu đề đổi hoặc có dấu quyền
+bên thứ ba. Lượt sau tiếp tục thử lấy trực tiếp; một URL vẫn chỉ là một nhóm.
