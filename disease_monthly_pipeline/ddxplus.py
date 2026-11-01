@@ -26,7 +26,9 @@ def download(spec,cache):
     size+=len(block)
     if size>spec['max_bytes']:raise ValueError('DDXPlus download exceeds reviewed limit')
     output.write(block)
-  if sha256(temp)!=spec['sha256']:raise ValueError('DDXPlus checksum changed')
+  if sha256(temp)!=spec['sha256']:
+   md5=hashlib.md5(temp.read_bytes()).hexdigest()
+   raise ValueError('DDXPlus checksum changed: '+spec['name']+' bytes='+str(size)+' sha256='+sha256(temp)+' md5='+md5)
   temp.replace(path)
  finally:temp.unlink(missing_ok=True)
  return path
