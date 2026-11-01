@@ -1,0 +1,24 @@
+{
+  "dataset_repo": "leminhhung0101/disease_data",
+  "dataset_revision": "be8528e6ffcd2a5d46a41db373599934580ca16d",
+  "dataset_sha256": "000a5602b0339fcb302528cf41f5ecc195ccdbb79ec8aeb273f56bc769953139",
+  "rows": 157665,
+  "train_rows": 126131,
+  "method": "Fixed TF-IDF word unigrams/bigrams max_features=30000, min_df=2, sublinear_tf=True, float32; MultinomialNB alpha=0.5; no parameter search. Vocabulary and classifier trained on TRAIN only.",
+  "validation": {
+    "n": 15767,
+    "accuracy": 0.3774973044967337,
+    "macro_f1": 0.3168689955734233
+  },
+  "test": {
+    "n": 15767,
+    "accuracy": 0.37940001268472123,
+    "macro_f1": 0.3175943828685379
+  },
+  "transformer_reference": {
+    "run": "run-2026-10-d181adb8a2d980c13390",
+    "test_accuracy": 0.1615399251601446,
+    "test_macro_f1": 0.08580288601130368
+  },
+  "note": "Measured on original pre-enrichment frozen split. This is not a post-enrichment Transformer score or clinical validation."
+}
