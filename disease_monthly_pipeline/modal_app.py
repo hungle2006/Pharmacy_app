@@ -78,6 +78,10 @@ def refresh_dataset():
  try:
   from enrichment import run
   return run('/storage',publish=True)
+ except Exception as error:
+  import traceback
+  frames=[{'file':Path(f.filename).name,'line':f.lineno,'function':f.name} for f in traceback.extract_tb(error.__traceback__) if Path(f.filename).name in ['enrichment.py','data_pipeline.py','modal_app.py']]
+  return {'status':'failed','error_type':type(error).__name__,'error_frames':frames}
  finally:
   volume.commit()
   if locks.get('active',{}).get('token')==token:locks.pop('active',None)

@@ -37,9 +37,12 @@ jobs:
           import modal,json
           try:
               result=modal.Function.from_name('disease-monthly-pipeline','refresh_dataset').remote()
-          except Exception:
+          except Exception as error:
+              print('Modal call error type:',type(error).__name__)
               raise SystemExit('Dataset refresh failed. Inspect Modal logs privately.') from None
-          print(json.dumps({k:result[k] for k in ['status','statistics','rows_before','rows_after','added_by_label','discovery_enabled','commit'] if k in result},ensure_ascii=False))
+          print(json.dumps({k:result[k] for k in ['status','statistics','rows_before','rows_after','added_by_label','discovery_enabled','commit','error_type','error_frames'] if k in result},ensure_ascii=False))
+          if result.get('status')=='failed':
+              raise SystemExit('Refresh failed; see sanitized error type and source line above.')
           if result.get('status')=='already_running':
               raise SystemExit('Another pipeline holds the lock; retry after that job completes.')
           PY
