@@ -42,8 +42,7 @@ GitHub giữ lịch tháng hiện hữu; cùng chu kỳ refresh → validate →
 một master Parquet → train → evaluate → promotion có điều kiện.
 Hugging Face giữ lịch sử phiên bản. Không sinh nhiều train shard.
 Thay manifest/config làm đổi signature để chạy lại trong cùng tháng.
-Một distributed lock ngăn refresh và GPU train chồng nhau. Yêu cầu cập nhật
-mới chờ tối đa 30 phút; hết thời gian cần chạy lại workflow, không xóa lock.
+Khóa dataset_refresh chỉ bảo vệ ghi master và cache nguồn; khóa active bảo vệ\nlượt pipeline/GPU. Model đang train đọc snapshot đã pin, nên có thể xuất bản\nmaster mới trong lúc train mà không thay đổi đầu vào của lượt đang chạy.\nprepare_data gọi cùng hàm refresh_dataset để mọi writer dùng chung khóa.\nYêu cầu train mới xếp hàng, không khởi tạo GPU thứ hai; nếu gặp khóa ngoài\nhàng chờ thì chờ tối đa 30 phút, không tự xóa khóa.
 operations_status cung cấp trạng thái gần nhất, không trả token hoặc symptom text.
 
 Ngưỡng promotion validation Macro-F1 0,20 chỉ là ngưỡng kỹ thuật của dự án;
