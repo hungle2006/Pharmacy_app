@@ -45,7 +45,9 @@ def read_rows(root,files):
      if split in ['validation','test']:raise ValueError('A supplied holdout fails input quality checks; repair or version the benchmark explicitly')
      stats['invalid_or_target_named_rows_skipped']+=1;continue
     k=key(label);aliases.setdefault(k,label)
-    q=text_hash(text);rows.append({'text':text,'label_key':k,'language':lang,'split':split,'group_id':r.get('group_id') or r.get('input_group_id') or q,'record_id':q,'source_files':[name]})
+    provenance={k:r.get(k) if isinstance(r.get(k),str) else None for k in ['source_kind','source_url','source_sha256','label_method','reuse_notice','reuse_policy_url','retrieved_at']}
+    source_files=r.get('source_files');source_files=source_files if isinstance(source_files,list) and all(isinstance(v,str) for v in source_files) else [name]
+    q=text_hash(text);rows.append({'text':text,'label_key':k,'language':lang,'split':split,'group_id':r.get('group_id') or r.get('input_group_id') or q,'record_id':q,'source_files':source_files,**provenance})
  # Exact same input across files is one observation. Preserve split annotations and reject conflicting holdouts.
  grouped=collections.defaultdict(list)
  for r in rows:grouped[r['record_id']].append(r)
@@ -59,7 +61,7 @@ def read_rows(root,files):
   r=items[0];r['split']=next(iter(splits),None);r['source_files']=sorted({f for i in items for f in i['source_files']});out.append(r);stats['duplicate_occurrences_merged']+=len(items)-1
  return out,aliases,dict(stats)
 def _write_ready(rows,path):
- schema=pa.schema([('record_id',pa.string()),('text',pa.string()),('label',pa.string()),('label_id',pa.int32()),('language',pa.string()),('source_files',pa.list_(pa.string())),('group_id',pa.string()),('split',pa.string())])
+ schema=pa.schema([('record_id',pa.string()),('text',pa.string()),('label',pa.string()),('label_id',pa.int32()),('language',pa.string()),('source_files',pa.list_(pa.string())),('group_id',pa.string()),('split',pa.string())]+[(k,pa.string()) for k in ['source_kind','source_url','source_sha256','label_method','reuse_notice','reuse_policy_url','retrieved_at']])
  pq.write_table(pa.Table.from_pylist(rows,schema=schema),path,compression='zstd')
 def prepare(root,files,state_dir,out):
  state_dir=Path(state_dir);out=Path(out);state_dir.mkdir(parents=True,exist_ok=True);out.mkdir(parents=True,exist_ok=True)

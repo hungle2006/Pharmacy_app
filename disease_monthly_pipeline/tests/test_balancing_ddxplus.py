@@ -81,3 +81,18 @@ def test_hf_trainer_compute_loss_api_smoke(tmp_path):
  result=trainer.train()
  assert result.global_step==2 and np.isfinite(result.training_loss)
  assert not torch.equal(before,model.layer.weight.detach())
+
+def test_preparation_retains_source_metadata_without_changing_benchmark(tmp_path):
+ import pyarrow as pa,pyarrow.parquet as pq
+ from data_pipeline import prepare
+ rows=[]
+ for split in ['train','validation','test']:
+  for idx,label in enumerate(['condition alpha','condition beta']):
+   rows.append({'text':f'Unique symptom narrative and detailed history {split} individual {idx}','label':label,'language':'en','split':split,'group_id':split+str(idx),'source_kind':'synthetic_structured_evidence' if split=='train' else None,'source_url':'https://example.org/source','source_files':['https://example.org/source']})
+ pq.write_table(pa.Table.from_pylist(rows),tmp_path/'input.parquet')
+ a=prepare(tmp_path,['input.parquet'],tmp_path/'registry',tmp_path/'first')
+ result=pq.read_table(tmp_path/'first/disease_train_ready.parquet').to_pylist()
+ assert all(r['source_kind']=='synthetic_structured_evidence' for r in result if r['split']=='train')
+ assert all(r['source_files']==['https://example.org/source'] for r in result)
+ b=prepare(tmp_path,['input.parquet'],tmp_path/'registry',tmp_path/'second')
+ assert a['benchmark_sha256']==b['benchmark_sha256']
