@@ -52,8 +52,19 @@ def main(argv=None,persist_checkpoint=None):
  logits=test.predictions[0] if isinstance(test.predictions,tuple) else test.predictions
  perclass=classification_report(test.label_ids,np.argmax(logits,axis=1),labels=list(sorted(id2label)),target_names=[id2label[i] for i in sorted(id2label)],output_dict=True,zero_division=0)
  (a.output/'per_class_test.json').write_text(json.dumps(perclass,ensure_ascii=False,indent=2))
+ from diagnostics import evaluate as diagnostic_evaluate
+ counts=df.loc[df['split']=='train','label_id'].value_counts().to_dict();majority=max(counts,key=counts.get)
+ validation_prediction=trainer.predict(encoded['validation'],metric_key_prefix='diagnostic_validation')
+ v_logits=validation_prediction.predictions[0] if isinstance(validation_prediction.predictions,tuple) else validation_prediction.predictions
+ diagnostics={}
+ for split,values,truth in [('validation',v_logits,validation_prediction.label_ids),('test',logits,test.label_ids)]:
+  metadata=df.loc[df['split']==split].to_dict('records')
+  diagnostics[split]=diagnostic_evaluate(values,truth,metadata,counts,id2label,majority)
+ (a.output/'diagnostics.json').write_text(json.dumps(diagnostics,ensure_ascii=False,indent=2))
+ (a.output/'training_history.json').write_text(json.dumps(trainer.state.log_history,ensure_ascii=False,indent=2))
  trainer.save_model(str(a.output/'best_model'));tokenizer.save_pretrained(a.output/'best_model')
  (a.output/'export_complete.json').write_text(json.dumps({'data_sha256':sha,'complete':True}))
  if persist_checkpoint:persist_checkpoint()
  print(json.dumps(metrics,ensure_ascii=False,indent=2));return metrics
 if __name__=='__main__':main()
+

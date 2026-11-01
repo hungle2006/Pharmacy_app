@@ -7,6 +7,8 @@ on:
       - disease_monthly_pipeline/enrichment.py
       - disease_monthly_pipeline/enrichment_config.json
       - disease_monthly_pipeline/crawl_sources.json
+      - disease_monthly_pipeline/published_sources.py
+      - disease_monthly_pipeline/published_sources.json
       - .github/workflows/disease-enrichment.yml
 permissions:
   contents: read
@@ -34,17 +36,19 @@ jobs:
       - name: Run bounded CPU crawl and verify publication
         run: |
           python - <<'PY'
-          import modal,json,re
+          import modal,json
           try:
               result=modal.Function.from_name('disease-monthly-pipeline','refresh_dataset').remote()
           except Exception as error:
-              message=re.sub(r'https?://\S+','[URL]',str(error))
-              message=re.sub(r'(?:hf_|ak-|as-)[A-Za-z0-9_-]+','[REDACTED]',message)
-              print('Modal call error:',type(error).__name__,message[:700])
+              print('Modal call error type:',type(error).__name__)
               raise SystemExit('Dataset refresh failed. Inspect Modal logs privately.') from None
           print(json.dumps({k:result[k] for k in ['status','statistics','rows_before','rows_after','added_by_label','discovery_enabled','commit','error_type','error_frames'] if k in result},ensure_ascii=False))
           if result.get('status')=='failed':
               raise SystemExit('Refresh failed; see sanitized error type and source line above.')
+          if result.get('rows_after',0)>result.get('rows_before',0):
+              call=modal.Function.from_name('disease-monthly-pipeline','pipeline').spawn(submission_id='source-enrichment')
+              print('Training submitted after verified dataset publication:',call.object_id)
+              print('Training continues on Modal; dataset job success does not mean training completed.')
           if result.get('status')=='already_running':
               raise SystemExit('Another pipeline holds the lock; retry after that job completes.')
           PY
