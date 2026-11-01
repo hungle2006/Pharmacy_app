@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "dataset_repo": "leminhhung0101/disease_data",
+  "dataset_file": "disease_train_ready.parquet",
+  "target_train_per_label": 100,
+  "max_labels_per_run": 200,
+  "max_pages_per_run": 80,
+  "max_additions_per_run": 80,
+  "max_review_items": 2000,
+  "near_jaccard": 0.8,
+  "delay_seconds": 1.0,
+  "allowed_domains": ["www.cdc.gov", "cdc.gov"],
+  "search_results_per_label": 2,
+  "note": "One independent symptom excerpt per source page. Do not manufacture variants to meet quotas. Counts use train only; no holdout changes."
+}

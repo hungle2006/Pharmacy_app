@@ -1,0 +1,41 @@
+name: Disease dataset - source enrichment
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - disease_monthly_pipeline/enrichment.py
+      - disease_monthly_pipeline/enrichment_config.json
+      - disease_monthly_pipeline/crawl_sources.json
+      - .github/workflows/disease-enrichment.yml
+permissions:
+  contents: read
+concurrency:
+  group: disease-monthly-submit
+  cancel-in-progress: false
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: disease_monthly_pipeline
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_ENVIRONMENT: main
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'modal>=1.2,<2'
+      - run: modal deploy modal_app.py
+      - name: Submit bounded CPU crawl, without GPU training
+        run: |
+          python - <<'PY'
+          import modal
+          call=modal.Function.from_name('disease-monthly-pipeline','refresh_dataset').spawn()
+          print('Dataset refresh submitted:',call.object_id)
+          print('This confirms submission, not completion. Check Modal and enrichment_report.json on Hugging Face.')
+          PY

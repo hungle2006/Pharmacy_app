@@ -6,7 +6,7 @@ app=modal.App('disease-monthly-pipeline')
 volume=modal.Volume.from_name('disease-monthly-storage',create_if_missing=True,version=2)
 secrets=[modal.Secret.from_name('disease-training')]
 locks=modal.Dict.from_name('disease-monthly-locks',create_if_missing=True)
-source=['config.json','data_pipeline.py','prepare_train_ready.py','release.py','pipeline.py','train.py','inference.py','model_report.py']
+source=['config.json','data_pipeline.py','prepare_train_ready.py','release.py','pipeline.py','train.py','inference.py','model_report.py','enrichment.py','enrichment_config.json','crawl_sources.json']
 image=modal.Image.debian_slim(python_version='3.11').pip_install_from_requirements(str(ROOT/'requirements-train.txt'))
 for name in source:image=image.add_local_file(str(ROOT/name),'/app/'+name)
 
@@ -19,6 +19,8 @@ def environment():
 @app.function(image=image,cpu=4,memory=8192,timeout=3600,volumes={'/storage':volume},secrets=secrets)
 def prepare_data(force=False,submission_id='manual'):
  environment();volume.reload()
+ from enrichment import run as enrich_dataset
+ enrich_dataset('/storage',publish=True)
  from pipeline import prepare_run
  result=prepare_run('/storage',force,submission_id);volume.commit();return result
 
@@ -67,3 +69,16 @@ def report():
  environment()
  from model_report import get_report
  return get_report()
+
+@app.function(image=image,cpu=4,memory=8192,timeout=3600,max_containers=1,volumes={'/storage':volume},secrets=secrets)
+def refresh_dataset():
+ import uuid,time
+ environment();volume.reload();token=uuid.uuid4().hex
+ if not locks.put('active',{'token':token,'started_at':time.time()},skip_if_exists=True):return {'status':'already_running'}
+ try:
+  from enrichment import run
+  return run('/storage',publish=True)
+ finally:
+  volume.commit()
+  if locks.get('active',{}).get('token')==token:locks.pop('active',None)
+
