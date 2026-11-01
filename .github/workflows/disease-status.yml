@@ -92,6 +92,8 @@ jobs:
               if re.search(r'error|exception|traceback|terminated|out.of.memory|killed|preempt|cuda|notfound|timeout|failed',line,re.I):
                   selected.update(range(max(0,i-2),min(len(lines),i+4)))
           print('Recent error log excerpts:', '\\n'.join(lines[i] for i in sorted(selected)[-150:]) if selected else 'No matching errors returned by this bounded log read.')
+          progress=[line for line in lines if re.search(r'\d+/\d+|epoch|loss|checkpoint|resum|loading|skipping|training',line,re.I)]
+          print('Recent training log excerpts:', '\n'.join(progress[-20:]) if progress else 'No progress lines returned by this bounded read.')
           for repo,file in [('datasets/leminhhung0101/disease_data','enrichment_report.json'),('leminhhung0101/disease_model','deployment.json')]:
               with urllib.request.urlopen('https://huggingface.co/'+repo+'/resolve/main/'+file,timeout=30) as response:data=json.load(response)
               fields=['period','rows_before','rows_after','balance_before','balance_after','run_id','validation_macro_f1','metrics']
