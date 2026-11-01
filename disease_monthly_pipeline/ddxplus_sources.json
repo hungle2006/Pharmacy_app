@@ -1,0 +1,42 @@
+{
+  "name": "DDXPlus",
+  "enabled": true,
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "notice": "DDXPlus, Tchango et al., Mila, CC BY 4.0, https://github.com/mila-iqia/ddxplus. Adaptation: non-antecedent positive evidence rendered as English question/answer text; PATHOLOGY mapped to existing Vietnamese labels. Synthetic records, no author endorsement.",
+  "max_rows_scanned": 150000,
+  "max_per_label": 100,
+  "files": {
+    "train": {
+      "name": "ddx-train.zip",
+      "id": 40278019,
+      "sha256": "174ae1d56f36a15b7144838ecd214e1e1748a5369fc90c559529b6dc6ecfb218",
+      "max_bytes": 150000000
+    },
+    "evidences": {
+      "name": "ddx-evidences.json",
+      "id": 40278013,
+      "sha256": "281c78b044ae60514e28ecc9052d08a8225dd3e2db3f00f8788b99c47b05e0c0",
+      "max_bytes": 150000
+    },
+    "conditions": {
+      "name": "ddx-conditions.json",
+      "id": 62561569,
+      "sha256": "ee4c17ab5d75b641aecdfbf2bf89467c778e1605ad061d3410935609b2f7ad03",
+      "max_bytes": 30000
+    }
+  },
+  "label_map": {
+    "Spontaneous pneumothorax": "Tràn khí màng phổi",
+    "Anemia": "Thiếu máu",
+    "Whooping cough": "Ho gà",
+    "Myocarditis": "Viêm cơ tim",
+    "Pulmonary embolism": "Thuyên tắc phổi",
+    "Influenza": "Cúm",
+    "Acute rhinosinusitis": "Viêm Xoang Cấp Tính",
+    "Chronic rhinosinusitis": "Viêm Xoang Mạn Tính",
+    "Sarcoidosis": "Sarcoidosis",
+    "Pericarditis": "Viêm màng ngoài tim"
+  },
+  "max_source_fraction": 0.5
+}

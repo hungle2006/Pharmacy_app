@@ -8,10 +8,11 @@
     "**/*.parquet"
   ],
   "skip_unchanged": false,
-  "epochs": 3,
+  "epochs": 6,
   "batch_size": 8,
   "max_length": 256,
-  "learning_rate": 2e-05,
+  "learning_rate": 0.00002,
   "minimum_validation_macro_f1": 0.2,
-  "promotion_tolerance": 0.0
+  "promotion_tolerance": 0,
+  "class_weight": "balanced"
 }

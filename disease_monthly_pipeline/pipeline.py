@@ -39,7 +39,7 @@ def train_run(context,persist=None,allow_cpu=False,model_override=None,max_steps
   shutil.copy2(run/'data/preparation_report.json',out/'preparation_report.json')
   return json.loads((out/'evaluation.json').read_text())
  # Existing training script verifies the preparation hash before any tokenization.
- argv=['--data',str(data),'--output',str(out),'--model',model_override or context['seed_model'],'--epochs',str(c['epochs']),'--batch-size',str(c['batch_size']),'--max-length',str(c['max_length']),'--lr',str(c['learning_rate'])]
+ argv=['--data',str(data),'--output',str(out),'--model',model_override or context['seed_model'],'--epochs',str(c['epochs']),'--batch-size',str(c['batch_size']),'--max-length',str(c['max_length']),'--lr',str(c['learning_rate']),'--class-weight',c.get('class_weight','none')]
  if allow_cpu:argv.append('--allow-cpu')
  if max_steps is not None:argv+=['--max-steps',str(max_steps)]
  metrics=main(argv,persist_checkpoint=persist)

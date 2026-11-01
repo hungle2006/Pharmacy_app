@@ -208,3 +208,16 @@ Source: Gretel symptom_to_diagnosis, revision 722cfb0e11f8ae37339c7f573b5e10429b
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+## DDXPlus
+
+DDXPlus: A New Dataset for Automatic Medical Diagnosis (Tchango et al., Mila, 2022).
+Primary source: https://github.com/mila-iqia/ddxplus and https://figshare.com/articles/dataset/22687585.
+License: Creative Commons Attribution 4.0 International, https://creativecommons.org/licenses/by/4.0/.
+Only the checksum-pinned release_train_patients file is imported. This adapter renders
+non-antecedent, non-default positive evidence as English question/answer text, omits
+unanchored numeric scales, and maps PATHOLOGY to existing Vietnamese labels.
+These are synthetic structured cases, not observed patient notes. No diagnosis,
+differential diagnosis, source test cases, translations, or paraphrase expansions enter inputs.
+Original authors do not endorse this adaptation. Attribution and this change notice
+travel with the canonical dataset; record-level source_kind identifies these rows.
