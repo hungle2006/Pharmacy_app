@@ -1,0 +1,45 @@
+{
+  "reuse_notice": "Source: CDC. CDC material is available free on its website. Use does not imply endorsement by CDC, HHS or the U.S. Government. Only verbatim text lists are collected, not images, captions, logos or third-party materials.",
+  "policy_url": "https://www.cdc.gov/other/agencymaterials.html",
+  "sources": [
+    {
+      "url": "https://www.cdc.gov/cholera/signs-symptoms/index.html",
+      "label_aliases": [
+        "Tả",
+        "Bệnh tả",
+        "Cholera"
+      ],
+      "page_title": "Signs and Symptoms of Cholera",
+      "disease_aliases": [
+        "cholera",
+        "tả",
+        "bệnh tả"
+      ],
+      "section_headings": [
+        "Early symptoms"
+      ],
+      "language": "en",
+      "reuse_status": "reviewed_cdc_authored_text_only",
+      "label_status": "source_disease_page",
+      "kind": "knowledge_symptom_excerpt"
+    },
+    {
+      "url": "https://www.cdc.gov/food-safety/signs-symptoms/index.html",
+      "label_aliases": [
+        "Ngộ Độc Thực Phẩm"
+      ],
+      "page_title": "Food Poisoning Symptoms",
+      "disease_aliases": [
+        "food poisoning",
+        "ngộ độc thực phẩm"
+      ],
+      "section_headings": [
+        "Seek help"
+      ],
+      "language": "en",
+      "reuse_status": "reviewed_cdc_authored_text_only",
+      "label_status": "source_disease_page",
+      "kind": "knowledge_severe_symptom_excerpt"
+    }
+  ]
+}
