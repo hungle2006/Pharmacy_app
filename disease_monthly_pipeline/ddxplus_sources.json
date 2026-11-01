@@ -11,19 +11,25 @@
       "name": "ddx-train.zip",
       "id": 40278019,
       "sha256": "174ae1d56f36a15b7144838ecd214e1e1748a5369fc90c559529b6dc6ecfb218",
-      "max_bytes": 150000000
+      "max_bytes": 150000000,
+      "bytes": 140923730,
+      "provider_md5": "f75a78420ccb061951daa4db2d62139b"
     },
     "evidences": {
       "name": "ddx-evidences.json",
       "id": 40278013,
       "sha256": "281c78b044ae60514e28ecc9052d08a8225dd3e2db3f00f8788b99c47b05e0c0",
-      "max_bytes": 150000
+      "max_bytes": 150000,
+      "bytes": 120263,
+      "provider_md5": "0660962abe0bbf99e1fb77188c253597"
     },
     "conditions": {
       "name": "ddx-conditions.json",
       "id": 62561569,
-      "sha256": "ee4c17ab5d75b641aecdfbf2bf89467c778e1605ad061d3410935609b2f7ad03",
-      "max_bytes": 30000
+      "sha256": "56edf4682d8e86a4209fc3a33932e50ce03d1cc1fecc326c26d5ef8fa5c24890",
+      "max_bytes": 30000,
+      "bytes": 20889,
+      "provider_md5": "a992eadcff3099dd72e1820fbd2115aa"
     }
   },
   "label_map": {

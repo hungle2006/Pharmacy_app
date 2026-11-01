@@ -96,3 +96,12 @@ def test_preparation_retains_source_metadata_without_changing_benchmark(tmp_path
  assert all(r['source_files']==['https://example.org/source'] for r in result)
  b=prepare(tmp_path,['input.parquet'],tmp_path/'registry',tmp_path/'second')
  assert a['benchmark_sha256']==b['benchmark_sha256']
+
+def test_promotion_rejects_accuracy_regression_even_if_macro_f1_improves():
+ from release import promotion_decision
+ cfg={'minimum_validation_macro_f1':.2,'promotion_tolerance':0,'prevent_accuracy_regression':True}
+ current={'benchmark_sha256':'fixed','validation_macro_f1':.3,'metrics':{'validation':{'validation_accuracy':.5}}}
+ candidate={'benchmark_sha256':'fixed','validation_macro_f1':.4,'metrics':{'validation':{'validation_accuracy':.49}}}
+ assert promotion_decision(candidate,current,cfg)==(False,'validation_accuracy_regression')
+ candidate['metrics']['validation']['validation_accuracy']=.51
+ assert promotion_decision(candidate,current,cfg)[0]

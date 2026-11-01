@@ -14,6 +14,11 @@ def promotion_decision(candidate,current,config,allow_new_benchmark=False):
  if current:
   if candidate['benchmark_sha256']!=current['benchmark_sha256'] and not allow_new_benchmark:return False,'benchmark_changed_requires_explicit_promotion'
   if candidate['benchmark_sha256']==current['benchmark_sha256'] and score+float(config['promotion_tolerance'])<float(current['validation_macro_f1']):return False,'validation_regression'
+ if config.get('prevent_accuracy_regression') and current and candidate['benchmark_sha256']==current['benchmark_sha256']:
+  def accuracy(value):return value.get('metrics',{}).get('validation',{}).get('validation_accuracy')
+  before,after=accuracy(current),accuracy(candidate)
+  if after is None or before is None or not math.isfinite(float(after)):return False,'missing_validation_accuracy'
+  if float(after)<float(before):return False,'validation_accuracy_regression'
  return True,'accepted'
 def model_directory(pointer,repo,cache=None):
  path=PurePosixPath(pointer['model_path'])

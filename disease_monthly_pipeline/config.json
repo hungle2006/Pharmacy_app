@@ -14,5 +14,6 @@
   "learning_rate": 0.00002,
   "minimum_validation_macro_f1": 0.2,
   "promotion_tolerance": 0,
-  "class_weight": "balanced"
+  "class_weight": "balanced",
+  "prevent_accuracy_regression": true
 }

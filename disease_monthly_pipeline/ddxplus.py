@@ -8,8 +8,8 @@ from datetime import datetime,timezone
 from urllib.request import urlopen
 from enrichment import norm,digest,Duplicates
 
-def sha256(path):
- h=hashlib.sha256()
+def sha256(path,algorithm='sha256'):
+ h=hashlib.new(algorithm)
  with Path(path).open('rb') as f:
   for block in iter(lambda:f.read(1024*1024),b''):h.update(block)
  return h.hexdigest()
@@ -26,8 +26,8 @@ def download(spec,cache):
     size+=len(block)
     if size>spec['max_bytes']:raise ValueError('DDXPlus download exceeds reviewed limit')
     output.write(block)
-  if sha256(temp)!=spec['sha256']:
-   md5=hashlib.md5(temp.read_bytes()).hexdigest()
+  if size!=spec['bytes'] or sha256(temp)!=spec['sha256'] or sha256(temp,'md5')!=spec['provider_md5']:
+   md5=sha256(temp,'md5')
    raise ValueError('DDXPlus checksum changed: '+spec['name']+' bytes='+str(size)+' sha256='+sha256(temp)+' md5='+md5)
   temp.replace(path)
  finally:temp.unlink(missing_ok=True)

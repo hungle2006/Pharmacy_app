@@ -57,3 +57,5 @@ nguồn tổng quát không đủ để cân bằng tất cả 1.400 lớp.
 CI chạy toàn bộ unit tests; kiểm tra gradient tích lũy và Trainer 4.57.1 với
 Torch CPU 2.8.0 bằng model nhỏ 2 bước; pilot đọc DDXPlus và master công khai,
 validate schema và so từng dòng validation/test không đổi. Pilot không upload.
+
+Promotion cũng chặn accuracy validation giảm so với model đang phục vụ trên cùng benchmark, ngay cả khi Macro-F1 tăng. Điểm benchmark có thể cao hơn thực tế khi triển khai; cần một tập ca bệnh độc lập được thẩm định trước khi diễn giải là độ chính xác lâm sàng.
