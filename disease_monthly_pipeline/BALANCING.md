@@ -27,7 +27,8 @@ Crosswalk có 10 bệnh, kiểm tra tên nhãn duy nhất trong master. Ví dụ
 Acute rhinosinusitis → Viêm Xoang Cấp Tính. Không ghép pancreatic neoplasm với
 ung thư tụy (neoplasm có thể lành tính), anaphylaxis với sốc phản vệ, hoặc
 URTI với cảm lạnh. Giới hạn 150.000 dòng scan, tối đa 100 mẫu/nhãn, dừng khi
-đạt tổng 100 mẫu train/nhãn. DDXPlus tối đa 50% mẫu của một nhãn, kể cả\ncác lượt chạy tháng sau; không để một nguồn tổng hợp lấn át dữ liệu gốc. Kiểm tra trùng exact + trigram Jaccard ≥ 0,8
+đạt tổng 100 mẫu train/nhãn. DDXPlus tối đa 50% mẫu của một nhãn, kể cả
+các lượt chạy tháng sau; không để một nguồn tổng hợp lấn át dữ liệu gốc. Kiểm tra trùng exact + trigram Jaccard ≥ 0,8
 với toàn bộ master. Chưa kiểm tra được mọi trùng ngữ nghĩa/dịch chéo ngôn ngữ.
 
 ## Mở rộng nguồn và lịch chạy
@@ -42,7 +43,12 @@ GitHub giữ lịch tháng hiện hữu; cùng chu kỳ refresh → validate →
 một master Parquet → train → evaluate → promotion có điều kiện.
 Hugging Face giữ lịch sử phiên bản. Không sinh nhiều train shard.
 Thay manifest/config làm đổi signature để chạy lại trong cùng tháng.
-Khóa dataset_refresh chỉ bảo vệ ghi master và cache nguồn; khóa active bảo vệ\nlượt pipeline/GPU. Model đang train đọc snapshot đã pin, nên có thể xuất bản\nmaster mới trong lúc train mà không thay đổi đầu vào của lượt đang chạy.\nprepare_data gọi cùng hàm refresh_dataset để mọi writer dùng chung khóa.\nYêu cầu train mới xếp hàng, không khởi tạo GPU thứ hai; nếu gặp khóa ngoài\nhàng chờ thì chờ tối đa 30 phút, không tự xóa khóa.
+Khóa dataset_refresh chỉ bảo vệ ghi master và cache nguồn; khóa active bảo vệ
+lượt pipeline/GPU. Model đang train đọc snapshot đã pin, nên có thể xuất bản
+master mới trong lúc train mà không thay đổi đầu vào của lượt đang chạy.
+prepare_data gọi cùng hàm refresh_dataset để mọi writer dùng chung khóa.
+Yêu cầu train mới xếp hàng, không khởi tạo GPU thứ hai; nếu gặp khóa ngoài
+hàng chờ thì chờ tối đa 30 phút, không tự xóa khóa.
 operations_status cung cấp trạng thái gần nhất, không trả token hoặc symptom text.
 
 Ngưỡng promotion validation Macro-F1 0,20 chỉ là ngưỡng kỹ thuật của dự án;
