@@ -54,3 +54,49 @@ def test_existing_holdout_text_never_appended_and_unreviewed_domain_not_fetched(
  s=source();s['pages'][0]['url']='https://localhost/private'
  docs,report=collect(s,lambda _:pytest.fail('Unsafe URL was fetched'))
  assert not docs and report['errors'][0]['error_type']=='ValueError'
+
+def test_robots_disallow_prevents_page_fetch(monkeypatch):
+ import web_collectors
+ from types import SimpleNamespace
+ calls=[]
+ class Response:
+  headers={'Content-Type':'text/plain'}
+  def __enter__(self):return self
+  def __exit__(self,*args):pass
+  def read(self,*args):return b'User-agent: *\nDisallow: /\n'
+ def open_request(request,**kwargs):
+  calls.append(request.full_url)
+  assert request.full_url.endswith('/robots.txt')
+  return Response()
+ monkeypatch.setattr(web_collectors,'build_opener',lambda *a:SimpleNamespace(open=open_request))
+ with pytest.raises(ValueError,match='robots_disallowed'):web_collectors.Fetcher(['example.org'])('https://example.org/condition')
+ assert calls==['https://example.org/robots.txt']
+
+def test_atomic_publication_writes_one_master_and_one_reference_catalog(tmp_path,monkeypatch):
+ import types,pyarrow as pa,pyarrow.parquet as pq,huggingface_hub,enrichment,web_collectors
+ initial=rows();master=tmp_path/'disease_train_ready.parquet';pq.write_table(pa.Table.from_pylist(initial),master)
+ cfg={'enabled':True,'dataset_repo':'fixture/data','dataset_file':master.name,'published_sources_enabled':False,'ddxplus_enabled':False,'web_collectors_enabled':True,'target_train_per_label':100,'near_jaccard':.8,'max_pages_per_run':0,'max_labels_per_run':0,'max_review_items':10,'max_additions_per_run':10,'allowed_domains':['example.org'],'delay_seconds':1}
+ for name,data in [('enrichment_config.json',cfg),('crawl_sources.json',{'sources':[]}),('web_collectors.json',{'sources':[source()]})]:(tmp_path/name).write_text(json.dumps(data))
+ (tmp_path/'web_collectors.py').write_text('fixture extractor revision')
+ (tmp_path/'SOURCE_NOTICES.md').write_text('Fixture attribution')
+ paths={master.name:master};commits=[]
+ class API:
+  def repo_info(self,**kwargs):return types.SimpleNamespace(sha='pinned')
+  def list_repo_files(self,*args,**kwargs):return list(paths)
+  def create_commit(self,**kwargs):
+   assert kwargs['parent_commit']=='pinned';commits.append(kwargs)
+   for operation in kwargs['operations']:paths[operation.path_in_repo]=Path(operation.path_or_fileobj)
+   return types.SimpleNamespace(oid='published')
+ monkeypatch.setattr(enrichment,'ROOT',tmp_path)
+ monkeypatch.setattr(huggingface_hub,'HfApi',API)
+ monkeypatch.setattr(huggingface_hub,'hf_hub_download',lambda **kw:str(paths[kw['filename']]))
+ monkeypatch.setattr(web_collectors,'Fetcher',lambda *a:lambda _:HTML)
+ monkeypatch.delenv('FIRECRAWL_API_KEY',raising=False)
+ result=enrichment.run(tmp_path/'work')
+ assert result['rows_after']==7 and result['web_collectors']['sources_ok']==1
+ assert [p for p in paths if p.endswith('.parquet')]==[master.name]
+ assert {'medical_source_knowledge.jsonl','source_crawl_report.json','SOURCE_NOTICES.md'}<=set(paths)
+ final=pq.read_table(paths[master.name]).to_pylist()
+ assert [r['text'] for r in final if r['split']!='train']==[r['text'] for r in initial if r['split']!='train']
+ assert len(paths['medical_source_knowledge.jsonl'].read_text().splitlines())==1
+ assert enrichment.run(tmp_path/'work')['status']=='already_updated_this_month' and len(commits)==1
