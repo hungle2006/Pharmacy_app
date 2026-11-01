@@ -146,10 +146,18 @@ def run(storage,publish=True):
  if [p for p in files if p.endswith('.parquet')]!=[config['dataset_file']]:raise ValueError('Expected exactly one master Parquet; review shard consolidation first')
  def read(name):return Path(hf_hub_download(repo_id=repo,repo_type='dataset',revision=revision,filename=name))
  state=json.loads(read('enrichment_state.json').read_text()) if 'enrichment_state.json' in files else {}
- signature=hashlib.sha256(json.dumps([config,registry],sort_keys=True).encode()).hexdigest();period=datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m')
+ published=json.loads((ROOT/'published_sources.json').read_text()) if config.get('published_sources_enabled') else {'sources':[]}
+ signature=hashlib.sha256(json.dumps([config,registry,published],sort_keys=True).encode()).hexdigest();period=datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m')
  if state.get('period')==period and state.get('config_signature')==signature and state.get('last_master_sha256')==hashlib.sha256(read(config['dataset_file']).read_bytes()).hexdigest():return {'status':'already_updated_this_month'}
  table=pq.read_table(read(config['dataset_file']));rows=table.to_pylist()
  final,newstate,report=enrich(rows,config,registry,Fetcher(config),state)
+ if published['sources']:
+  from published_sources import refresh
+  final,source_reports=refresh(final,published,config['target_train_per_label'],config['near_jaccard'])
+  report['published_sources']=source_reports
+  for item in source_reports:
+   for label,count in item['added_by_label'].items():report['added_by_label'][label]=report['added_by_label'].get(label,0)+count
+  report['after']=deficits(final,config['target_train_per_label'])
  work=Path(storage)/'enrichment';work.mkdir(parents=True,exist_ok=True);path=work/config['dataset_file']
  # Explicit schema union keeps provenance fields on newly added rows and original Arrow types.
  schema=table.schema
@@ -168,6 +176,7 @@ def run(storage,publish=True):
  # Repeated names replace the HEAD file atomically; HF retains history, not extra train shards.
  if publish:
   ops=[CommitOperationAdd(path_in_repo=name,path_or_fileobj=str(work/name)) for name in [config['dataset_file'],'enrichment_state.json','enrichment_report.json']]
+  if published['sources']:ops.append(CommitOperationAdd(path_in_repo='SOURCE_NOTICES.md',path_or_fileobj=str(ROOT/'SOURCE_NOTICES.md')))
   commit=api.create_commit(repo_id=repo,repo_type='dataset',parent_commit=revision,operations=ops,commit_message='Update reviewed disease train data '+period)
   report['commit']=commit.oid
  return report

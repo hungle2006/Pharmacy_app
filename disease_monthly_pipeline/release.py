@@ -49,6 +49,7 @@ def publish(config,run_id,run_dir,prep,snapshot,allow_new_benchmark=False,api=No
  candidate={'run_id':run_id,'benchmark_sha256':prep['benchmark_sha256'],'validation_macro_f1':metrics['validation']['validation_macro_f1'],'dataset_revision':snapshot['dataset_revision'],'data_fingerprint':snapshot['data_fingerprint'],'model_path':f'versions/{run_id}/best_model','max_length':config['max_length'],'metrics':metrics}
  (root/'release.json').write_text(json.dumps(candidate,ensure_ascii=False,indent=2))
  paths=[p for p in (root/'best_model').rglob('*') if p.is_file() and p.suffix in ['.json','.safetensors','.txt','.model']]+[root/'evaluation.json',root/'per_class_test.json',root/'release.json',root/'preparation_report.json']
+ paths += [root/name for name in ['diagnostics.json','training_history.json'] if (root/name).is_file()]
  operations=[CommitOperationAdd(path_in_repo=f'versions/{run_id}/'+str(p.relative_to(root)).replace('\\','/'),path_or_fileobj=str(p)) for p in paths]
  artifact=api.create_commit(repo_id=repo,repo_type='model',operations=operations,commit_message=f'Add immutable disease model run {run_id}')
  candidate['artifact_revision']=artifact.oid
@@ -72,3 +73,4 @@ def notify_render():
  try:
   with urllib.request.urlopen(urllib.request.Request(hook,method='POST'),timeout=30) as response:return {'requested':True,'status':response.status}
  except Exception:return {'requested':False,'reason':'deploy_hook_failed; model promotion is retained and notification can be retried'}
+

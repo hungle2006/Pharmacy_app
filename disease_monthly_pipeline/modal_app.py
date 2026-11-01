@@ -6,7 +6,7 @@ app=modal.App('disease-monthly-pipeline')
 volume=modal.Volume.from_name('disease-monthly-storage',create_if_missing=True,version=2)
 secrets=[modal.Secret.from_name('disease-training')]
 locks=modal.Dict.from_name('disease-monthly-locks',create_if_missing=True)
-source=['config.json','data_pipeline.py','prepare_train_ready.py','release.py','pipeline.py','train.py','inference.py','model_report.py','enrichment.py','enrichment_config.json','crawl_sources.json']
+source=['config.json','data_pipeline.py','prepare_train_ready.py','release.py','pipeline.py','train.py','inference.py','model_report.py','enrichment.py','enrichment_config.json','crawl_sources.json','published_sources.py','published_sources.json','diagnostics.py','SOURCE_NOTICES.md']
 image=modal.Image.debian_slim(python_version='3.11').pip_install_from_requirements(str(ROOT/'requirements-train.txt'))
 for name in source:image=image.add_local_file(str(ROOT/name),'/app/'+name)
 

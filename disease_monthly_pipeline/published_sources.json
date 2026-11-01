@@ -1,0 +1,24 @@
+{
+  "sources": [
+    {
+      "repo": "gretelai/symptom_to_diagnosis",
+      "revision": "722cfb0e11f8ae37339c7f573b5e10429b94df49",
+      "license": "apache-2.0",
+      "train_file": "train.jsonl",
+      "test_file": "test.jsonl",
+      "kind": "published_synthetic_symptom_description",
+      "max_per_label": 25,
+      "label_map": {
+        "chicken pox": "Thủy đậu",
+        "malaria": "Sốt rét",
+        "dengue": "Sốt xuất huyết",
+        "pneumonia": "Viêm phổi",
+        "jaundice": "Vàng da",
+        "impetigo": "Chốc",
+        "common cold": "Cảm lạnh",
+        "typhoid": "Thương hàn"
+      },
+      "notice": "Gretel symptom_to_diagnosis, Apache-2.0, adapted from Symptom2Disease using an LLM. Source-provided synthetic labels, not expert-adjudicated clinical ground truth. Original train split only; original test split is excluded from acquisition. No new translations or paraphrases are generated."
+    }
+  ]
+}

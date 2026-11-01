@@ -15,5 +15,6 @@
   ],
   "search_results_per_label": 2,
   "note": "One independent symptom excerpt per source page. Do not manufacture variants to meet quotas. Counts use train only; no holdout changes.",
-  "max_duration_seconds": 1200
+  "max_duration_seconds": 1200,
+  "published_sources_enabled": true
 }
