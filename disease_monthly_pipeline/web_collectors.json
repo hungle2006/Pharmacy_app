@@ -1,0 +1,297 @@
+{
+  "version": 1,
+  "max_seconds": 600,
+  "sources": [
+    {
+      "id": "cdc",
+      "name": "CDC",
+      "enabled": true,
+      "allowed_domains": [
+        "www.cdc.gov"
+      ],
+      "policy_url": "https://www.cdc.gov/other/agencymaterials.html",
+      "policy_status": "reviewed_institute_authored_text_only",
+      "notice": "Source: CDC. Freely available on CDC.gov. Use does not imply endorsement by CDC, HHS or the U.S. Government. Verbatim text only; no images, logos or third-party material.",
+      "pages": [
+        {
+          "url": "https://www.cdc.gov/hepatitis-c/signs-symptoms/index.html",
+          "title": "Symptoms of Hepatitis C",
+          "headings": [
+            "Signs and symptoms"
+          ],
+          "mode": "list",
+          "label_aliases": [
+            "Viêm gan C"
+          ],
+          "disease_aliases": [
+            "hepatitis c",
+            "HCV"
+          ],
+          "train_eligible": true
+        }
+      ]
+    },
+    {
+      "id": "niddk",
+      "name": "NIDDK",
+      "enabled": true,
+      "allowed_domains": [
+        "www.niddk.nih.gov"
+      ],
+      "policy_url": "https://www.niddk.nih.gov/copyright",
+      "policy_status": "reviewed_institute_authored_text_only",
+      "notice": "Source: NIDDK, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.",
+      "pages": [
+        {
+          "url": "https://www.niddk.nih.gov/health-information/endocrine-diseases/hypothyroidism",
+          "title": "Hypothyroidism (Underactive Thyroid)",
+          "headings": [
+            "What are the symptoms of hypothyroidism?"
+          ],
+          "mode": "list",
+          "label_aliases": [
+            "Suy giáp"
+          ],
+          "disease_aliases": [
+            "hypothyroidism"
+          ],
+          "train_eligible": true
+        }
+      ]
+    },
+    {
+      "id": "nhlbi",
+      "name": "NHLBI",
+      "enabled": true,
+      "allowed_domains": [
+        "www.nhlbi.nih.gov"
+      ],
+      "policy_url": "https://www.nhlbi.nih.gov/about/contact/trademark-branding-and-logo",
+      "policy_status": "reviewed_institute_authored_text_only",
+      "notice": "Source: NHLBI, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.",
+      "pages": [
+        {
+          "url": "https://www.nhlbi.nih.gov/health/anemia/iron-deficiency-anemia",
+          "title": "Anemia Iron-Deficiency Anemia",
+          "headings": [
+            "What are the symptoms of iron-deficiency anemia?"
+          ],
+          "mode": "list",
+          "label_aliases": [
+            "Thiếu máu thiếu sắt"
+          ],
+          "disease_aliases": [
+            "iron-deficiency anemia",
+            "iron deficiency anemia"
+          ],
+          "train_eligible": true
+        }
+      ]
+    },
+    {
+      "id": "nimh",
+      "name": "NIMH",
+      "enabled": true,
+      "allowed_domains": [
+        "www.nimh.nih.gov"
+      ],
+      "policy_url": "https://www.nimh.nih.gov/site-info/policies",
+      "policy_status": "reviewed_institute_authored_text_only",
+      "notice": "Source: NIMH, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.",
+      "pages": [
+        {
+          "url": "https://www.nimh.nih.gov/health/publications/generalized-anxiety-disorder-gad",
+          "title": "Generalized Anxiety Disorder: What You Need to Know",
+          "headings": [
+            "What are the signs and symptoms of generalized anxiety disorder?"
+          ],
+          "mode": "list",
+          "label_aliases": [
+            "Rối Loạn Lo Âu Lan Tỏa"
+          ],
+          "disease_aliases": [
+            "generalized anxiety disorder",
+            "GAD"
+          ],
+          "train_eligible": true
+        }
+      ]
+    },
+    {
+      "id": "nei",
+      "name": "NEI",
+      "enabled": true,
+      "allowed_domains": [
+        "www.nei.nih.gov"
+      ],
+      "policy_url": "https://www.nei.nih.gov/web-policies/copyright-policy",
+      "policy_status": "reviewed_institute_authored_text_only",
+      "notice": "Courtesy: National Eye Institute, National Institutes of Health (NEI/NIH). Institute-authored text excerpt only; no endorsement.",
+      "pages": [
+        {
+          "url": "https://www.nei.nih.gov/eye-health-information/eye-conditions-and-diseases/dry-eye",
+          "title": "Dry Eye",
+          "headings": [
+            "What are the symptoms of dry eye?"
+          ],
+          "mode": "list",
+          "label_aliases": [
+            "Khô mắt"
+          ],
+          "disease_aliases": [
+            "dry eye"
+          ],
+          "train_eligible": true
+        }
+      ]
+    },
+    {
+      "id": "nidcd",
+      "name": "NIDCD",
+      "enabled": true,
+      "allowed_domains": [
+        "www.nidcd.nih.gov"
+      ],
+      "policy_url": "https://www.nidcd.nih.gov/policies",
+      "policy_status": "reviewed_institute_authored_text_only",
+      "notice": "Source: NIDCD, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.",
+      "pages": [
+        {
+          "url": "https://www.nidcd.nih.gov/health/menieres-disease",
+          "title": "Ménière's Disease",
+          "headings": [
+            "What is Ménière’s disease?"
+          ],
+          "mode": "paragraph",
+          "label_aliases": [
+            "Meniere"
+          ],
+          "disease_aliases": [
+            "Ménière",
+            "Meniere"
+          ],
+          "train_eligible": false
+        }
+      ]
+    },
+    {
+      "id": "nidcr",
+      "name": "NIDCR",
+      "enabled": true,
+      "allowed_domains": [
+        "www.nidcr.nih.gov"
+      ],
+      "policy_url": "https://www.nidcr.nih.gov/about-us/web-policies",
+      "policy_status": "reviewed_institute_authored_text_only",
+      "notice": "Source: NIDCR, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.",
+      "pages": [
+        {
+          "url": "https://www.nidcr.nih.gov/health-info/gum-disease",
+          "title": "Periodontal (Gum) Disease",
+          "headings": [
+            "Symptoms"
+          ],
+          "mode": "table",
+          "label_aliases": [
+            "Bệnh nha chu",
+            "Viêm nha chu"
+          ],
+          "disease_aliases": [
+            "periodontal",
+            "gum disease"
+          ],
+          "train_eligible": true
+        }
+      ]
+    },
+    {
+      "id": "nichd",
+      "name": "NICHD",
+      "enabled": true,
+      "allowed_domains": [
+        "www.nichd.nih.gov"
+      ],
+      "policy_url": "https://www.nichd.nih.gov/disclaimer",
+      "policy_status": "reviewed_institute_authored_text_only",
+      "notice": "Courtesy: Eunice Kennedy Shriver National Institute of Child Health and Human Development. Institute-authored text excerpt only; no endorsement.",
+      "pages": [
+        {
+          "url": "https://www.nichd.nih.gov/health/topics/endometri/conditioninfo/symptoms",
+          "title": "What are the symptoms of endometriosis?",
+          "headings": [
+            "What are the symptoms of endometriosis?"
+          ],
+          "mode": "list",
+          "label_aliases": [
+            "Lạc nội mạc tử cung"
+          ],
+          "disease_aliases": [
+            "endometriosis"
+          ],
+          "train_eligible": true
+        }
+      ]
+    },
+    {
+      "id": "medlineplus",
+      "name": "MedlinePlus Genetics / NLM",
+      "enabled": true,
+      "allowed_domains": [
+        "medlineplus.gov"
+      ],
+      "policy_url": "https://medlineplus.gov/about/using/usingcontent/",
+      "policy_status": "reviewed_institute_authored_text_only",
+      "notice": "Source: MedlinePlus Genetics / NLM, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.",
+      "pages": [
+        {
+          "url": "https://medlineplus.gov/genetics/condition/phenylketonuria/",
+          "title": "Phenylketonuria",
+          "headings": [
+            "Description"
+          ],
+          "mode": "paragraph",
+          "label_aliases": [
+            "Phenylketon niệu",
+            "Bệnh phenylketon niệu"
+          ],
+          "disease_aliases": [
+            "phenylketonuria",
+            "PKU"
+          ],
+          "train_eligible": false
+        }
+      ]
+    },
+    {
+      "id": "nccih",
+      "name": "NCCIH",
+      "enabled": true,
+      "allowed_domains": [
+        "www.nccih.nih.gov"
+      ],
+      "policy_url": "https://www.nccih.nih.gov/health/fibromyalgia-in-depth",
+      "policy_status": "reviewed_institute_authored_text_only",
+      "notice": "Source: NCCIH, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.",
+      "pages": [
+        {
+          "url": "https://www.nccih.nih.gov/health/fibromyalgia-in-depth",
+          "title": "Fibromyalgia: In Depth",
+          "headings": [
+            "What Is Fibromyalgia?"
+          ],
+          "mode": "paragraph",
+          "label_aliases": [
+            "Đau cơ xơ hóa",
+            "Đau xơ cơ"
+          ],
+          "disease_aliases": [
+            "fibromyalgia"
+          ],
+          "train_eligible": false,
+          "known_content_date": "2016-05"
+        }
+      ]
+    }
+  ],
+  "reviewed_on": "2026-11-01"
+}

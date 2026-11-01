@@ -221,3 +221,43 @@ These are synthetic structured cases, not observed patient notes. No diagnosis,
 differential diagnosis, source test cases, translations, or paraphrase expansions enter inputs.
 Original authors do not endorse this adaptation. Attribution and this change notice
 travel with the canonical dataset; record-level source_kind identifies these rows.
+
+
+## Ten institute-authored web reference collectors
+
+These are verbatim selected text blocks from the exact pages below. They are
+clinical reference knowledge, not patient records. No images, logos, captions,
+linked journal articles, third-party excerpts or treatment recommendations are
+collected as disease training cases. Author/source attribution and reuse policy
+URLs travel with every record. No institute endorses this application.
+
+- CDC: https://www.cdc.gov/hepatitis-c/signs-symptoms/index.html
+  Reuse policy: https://www.cdc.gov/other/agencymaterials.html
+  Source: CDC. Freely available on CDC.gov. Use does not imply endorsement by CDC, HHS or the U.S. Government. Verbatim text only; no images, logos or third-party material.
+- NIDDK: https://www.niddk.nih.gov/health-information/endocrine-diseases/hypothyroidism
+  Reuse policy: https://www.niddk.nih.gov/copyright
+  Source: NIDDK, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.
+- NHLBI: https://www.nhlbi.nih.gov/health/anemia/iron-deficiency-anemia
+  Reuse policy: https://www.nhlbi.nih.gov/about/contact/trademark-branding-and-logo
+  Source: NHLBI, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.
+- NIMH: https://www.nimh.nih.gov/health/publications/generalized-anxiety-disorder-gad
+  Reuse policy: https://www.nimh.nih.gov/site-info/policies
+  Source: NIMH, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.
+- NEI: https://www.nei.nih.gov/eye-health-information/eye-conditions-and-diseases/dry-eye
+  Reuse policy: https://www.nei.nih.gov/web-policies/copyright-policy
+  Courtesy: National Eye Institute, National Institutes of Health (NEI/NIH). Institute-authored text excerpt only; no endorsement.
+- NIDCD: https://www.nidcd.nih.gov/health/menieres-disease
+  Reuse policy: https://www.nidcd.nih.gov/policies
+  Source: NIDCD, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.
+- NIDCR: https://www.nidcr.nih.gov/health-info/gum-disease
+  Reuse policy: https://www.nidcr.nih.gov/about-us/web-policies
+  Source: NIDCR, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.
+- NICHD: https://www.nichd.nih.gov/health/topics/endometri/conditioninfo/symptoms
+  Reuse policy: https://www.nichd.nih.gov/disclaimer
+  Courtesy: Eunice Kennedy Shriver National Institute of Child Health and Human Development. Institute-authored text excerpt only; no endorsement.
+- MedlinePlus Genetics / NLM: https://medlineplus.gov/genetics/condition/phenylketonuria/
+  Reuse policy: https://medlineplus.gov/about/using/usingcontent/
+  Source: MedlinePlus Genetics / NLM, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.
+- NCCIH: https://www.nccih.nih.gov/health/fibromyalgia-in-depth
+  Reuse policy: https://www.nccih.nih.gov/health/fibromyalgia-in-depth
+  Source: NCCIH, National Institutes of Health. Institute-authored text excerpt only; no images, logos, linked articles or third-party material; no endorsement.
