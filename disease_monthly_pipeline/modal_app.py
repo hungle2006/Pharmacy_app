@@ -6,15 +6,15 @@ app=modal.App('disease-monthly-pipeline')
 volume=modal.Volume.from_name('disease-monthly-storage',create_if_missing=True,version=2)
 secrets=[modal.Secret.from_name('disease-training')]
 locks=modal.Dict.from_name('disease-monthly-locks',create_if_missing=True)
-source=['config.json','data_pipeline.py','prepare_train_ready.py','release.py','pipeline.py','train.py','inference.py','model_report.py','enrichment.py','enrichment_config.json','crawl_sources.json','published_sources.py','published_sources.json','diagnostics.py','balancing.py','ddxplus.py','ddxplus_sources.json','SOURCE_NOTICES.md','web_collectors.py','web_collectors.json']
-image=modal.Image.debian_slim(python_version='3.11').pip_install_from_requirements(str(ROOT/'requirements-train.txt'))
+source=['config.json','data_pipeline.py','prepare_train_ready.py','release.py','pipeline.py','train.py','inference.py','model_report.py','enrichment.py','enrichment_config.json','crawl_sources.json','published_sources.py','published_sources.json','diagnostics.py','balancing.py','ddxplus.py','ddxplus_sources.json','SOURCE_NOTICES.md','web_collectors.py','web_collectors.json','runtime_env.py']
+image=modal.Image.debian_slim(python_version='3.11').pip_install_from_requirements(str(ROOT/'requirements-train.txt')).env({'HF_HUB_DISABLE_XET':'1','HF_XET_CACHE':'/tmp/disease-hf-xet'})
 for name in source:image=image.add_local_file(str(ROOT/name),'/app/'+name)
 
 def environment():
- import os,sys
- os.environ['HF_HOME']='/storage/hf_home'
- os.environ['MODEL_CACHE']='/storage/hf_cache'
+ import sys
  sys.path.insert(0,'/app')
+ from runtime_env import configure_environment
+ configure_environment()
 
 @app.function(image=image,cpu=4,memory=8192,timeout=3600,volumes={'/storage':volume},secrets=secrets)
 def prepare_data(force=False,submission_id='manual'):
