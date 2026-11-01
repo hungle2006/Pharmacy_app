@@ -22,5 +22,6 @@
   "note": "One independent symptom excerpt per source page. Do not manufacture variants to meet quotas. Counts use train only; no holdout changes.",
   "max_duration_seconds": 1200,
   "published_sources_enabled": true,
-  "ddxplus_enabled": true
+  "ddxplus_enabled": true,
+  "web_collectors_enabled": true
 }

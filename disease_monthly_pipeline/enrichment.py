@@ -148,7 +148,9 @@ def run(storage,publish=True):
  state=json.loads(read('enrichment_state.json').read_text()) if 'enrichment_state.json' in files else {}
  published=json.loads((ROOT/'published_sources.json').read_text()) if config.get('published_sources_enabled') else {'sources':[]}
  ddx=json.loads((ROOT/'ddxplus_sources.json').read_text()) if config.get('ddxplus_enabled') else {'enabled':False}
- signature=hashlib.sha256(json.dumps([config,registry,published,ddx],sort_keys=True).encode()).hexdigest();period=datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m')
+ web=json.loads((ROOT/'web_collectors.json').read_text()) if config.get('web_collectors_enabled') else {'sources':[]}
+ collector_sha=hashlib.sha256((ROOT/'web_collectors.py').read_bytes()).hexdigest() if web['sources'] else None
+ signature=hashlib.sha256(json.dumps([config,registry,published,ddx,web,collector_sha],sort_keys=True).encode()).hexdigest();period=datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m')
  if state.get('period')==period and state.get('config_signature')==signature and state.get('last_master_sha256')==hashlib.sha256(read(config['dataset_file']).read_bytes()).hexdigest():return {'status':'already_updated_this_month'}
  table=pq.read_table(read(config['dataset_file']));rows=table.to_pylist()
  final,newstate,report=enrich(rows,config,registry,Fetcher(config),state)
@@ -165,6 +167,14 @@ def run(storage,publish=True):
   report['ddxplus']=ddx_report
   for label,count in ddx_report['added_by_label'].items():report['added_by_label'][label]=report['added_by_label'].get(label,0)+count
   report['after']=deficits(final,config['target_train_per_label'])
+ catalog=[]
+ if web['sources']:
+  from web_collectors import refresh as refresh_web
+  previous=[json.loads(line) for line in read('medical_source_knowledge.jsonl').read_text().splitlines() if line.strip()] if 'medical_source_knowledge.jsonl' in files else []
+  final,catalog,web_report=refresh_web(final,web,previous,config['target_train_per_label'],config['near_jaccard'])
+  report['web_collectors']=web_report
+  for label,count in web_report['added_by_label'].items():report['added_by_label'][label]=report['added_by_label'].get(label,0)+count
+  report['after']=deficits(final,config['target_train_per_label'])
  from balancing import coverage
  report['balance_before']=coverage(rows,config['target_train_per_label'])
  report['balance_after']=coverage(final,config['target_train_per_label'])
@@ -179,14 +189,19 @@ def run(storage,publish=True):
  if len(final)==len(rows):
   import shutil
   shutil.copyfile(read(config['dataset_file']),path)
- newstate.update(period=period if not report['statistics'].get('fetch_failed') else None,config_signature=signature,last_master_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+ web_failed=report.get('web_collectors',{}).get('sources_ok',0)<report.get('web_collectors',{}).get('sources_attempted',0)
+ newstate.update(period=period if not report['statistics'].get('fetch_failed') and not web_failed else None,config_signature=signature,last_master_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
  report.update(dataset_revision_before=revision,rows_before=len(rows),rows_after=len(final))
  for name,value in [('enrichment_state.json',newstate),('enrichment_report.json',report)]:
   (work/name).write_text(json.dumps(value,ensure_ascii=False,indent=2))
+ if web['sources']:
+  (work/'medical_source_knowledge.jsonl').write_text(''.join(json.dumps(d,ensure_ascii=False)+'\n' for d in catalog))
+  (work/'source_crawl_report.json').write_text(json.dumps(report['web_collectors'],ensure_ascii=False,indent=2))
  # Repeated names replace the HEAD file atomically; HF retains history, not extra train shards.
  if publish:
   ops=[CommitOperationAdd(path_in_repo=name,path_or_fileobj=str(work/name)) for name in [config['dataset_file'],'enrichment_state.json','enrichment_report.json']]
-  if published['sources']:ops.append(CommitOperationAdd(path_in_repo='SOURCE_NOTICES.md',path_or_fileobj=str(ROOT/'SOURCE_NOTICES.md')))
+  if web['sources']:ops.extend(CommitOperationAdd(path_in_repo=name,path_or_fileobj=str(work/name)) for name in ['medical_source_knowledge.jsonl','source_crawl_report.json'])
+  if published['sources'] or web['sources']:ops.append(CommitOperationAdd(path_in_repo='SOURCE_NOTICES.md',path_or_fileobj=str(ROOT/'SOURCE_NOTICES.md')))
   commit=api.create_commit(repo_id=repo,repo_type='dataset',parent_commit=revision,operations=ops,commit_message='Update reviewed disease train data '+period)
   report['commit']=commit.oid
  return report

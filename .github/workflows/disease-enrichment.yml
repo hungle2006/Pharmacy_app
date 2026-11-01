@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     paths:
+      - disease_monthly_pipeline/web_collectors.py
+      - disease_monthly_pipeline/web_collectors.json
       - disease_monthly_pipeline/enrichment.py
       - disease_monthly_pipeline/enrichment_config.json
       - disease_monthly_pipeline/crawl_sources.json
@@ -53,7 +55,7 @@ jobs:
           except Exception as error:
               print('Modal call error type:',type(error).__name__)
               raise SystemExit('Dataset refresh failed. Inspect Modal logs privately.') from None
-          print(json.dumps({k:result[k] for k in ['status','statistics','rows_before','rows_after','added_by_label','discovery_enabled','balance_before','balance_after','commit','error_type','error_frames'] if k in result},ensure_ascii=False))
+          print(json.dumps({k:result[k] for k in ['status','statistics','rows_before','rows_after','added_by_label','discovery_enabled','web_collectors','balance_before','balance_after','commit','error_type','error_frames'] if k in result},ensure_ascii=False))
           if result.get('status')=='failed':
               raise SystemExit('Refresh failed; see sanitized error type and source line above.')
           call=modal.Function.from_name('disease-monthly-pipeline','pipeline').spawn(submission_id='balanced-source-enrichment',wait_for_lock=True)
