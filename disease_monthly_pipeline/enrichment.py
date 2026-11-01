@@ -103,10 +103,12 @@ def discover(label,config):
  data=d.get('data',{});items=data.get('web',[]) if isinstance(data,dict) else data
  return [{'label':label,'url':canonical(x['url'],config['allowed_domains']),'title':str(x.get('title',''))[:250],'reason':'needs_page_label_and_reuse_review'} for x in items if urlsplit(x.get('url','')).hostname in config['allowed_domains']]
 def enrich(rows,config,registry,fetch,state=None,search=discover):
+ deadline=time.monotonic()+config.get('max_duration_seconds',1200)
  state=state or {};pages=dict(state.get('pages',{}));review=list(state.get('review',[]));stats=collections.Counter();before=deficits(rows,config['target_train_per_label']);quota={x['label']:x['missing'] for x in before}
  labels={r['label']:r['label_id'] for r in rows};groups={r['group_id'] for r in rows};out=list(rows);dupes=None;added=collections.Counter()
  requested={r['label'] for r in before if r['missing']>0}
  for source in registry['sources'][:config['max_pages_per_run']]:
+  if time.monotonic()>deadline:stats['time_budget_exhausted']+=1;break
   label=resolve_label(source,rows)
   if label is None:stats['ambiguous_or_unknown_source_label']+=1;continue
   if label not in requested or added[label]>=quota[label]:continue
@@ -126,6 +128,7 @@ def enrich(rows,config,registry,fetch,state=None,search=discover):
   out.append(r);dupes.add(text);groups.add(group);added[label]+=1;stats['accepted']+=1;pages[url]={'sha256':r['source_sha256'],'record_id':r['record_id']}
   if stats['accepted']>=config['max_additions_per_run']:break
  for item in before[:config['max_labels_per_run']]:
+  if time.monotonic()>deadline:stats['time_budget_exhausted']+=1;break
   if not item['missing']:continue
   try:review.extend(search(item['label'],config))
   except Exception:stats['discovery_failed']+=1

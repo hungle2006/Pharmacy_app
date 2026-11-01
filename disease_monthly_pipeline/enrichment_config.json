@@ -9,7 +9,11 @@
   "max_review_items": 2000,
   "near_jaccard": 0.8,
   "delay_seconds": 1.0,
-  "allowed_domains": ["www.cdc.gov", "cdc.gov"],
+  "allowed_domains": [
+    "www.cdc.gov",
+    "cdc.gov"
+  ],
   "search_results_per_label": 2,
-  "note": "One independent symptom excerpt per source page. Do not manufacture variants to meet quotas. Counts use train only; no holdout changes."
+  "note": "One independent symptom excerpt per source page. Do not manufacture variants to meet quotas. Counts use train only; no holdout changes.",
+  "max_duration_seconds": 1200
 }
