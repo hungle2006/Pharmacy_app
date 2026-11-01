@@ -6,7 +6,7 @@ Only explicit unambiguous mappings can append to TRAIN. A URL is one group forev
 import collections,json,re,time
 from datetime import datetime,timezone
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import HTTPError,URLError
 from urllib.request import Request,build_opener,HTTPRedirectHandler
 from urllib.robotparser import RobotFileParser
 from urllib.parse import urlsplit
@@ -70,17 +70,31 @@ def extract(html,page):
  if not 60<=len(text)<=8000 or len(text.split())<10:raise ValueError('insufficient_selected_text')
  return text
 
+def document(source,page,text,page_hash,retrieved_at,mode):
+ doc={'source_id':source['id'],'url':page['url'],'title':page['title'],'content_date':page.get('known_content_date'),'text':text,'text_sha256':digest(text),'page_sha256':page_hash,'retrieved_at':retrieved_at,'last_checked_at':datetime.now(timezone.utc).isoformat(),'retrieval_mode':mode,'source_kind':'knowledge_symptom_excerpt' if page['train_eligible'] else 'knowledge_condition_reference','policy_url':source['policy_url'],'reuse_notice':source['notice'],'label_aliases':page['label_aliases'],'disease_aliases':page['disease_aliases'],'train_eligible':page['train_eligible'],'training_status':'not_reviewed_against_master'}
+ if mode!='live' and (datetime.now(timezone.utc)-datetime.fromisoformat(retrieved_at)).days>31:doc['train_eligible']=False
+ return doc
+
 def collect(source,fetch=None):
- """One source tool; failures are isolated and reported, never disguised as data."""
+ """Live fetch first; an explicitly reviewed snapshot is a dated fallback, not a new crawl."""
  fetch=fetch or Fetcher(source['allowed_domains']);docs=[];errors=[]
  for page in source['pages'][:3]:
   try:
    canonical(page['url'],source['allowed_domains'])
    if source['policy_status']!='reviewed_institute_authored_text_only':raise ValueError('reuse_not_reviewed')
    html=fetch(page['url']);text=extract(html,page)
-   docs.append({'source_id':source['id'],'url':page['url'],'title':page['title'],'content_date':page.get('known_content_date'),'text':text,'text_sha256':digest(text),'page_sha256':__import__('hashlib').sha256(html.encode()).hexdigest(),'retrieved_at':datetime.now(timezone.utc).isoformat(),'source_kind':'knowledge_symptom_excerpt' if page['train_eligible'] else 'knowledge_condition_reference','policy_url':source['policy_url'],'reuse_notice':source['notice'],'label_aliases':page['label_aliases'],'disease_aliases':page['disease_aliases'],'train_eligible':page['train_eligible'],'training_status':'not_reviewed_against_master'})
-  except Exception as error:errors.append({'url':page['url'],'error_type':type(error).__name__,'reason':str(error)[:100] if isinstance(error,ValueError) else 'http_'+str(error.code) if isinstance(error,HTTPError) else 'source_unavailable'})
- return docs,{'source_id':source['id'],'pages_attempted':min(3,len(source['pages'])),'pages_collected':len(docs),'errors':errors}
+   docs.append(document(source,page,text,__import__('hashlib').sha256(html.encode()).hexdigest(),datetime.now(timezone.utc).isoformat(),'live'))
+  except Exception as error:
+   errors.append({'url':page['url'],'error_type':type(error).__name__,'reason':str(error)[:100] if isinstance(error,ValueError) else 'http_'+str(error.code) if isinstance(error,HTTPError) else 'source_unavailable'})
+   # Do not hide title changes, robots disallow or detected rights conflicts behind a cache.
+   if not isinstance(error,(HTTPError,URLError,TimeoutError)):continue
+   prior=source.get('_previous',{}).get(page['url'])
+   snapshot=page.get('reviewed_snapshot')
+   if prior and prior.get('policy_url')==source['policy_url']:
+    docs.append(document(source,page,prior['text'],prior['page_sha256'],prior['retrieved_at'],'last_successful_snapshot'))
+   elif snapshot and __import__('hashlib').sha256(snapshot['text'].encode()).hexdigest()==snapshot['sha256']:
+    docs.append(document(source,page,snapshot['text'],snapshot['page_sha256'],snapshot['retrieved_at'],'reviewed_snapshot'))
+ return docs,{'source_id':source['id'],'pages_attempted':min(3,len(source['pages'])),'pages_collected':len(docs),'pages_live':sum(d['retrieval_mode']=='live' for d in docs),'pages_snapshot':sum(d['retrieval_mode']!='live' for d in docs),'errors':errors}
 
 # Ten named tools, each independently callable and configurable.
 def crawl_cdc(source,fetch=None):return collect(source,fetch)
@@ -101,7 +115,7 @@ def refresh(rows,registry,previous=None,target=100,threshold=.8,only=None,fetch=
  for source in registry['sources']:
   if not source.get('enabled') or (only and source['id']!=only):continue
   if time.monotonic()>deadline:reports.append({'source_id':source['id'],'status':'time_budget_exhausted'});continue
-  docs,report=TOOLS[source['id']](source,fetch);reports.append(report)
+  docs,report=TOOLS[source['id']]({**source,'_previous':catalog},fetch);reports.append(report)
   for doc in docs:
    label=resolve_label(doc,rows);group='web:'+digest(doc['url']);status='eligible'
    if not doc['train_eligible']:status='reference_only'
@@ -119,7 +133,7 @@ def refresh(rows,registry,previous=None,target=100,threshold=.8,only=None,fetch=
     added[label]+=1;counts[label]+=1;groups.add(group);dupes.add(doc['text']);status='accepted_train'
    doc['training_status']=status;doc['matched_label']=label;catalog[doc['url']]=doc
  assert [r for r in out if r['split']!='train']==[r for r in rows if r['split']!='train'],'Frozen holdouts changed'
- report={'sources':reports,'sources_attempted':len(reports),'sources_ok':sum(x.get('pages_collected',0)>0 for x in reports),'knowledge_documents':len(catalog),'accepted_train':sum(added.values()),'added_by_label':dict(added),'note':'Reference pages are knowledge, not independent patient cases. One canonical URL is one training group; no synthetic paraphrase expansion.'}
+ report={'sources':reports,'sources_attempted':len(reports),'sources_ok':sum(x.get('pages_live',0)>0 for x in reports),'sources_with_content':sum(x.get('pages_collected',0)>0 for x in reports),'snapshot_sources':sum(x.get('pages_snapshot',0)>0 for x in reports),'knowledge_documents':len(catalog),'accepted_train':sum(added.values()),'added_by_label':dict(added),'note':'Reference pages are knowledge, not independent patient cases. One canonical URL is one training group; no synthetic paraphrase expansion.'}
  return out,sorted(catalog.values(),key=lambda d:d['url']),report
 
 if __name__=='__main__':

@@ -72,6 +72,23 @@ def test_robots_disallow_prevents_page_fetch(monkeypatch):
  with pytest.raises(ValueError,match='robots_disallowed'):web_collectors.Fetcher(['example.org'])('https://example.org/condition')
  assert calls==['https://example.org/robots.txt']
 
+def test_http_failure_uses_dated_reviewed_snapshot_but_does_not_claim_live():
+ import hashlib
+ from datetime import datetime,timezone,timedelta
+ from urllib.error import HTTPError
+ s=source();text=extract(HTML,s['pages'][0])
+ s['pages'][0]['reviewed_snapshot']={'text':text,'sha256':hashlib.sha256(text.encode()).hexdigest(),'page_sha256':'fixture','retrieved_at':datetime.now(timezone.utc).isoformat()}
+ def unavailable(url):raise HTTPError(url,403,'Forbidden',{},None)
+ result,docs,report=refresh(rows(),{'sources':[s]},fetch=unavailable)
+ assert report['sources_ok']==0 and report['sources_with_content']==1 and report['snapshot_sources']==1
+ assert docs[0]['retrieval_mode']=='reviewed_snapshot' and report['accepted_train']==1
+ s['pages'][0]['reviewed_snapshot']['retrieved_at']=(datetime.now(timezone.utc)-timedelta(days=32)).isoformat()
+ result,docs,report=refresh(rows(),{'sources':[s]},fetch=unavailable)
+ assert result==rows() and docs[0]['training_status']=='reference_only'
+ # Explicitly changed page structure cannot be hidden by a valid snapshot.
+ docs,report=collect(s,lambda _:HTML.replace('Condition reference','Another disease'))
+ assert not docs and report['pages_snapshot']==0
+
 def test_atomic_publication_writes_one_master_and_one_reference_catalog(tmp_path,monkeypatch):
  import types,pyarrow as pa,pyarrow.parquet as pq,huggingface_hub,enrichment,web_collectors
  initial=rows();master=tmp_path/'disease_train_ready.parquet';pq.write_table(pa.Table.from_pylist(initial),master)

@@ -27,7 +27,13 @@
             "hepatitis c",
             "HCV"
           ],
-          "train_eligible": true
+          "train_eligible": true,
+          "reviewed_snapshot": {
+            "text": "Dark urine or clay-colored stools\nFeeling tired\nFever\nJoint pain\nLoss of appetite\nNausea, stomach pain, throwing up\nYellow skin or eyes (jaundice)",
+            "sha256": "c29c5df07e7095d0e760b7d4d5bca449aac3787cac5c7b7a90d5c67f15098124",
+            "page_sha256": "22c2ea002ece6358369eafff1c4a848a4e83c0e8743f790e0b5aa9e0d97062af",
+            "retrieved_at": "2026-11-01T04:49:56.817947+00:00"
+          }
         }
       ]
     },
@@ -55,7 +61,13 @@
           "disease_aliases": [
             "hypothyroidism"
           ],
-          "train_eligible": true
+          "train_eligible": true,
+          "reviewed_snapshot": {
+            "text": "fatigue\nweight gain\ntrouble tolerating cold\njoint and muscle pain\ndry skin or dry, thinning hair\nheavy or irregular menstrual periods or fertility problems\nslowed heart rate\ndepression",
+            "sha256": "4ae0bc6a6c9b138b1a1c9b084d42859523c3dfe8e2fc39f59e83319896b66e50",
+            "page_sha256": "caf25bb2b739681bc154885e2ef0cc07ca913f6744e48053b6bea7e4ff4c3444",
+            "retrieved_at": "2026-11-01T04:50:07.023782+00:00"
+          }
         }
       ]
     },
@@ -84,7 +96,13 @@
             "iron-deficiency anemia",
             "iron deficiency anemia"
           ],
-          "train_eligible": true
+          "train_eligible": true,
+          "reviewed_snapshot": {
+            "text": "Fatigue\nDizziness or lightheadedness\nCold hands and feet\nPale skin",
+            "sha256": "ed0bba2b71bd11480720ee92d284f917d38a400cfa1c85ee74cec62571d8e40d",
+            "page_sha256": "843f6c4d66d81903f6dd9e03295ac4ca8fff4f683704fcd0215bb80a3321587f",
+            "retrieved_at": "2026-11-01T04:50:16.991821+00:00"
+          }
         }
       ]
     },
@@ -113,7 +131,13 @@
             "generalized anxiety disorder",
             "GAD"
           ],
-          "train_eligible": true
+          "train_eligible": true,
+          "reviewed_snapshot": {
+            "text": "Worry excessively about everyday things\nHave trouble controlling their worries or feelings of nervousness\nFeel irritable or “on edge” frequently\nFeel restless or have trouble relaxing\nHave a hard time concentrating\nHave trouble falling asleep or staying asleep, or feel fatigued\nExperience pain such as headaches, muscle aches, stomachaches, or tension\nTremble or twitch\nSweat a lot, feel lightheaded, or feel out of breath\nHave a hard time swallowing\nMake frequent trips to the bathroom\nJob security or performance\nHealth\nFinances\nThe health and well-being of their children or other family members\nBeing late\nCompleting household chores and other responsibilities",
+            "sha256": "1425caffa3dda52c67e9199a7be234b246cbed8a2cc78767f8e24166239e4a77",
+            "page_sha256": "7f11a0ed7cbd0c7a29f7e42b3dbd3e90c4e703bf3c9200755767cf974448b23f",
+            "retrieved_at": "2026-11-01T04:50:26.666519+00:00"
+          }
         }
       ]
     },
@@ -141,7 +165,13 @@
           "disease_aliases": [
             "dry eye"
           ],
-          "train_eligible": true
+          "train_eligible": true,
+          "reviewed_snapshot": {
+            "text": "A scratchy feeling, like there’s something in your eye\nStinging or burning feelings in your eye\nRed eyes\nSensitivity to light\nBlurry vision",
+            "sha256": "36d797b56554ac8f2befef68674d74c2d490980129f182d088c1796e155e100a",
+            "page_sha256": "811d32cf27173ec6f827b55f349dc2ff8e9041521ace7d08611f0696501deacd",
+            "retrieved_at": "2026-11-01T04:50:36.474488+00:00"
+          }
         }
       ]
     },
@@ -170,7 +200,13 @@
             "Ménière",
             "Meniere"
           ],
-          "train_eligible": false
+          "train_eligible": false,
+          "reviewed_snapshot": {
+            "text": "Ménière’s disease is a disorder of the inner ear that causes severe dizziness (vertigo), ringing in the ears (tinnitus), hearing loss, and a feeling of fullness or congestion in the ear. Ménière’s disease usually affects only one ear, but in 15% to 25% of people with the disorder, both ears may be affected.\nAttacks of dizziness may come on suddenly or after a short period of tinnitus or muffled hearing. Some people have single attacks of dizziness separated by long periods of time. Others may experience many attacks close together over several days. Some people with Ménière’s disease have vertigo so extreme that they lose their balance and fall. These episodes are called “drop attacks.”\nMénière’s disease is rare in children younger than 18. According to the American Academy of Otolaryngology-Head and Neck Surgery, Ménière’s disease can develop at any age, but it is more likely to occur in adults between 40 and 60 years of age. Approximately 615,000 individuals in the United States have Ménière’s disease, and about 45,500 cases are newly diagnosed each year, according to the American Hearing Research Foundation.",
+            "sha256": "2757ee6f6b162cfdc3b76f9ceb5f46331cd11e6da4a8eb132551638ab2adb724",
+            "page_sha256": "589aed4a83f33cdafce8f6a089a22b469ada99ebdac8238f95a579d173bb7a22",
+            "retrieved_at": "2026-11-01T04:50:46.304874+00:00"
+          }
         }
       ]
     },
@@ -200,7 +236,13 @@
             "periodontal",
             "gum disease"
           ],
-          "train_eligible": true
+          "train_eligible": true,
+          "reviewed_snapshot": {
+            "text": "Gums\nGums may be red, swollen, or tender. Gums may bleed easily. The gums may pull away from the teeth, making the teeth appear longer.\nTeeth\nLoose or sensitive teeth Pain while chewing\nOther\nPersistent bad breath",
+            "sha256": "4cd89d55fb9eb977a004057f8a2bdf682ee4d9d2912dbcce743d460dbc8860a8",
+            "page_sha256": "975546cf09c8cdffbd89b1757ac64c9f9141ebd9844429a78464b848af63f1f8",
+            "retrieved_at": "2026-11-01T04:50:56.143870+00:00"
+          }
         }
       ]
     },
@@ -228,7 +270,13 @@
           "disease_aliases": [
             "endometriosis"
           ],
-          "train_eligible": true
+          "train_eligible": true,
+          "reviewed_snapshot": {
+            "text": "Painful or even debilitating menstrual cramps, which may get worse over time\nPain during or after sex\nPain in the intestine or lower abdomen\nPainful bowel movements or painful urination during menstrual periods\nHeavy menstrual periods\nPremenstrual spotting or bleeding between periods\nProblems getting pregnant",
+            "sha256": "bbc3af5af12e30521294186a7d0654d173d50e60cee9c6b4cbe20818bd371262",
+            "page_sha256": "f80ad47459c4be213d871597ee22a1af43d3e7ff581f206993a9704b30aed279",
+            "retrieved_at": "2026-11-01T04:51:07.531887+00:00"
+          }
         }
       ]
     },
@@ -258,7 +306,13 @@
             "phenylketonuria",
             "PKU"
           ],
-          "train_eligible": false
+          "train_eligible": false,
+          "reviewed_snapshot": {
+            "text": "Phenylketonuria (commonly known as PKU) is an inherited disorder that increases the levels of a substance called phenylalanine in the blood. Phenylalanine is a protein building block ( an amino acid ) that is obtained from eating certain foods (such as meat, eggs, nuts, and milk) and in some artificial sweeteners. If PKU is not treated, phenylalanine can build up to harmful levels in the body, causing intellectual disability and other serious health problems.\nThe signs and symptoms of PKU vary from mild to severe. The most severe form of this disorder is known as classic PKU. Infants with classic PKU appear normal until they are a few months old. Without treatment, these children develop permanent intellectual disability. Seizures, delayed development, behavioral problems, and psychiatric disorders are also common. Untreated individuals may have a musty or mouse-like odor as a side effect of excess phenylalanine in the body. Children with classic PKU tend to have lighter skin and hair than unaffected family members and are also likely to have skin disorders such as eczema.\nLess severe forms of this condition, sometimes called variant PKU and non-PKU hyperphenylalaninemia, have a smaller risk of brain damage. People with very mild cases may not require treatment.\nPKU can often be managed by following a diet that is low in phenylalanine. Since phenylalanine is found in all proteins, the PKU diet consists of avoiding meat, dairy, nuts, tofu, and other foods that are high in protein. Infants with PKU need to be fed with a low-protein formula. Affected individuals are often limited to certain fruits and vegetables and foods containing fats and sugars (such as butter, jelly, pasta, and potato chips). The artificial sweeter aspartame, which is found in diet soda and many other low-calorie items, should be avoided as it contains high amounts of phenylalanine. The amount of phenylalanine that is safe to consume is different for each person. Affected individuals should work with a health care professional to develop an individualized diet.\nBabies born to mothers who have PKU and are not following a low-phenylalanine diet have a significant risk of intellectual disability because they are exposed to very high levels of phenylalanine before birth. These infants may also have a low birth weight and grow more slowly than other children. They may also have heart defects or other heart problems, an abnormally small head size ( microcephaly ), and behavioral problems. Women with PKU who are not following a low-phenylalanine diet (and may have high levels of phenylalanine) also have higher risk of pregnancy loss.",
+            "sha256": "64b5382b72a24223f9dfeba3ba132d6ab6b5af995f70c61e8f5927db1de7dd4e",
+            "page_sha256": "697cbb98d231b832f08d91cebd7950af63b52c4373495c132e3466e15ce86176",
+            "retrieved_at": "2026-11-01T04:51:16.988964+00:00"
+          }
         }
       ]
     },
@@ -288,7 +342,13 @@
             "fibromyalgia"
           ],
           "train_eligible": false,
-          "known_content_date": "2016-05"
+          "known_content_date": "2016-05",
+          "reviewed_snapshot": {
+            "text": "Fibromyalgia is a common disorder that involves widespread pain, tenderness, fatigue, and other symptoms. It’s not a form of arthritis, but like arthritis, it can interfere with a person’s ability to perform everyday activities. An estimated 5 million American adults have fibromyalgia. Between 80 and 90 percent of people with fibromyalgia are women, but men and children can also have this condition.\nIn addition to pain and fatigue, people with fibromyalgia may have other symptoms, such as cognitive and memory problems, sleep disturbances, morning stiffness, headaches, painful menstrual periods, numbness or tingling of the extremities, restless legs syndrome, temperature sensitivity, and sensitivity to loud noises or bright lights.\nA person may have two or more coexisting chronic pain conditions. Such conditions can include chronic fatigue syndrome, endometriosis, fibromyalgia, irritable bowel syndrome, interstitial cystitis, temporomandibular joint dysfunction, and vulvodynia. It’s not known whether these disorders share a common cause.\nThe exact cause of fibromyalgia is unclear, but it may be related to injury, emotional distress, or viruses that change the way the brain perceives pain. There’s no diagnostic test for fibromyalgia, so health care providers diagnose it by examining the patient, evaluating symptoms, and ruling out other conditions.\nThe U.S. Food and Drug Administration has approved several drugs to treat fibromyalgia, but medication is just one part of conventional medical treatment. Nondrug approaches such as exercise and good sleep habits can also help manage symptoms. Research has repeatedly shown that regular exercise is one of the most effective treatments for fibromyalgia. People with fibromyalgia who have too much pain or fatigue to do vigorous exercise should begin with walking or other gentle exercise and build their endurance and intensity slowly.\nFor more information about fibromyalgia, visit the National Institute of Arthritis and Musculoskeletal and Skin Diseases website .",
+            "sha256": "b3321991449eecbd2790a24598e172ef54c97943942502c81530f91fa5b03f02",
+            "page_sha256": "34cdc4e4221e4c769804ca2399d99fb3e9ba1726488d9cd3e643e442f5adc2e6",
+            "retrieved_at": "2026-11-01T04:51:27.148458+00:00"
+          }
         }
       ]
     }
