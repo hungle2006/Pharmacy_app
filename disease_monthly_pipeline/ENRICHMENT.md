@@ -1,6 +1,6 @@
 # Monthly source-backed disease enrichment
 
-The existing monthly training pipeline now refreshes the dataset on CPU **before** pinning its training snapshot. A separate `Disease dataset - source enrichment` workflow also supports manual execution and runs after enrichment code/config/source changes on main. It submits a bounded CPU-only Modal job; GitHub success means submission, not completion. No new ChatGPT automation or external monitor is required.
+The existing monthly training pipeline now refreshes the dataset on CPU **before** pinning its training snapshot. A separate `Disease dataset - source enrichment` workflow also supports manual execution and runs after enrichment code/config/source changes on main. The dedicated enrichment workflow waits for the bounded CPU-only Modal job and verifies its publication result; the separate training workflow continues to submit long GPU work in the background. No new ChatGPT automation or external monitor is required.
 
 ## Storage and secrets
 

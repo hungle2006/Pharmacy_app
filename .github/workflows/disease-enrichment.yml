@@ -16,7 +16,7 @@ concurrency:
 jobs:
   enrich:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: disease_monthly_pipeline
@@ -31,11 +31,15 @@ jobs:
           python-version: '3.11'
       - run: pip install 'modal>=1.2,<2'
       - run: modal deploy modal_app.py
-      - name: Submit bounded CPU crawl, without GPU training
+      - name: Run bounded CPU crawl and verify publication
         run: |
           python - <<'PY'
-          import modal
-          call=modal.Function.from_name('disease-monthly-pipeline','refresh_dataset').spawn()
-          print('Dataset refresh submitted:',call.object_id)
-          print('This confirms submission, not completion. Check Modal and enrichment_report.json on Hugging Face.')
+          import modal,json
+          try:
+              result=modal.Function.from_name('disease-monthly-pipeline','refresh_dataset').remote()
+          except Exception:
+              raise SystemExit('Dataset refresh failed. Inspect Modal logs privately.') from None
+          print(json.dumps({k:result[k] for k in ['status','statistics','rows_before','rows_after','added_by_label','discovery_enabled','commit'] if k in result},ensure_ascii=False))
+          if result.get('status')=='already_running':
+              raise SystemExit('Another pipeline holds the lock; retry after that job completes.')
           PY
