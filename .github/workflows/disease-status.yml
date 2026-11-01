@@ -1,0 +1,38 @@
+name: Disease operation status
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/disease-status.yml']
+permissions:
+  contents: read
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_ENVIRONMENT: main
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'modal>=1.2,<2'
+      - name: Read operation and submitted calls without starting training
+        run: |
+          python - <<'PY'
+          import modal,json,urllib.request
+          result=modal.Function.from_name('disease-monthly-pipeline','operations_status').remote()
+          print('Operations:',json.dumps(result,ensure_ascii=False))
+          for call_id in ['fc-01M6AKTKZA9YR19YQWH1CBGWQT','fc-01M6ANMQ286C2RB8PBHW9GWKQA']:
+              try:
+                  value=modal.FunctionCall.from_id(call_id).get(timeout=0)
+                  print('Call completed:',call_id,json.dumps(value,ensure_ascii=False))
+              except TimeoutError:print('Call pending:',call_id)
+              except Exception as error:print('Call error:',call_id,type(error).__name__)
+          for repo,file in [('datasets/leminhhung0101/disease_data','enrichment_report.json'),('leminhhung0101/disease_model','deployment.json')]:
+              with urllib.request.urlopen('https://huggingface.co/'+repo+'/resolve/main/'+file,timeout=30) as response:data=json.load(response)
+              fields=['period','rows_before','rows_after','balance_before','balance_after','run_id','validation_macro_f1','metrics']
+              print(file,json.dumps({k:data[k] for k in fields if k in data},ensure_ascii=False))
+          PY
