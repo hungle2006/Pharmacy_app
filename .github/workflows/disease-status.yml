@@ -19,7 +19,7 @@ jobs:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
       MODAL_ENVIRONMENT: main
-      CALL_IDS: ${{ inputs.call_ids || 'fc-01M6AKTKZA9YR19YQWH1CBGWQT,fc-01M6ANMQ286C2RB8PBHW9GWKQA' }}
+      CALL_IDS: ${{ inputs.call_ids || 'fc-01M6AKTKZA9YR19YQWH1CBGWQT,fc-01M6ANMQ286C2RB8PBHW9GWKQA,fc-01M6AP3M21JKR0ZAVW1573Q0G2' }}
     steps:
       - uses: actions/setup-python@v5
         with:
@@ -28,8 +28,11 @@ jobs:
       - name: Read operation and submitted calls without starting training
         run: |
           python - <<'PY'
-          import modal,json,urllib.request,os
+          import modal,json,urllib.request,os,time
           result=modal.Function.from_name('disease-monthly-pipeline','operations_status').remote()
+          active=modal.Dict.from_name('disease-monthly-locks').get('active',{})
+          result['active_operation']=bool(active)
+          result['active_age_seconds']=max(0,int(time.time()-active['started_at'])) if active else None
           print('Operations:',json.dumps(result,ensure_ascii=False))
           run_id=result.get('latest_run_id')
           if run_id:
