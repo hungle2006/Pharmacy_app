@@ -19,7 +19,7 @@ jobs:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
       MODAL_ENVIRONMENT: main
-      CALL_IDS: ${{ inputs.call_ids || 'fc-01M6AKTKZA9YR19YQWH1CBGWQT,fc-01M6ANMQ286C2RB8PBHW9GWKQA,fc-01M6AP3M21JKR0ZAVW1573Q0G2' }}
+      CALL_IDS: ${{ inputs.call_ids || 'fc-01M6AKTKZA9YR19YQWH1CBGWQT,fc-01M6ANMQ286C2RB8PBHW9GWKQA,fc-01M6AP3M21JKR0ZAVW1573Q0G2,fc-01M6AP6QHAZK988VQZ2SPWJ429,fc-01M6AQ9YJS2Z135CY2141S6PT8,fc-01M6AQNCJPK7J45MJWHSFSW2DN' }}
     steps:
       - uses: actions/setup-python@v5
         with:
@@ -28,7 +28,13 @@ jobs:
       - name: Read operation and submitted calls without starting training
         run: |
           python - <<'PY'
-          import modal,json,urllib.request,os,time
+          import modal,json,urllib.request,os,time,re,subprocess
+          def clean(value):
+              value=str(value)
+              for key in ['MODAL_TOKEN_ID','MODAL_TOKEN_SECRET']:
+                  if os.environ.get(key):value=value.replace(os.environ[key],'[REDACTED]')
+              value=re.sub(r'https?://\S+','[URL]',value)
+              return re.sub(r'\b(?:hf_[A-Za-z0-9]+|(?:ak|as)-[A-Za-z0-9-]+)','[REDACTED]',value)
           result=modal.Function.from_name('disease-monthly-pipeline','operations_status').remote()
           active=modal.Dict.from_name('disease-monthly-locks').get('active',{})
           result['active_operation']=bool(active)
@@ -56,14 +62,36 @@ jobs:
           for call_id in filter(None,(x.strip() for x in os.environ.get('CALL_IDS','').split(','))):
               try:
                   def summary(nodes):
-                      return [{'function':getattr(n,'function_name',None),'status':str(getattr(n,'status',None)),'children':summary(getattr(n,'children',[]) or [])} for n in nodes[:20]]
+                      return [{'function':getattr(n,'function_name',None),'status':getattr(getattr(n,'status',None),'name',str(getattr(n,'status',None))),'task_id':getattr(n,'task_id',None),'function_call_id':getattr(n,'function_call_id',None),'children':summary(getattr(n,'children',[]) or [])} for n in nodes[:20]]
                   print('Call graph:',call_id,json.dumps(summary(modal.FunctionCall.from_id(call_id).get_call_graph())))
               except Exception as error:print('Call graph inspection:',type(error).__name__)
               try:
-                  value=modal.FunctionCall.from_id(call_id).get(timeout=0)
+                  value=modal.FunctionCall.from_id(call_id).get(timeout=5)
                   print('Call completed:',call_id,json.dumps(value,ensure_ascii=False))
-              except TimeoutError:print('Call pending:',call_id)
-              except Exception as error:print('Call error:',call_id,type(error).__name__)
+              except TimeoutError as error:print('Call timeout or still pending:',call_id,type(error).__name__,clean(str(error))[:1800])
+              except Exception as error:print('Call error:',call_id,type(error).__name__,clean(str(error))[:1800])
+          for function in ['pipeline','prepare_data','train_gpu','refresh_dataset','predict','report']:
+              try:
+                  stats=modal.Function.from_name('disease-monthly-pipeline',function).get_current_stats()
+                  print('Function state:',function,clean(stats))
+              except Exception as error:print('Function state error:',function,type(error).__name__,clean(str(error))[:300])
+          for command in [['modal','app','list','--json'],['modal','container','list','--json']]:
+              try:
+                  response=subprocess.run(command,timeout=20,capture_output=True,text=True)
+                  print('Read-only inventory:',command[1:3],response.returncode,clean(response.stdout)[:18000],clean(response.stderr)[:300])
+              except Exception as error:print('Inventory error:',type(error).__name__)
+          try:
+              response=subprocess.run(['modal','app','logs','disease-monthly-pipeline'],timeout=12,capture_output=True,text=True)
+              logs=response.stdout+response.stderr
+          except subprocess.TimeoutExpired as error:
+              def decode(value):return value.decode('utf-8','replace') if isinstance(value,bytes) else value or ''
+              logs=decode(error.stdout)+decode(error.stderr)
+          except Exception as error:logs='Log reader error: '+type(error).__name__
+          lines=clean(logs).splitlines();selected=set()
+          for i,line in enumerate(lines):
+              if re.search(r'error|exception|traceback|terminated|out.of.memory|killed|preempt|cuda|notfound|timeout|failed',line,re.I):
+                  selected.update(range(max(0,i-2),min(len(lines),i+4)))
+          print('Recent error log excerpts:', '\\n'.join(lines[i] for i in sorted(selected)[-150:]) if selected else 'No matching errors returned by this bounded log read.')
           for repo,file in [('datasets/leminhhung0101/disease_data','enrichment_report.json'),('leminhhung0101/disease_model','deployment.json')]:
               with urllib.request.urlopen('https://huggingface.co/'+repo+'/resolve/main/'+file,timeout=30) as response:data=json.load(response)
               fields=['period','rows_before','rows_after','balance_before','balance_after','run_id','validation_macro_f1','metrics']
