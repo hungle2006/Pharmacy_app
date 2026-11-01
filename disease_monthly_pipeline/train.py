@@ -12,7 +12,7 @@ def compute_metrics(pred):
  order=np.argsort(logits,axis=1)[:,::-1];guess=order[:,0]
  return {'accuracy':float(accuracy_score(truth,guess)),'macro_f1':float(f1_score(truth,guess,average='macro',zero_division=0)),'balanced_accuracy':float(balanced_accuracy_score(truth,guess)),'top3_accuracy':float(np.mean(np.any(order[:,:min(3,logits.shape[1])]==truth[:,None],axis=1))),'top5_accuracy':float(np.mean(np.any(order[:,:min(5,logits.shape[1])]==truth[:,None],axis=1)))}
 def main(argv=None,persist_checkpoint=None):
- p=argparse.ArgumentParser();p.add_argument('--data',type=Path,default=Path(__file__).parent/'data/disease_train_ready.parquet');p.add_argument('--model',default='FacebookAI/xlm-roberta-base');p.add_argument('--output',type=Path,default=Path('results/xlmr_disease'));p.add_argument('--epochs',type=float,default=3);p.add_argument('--batch-size',type=int,default=8);p.add_argument('--max-length',type=int,default=256);p.add_argument('--lr',type=float,default=2e-5);p.add_argument('--allow-cpu',action='store_true');p.add_argument('--max-steps',type=int,default=-1,help='Smoke/testing only; default -1 trains all epochs');a=p.parse_args(argv)
+ p=argparse.ArgumentParser();p.add_argument('--data',type=Path,default=Path(__file__).parent/'data/disease_train_ready.parquet');p.add_argument('--model',default='FacebookAI/xlm-roberta-base');p.add_argument('--output',type=Path,default=Path('results/xlmr_disease'));p.add_argument('--epochs',type=float,default=3);p.add_argument('--batch-size',type=int,default=8);p.add_argument('--max-length',type=int,default=256);p.add_argument('--lr',type=float,default=2e-5);p.add_argument('--class-weight',choices=['none','balanced'],default='balanced');p.add_argument('--allow-cpu',action='store_true');p.add_argument('--max-steps',type=int,default=-1,help='Smoke/testing only; default -1 trains all epochs');a=p.parse_args(argv)
  import torch
  from datasets import Dataset,DatasetDict
  from transformers import AutoTokenizer,AutoModelForSequenceClassification,DataCollatorWithPadding,Trainer,TrainingArguments,EarlyStoppingCallback,TrainerCallback,set_seed
@@ -29,7 +29,7 @@ def main(argv=None,persist_checkpoint=None):
  memberships=df.groupby('group_id')['split'].nunique();assert memberships.max()==1,'Group leakage'
  id2label={int(i):str(l) for i,l in zip(df['label_id'],df['label'])};assert set(id2label)==set(range(len(id2label)))
  for s in ['train','validation','test']:assert set(df.loc[df['split']==s,'label_id'])==set(id2label),'Missing labels in split'
- run_config={'data_sha256':sha,'model':a.model,'labels':id2label,'max_length':a.max_length,'learning_rate':a.lr,'batch_size':a.batch_size,'epochs':a.epochs,'max_steps':a.max_steps,'seed':42}
+ run_config={'data_sha256':sha,'model':a.model,'labels':id2label,'max_length':a.max_length,'learning_rate':a.lr,'batch_size':a.batch_size,'epochs':a.epochs,'max_steps':a.max_steps,'seed':42,'class_weight':a.class_weight}
  config_path=a.output/'run_config.json'
  if config_path.exists():
   old=json.loads(config_path.read_text());assert old==json.loads(json.dumps(run_config)),'Output belongs to a different data/model/training configuration; choose a new output directory'
@@ -44,7 +44,10 @@ def main(argv=None,persist_checkpoint=None):
   def on_save(self,args,state,control,**kwargs):
    if persist_checkpoint:persist_checkpoint()
  callbacks=[EarlyStoppingCallback(early_stopping_patience=2),Persist()]
- trainer=Trainer(model=model,args=args,train_dataset=encoded['train'],eval_dataset=encoded['validation'],processing_class=tokenizer,data_collator=DataCollatorWithPadding(tokenizer),compute_metrics=compute_metrics,callbacks=callbacks)
+ from balancing import class_weights,make_loss
+ weights,balance_report=class_weights(df.loc[df['split']=='train','label_id'].tolist(),len(id2label),a.class_weight)
+ (a.output/'class_balance.json').write_text(json.dumps(balance_report,ensure_ascii=False,indent=2))
+ trainer=Trainer(compute_loss_func=make_loss(weights),model=model,args=args,train_dataset=encoded['train'],eval_dataset=encoded['validation'],processing_class=tokenizer,data_collator=DataCollatorWithPadding(tokenizer),compute_metrics=compute_metrics,callbacks=callbacks)
  checkpoint=get_last_checkpoint(str(a.output))
  trainer.train(resume_from_checkpoint=checkpoint)
  validation=trainer.evaluate(encoded['validation'],metric_key_prefix='validation');test=trainer.predict(encoded['test'],metric_key_prefix='test');metrics={'validation':validation,'test':test.metrics,'note':'Held-out same-source synthetic/template classification, not independently verified clinical diagnostic accuracy.','dataset_sha256':sha,'best_checkpoint':trainer.state.best_model_checkpoint}

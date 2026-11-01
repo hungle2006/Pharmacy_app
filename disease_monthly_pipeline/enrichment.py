@@ -147,7 +147,8 @@ def run(storage,publish=True):
  def read(name):return Path(hf_hub_download(repo_id=repo,repo_type='dataset',revision=revision,filename=name))
  state=json.loads(read('enrichment_state.json').read_text()) if 'enrichment_state.json' in files else {}
  published=json.loads((ROOT/'published_sources.json').read_text()) if config.get('published_sources_enabled') else {'sources':[]}
- signature=hashlib.sha256(json.dumps([config,registry,published],sort_keys=True).encode()).hexdigest();period=datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m')
+ ddx=json.loads((ROOT/'ddxplus_sources.json').read_text()) if config.get('ddxplus_enabled') else {'enabled':False}
+ signature=hashlib.sha256(json.dumps([config,registry,published,ddx],sort_keys=True).encode()).hexdigest();period=datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m')
  if state.get('period')==period and state.get('config_signature')==signature and state.get('last_master_sha256')==hashlib.sha256(read(config['dataset_file']).read_bytes()).hexdigest():return {'status':'already_updated_this_month'}
  table=pq.read_table(read(config['dataset_file']));rows=table.to_pylist()
  final,newstate,report=enrich(rows,config,registry,Fetcher(config),state)
@@ -158,6 +159,15 @@ def run(storage,publish=True):
   for item in source_reports:
    for label,count in item['added_by_label'].items():report['added_by_label'][label]=report['added_by_label'].get(label,0)+count
   report['after']=deficits(final,config['target_train_per_label'])
+ if ddx.get('enabled'):
+  from ddxplus import refresh as refresh_ddx
+  final,ddx_report=refresh_ddx(final,ddx,Path(storage)/'source_cache',config['target_train_per_label'],config['near_jaccard'])
+  report['ddxplus']=ddx_report
+  for label,count in ddx_report['added_by_label'].items():report['added_by_label'][label]=report['added_by_label'].get(label,0)+count
+  report['after']=deficits(final,config['target_train_per_label'])
+ from balancing import coverage
+ report['balance_before']=coverage(rows,config['target_train_per_label'])
+ report['balance_after']=coverage(final,config['target_train_per_label'])
  work=Path(storage)/'enrichment';work.mkdir(parents=True,exist_ok=True);path=work/config['dataset_file']
  # Explicit schema union keeps provenance fields on newly added rows and original Arrow types.
  schema=table.schema

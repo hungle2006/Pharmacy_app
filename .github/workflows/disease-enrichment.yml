@@ -9,6 +9,11 @@ on:
       - disease_monthly_pipeline/crawl_sources.json
       - disease_monthly_pipeline/published_sources.py
       - disease_monthly_pipeline/published_sources.json
+      - disease_monthly_pipeline/ddxplus.py
+      - disease_monthly_pipeline/ddxplus_sources.json
+      - disease_monthly_pipeline/balancing.py
+      - disease_monthly_pipeline/config.json
+      - disease_monthly_pipeline/train.py
       - .github/workflows/disease-enrichment.yml
 permissions:
   contents: read
@@ -37,18 +42,17 @@ jobs:
         run: |
           python - <<'PY'
           import modal,json
+          print('Before refresh:',json.dumps(modal.Function.from_name('disease-monthly-pipeline','operations_status').remote(),ensure_ascii=False))
           try:
               result=modal.Function.from_name('disease-monthly-pipeline','refresh_dataset').remote()
           except Exception as error:
               print('Modal call error type:',type(error).__name__)
               raise SystemExit('Dataset refresh failed. Inspect Modal logs privately.') from None
-          print(json.dumps({k:result[k] for k in ['status','statistics','rows_before','rows_after','added_by_label','discovery_enabled','commit','error_type','error_frames'] if k in result},ensure_ascii=False))
+          print(json.dumps({k:result[k] for k in ['status','statistics','rows_before','rows_after','added_by_label','discovery_enabled','balance_before','balance_after','commit','error_type','error_frames'] if k in result},ensure_ascii=False))
           if result.get('status')=='failed':
               raise SystemExit('Refresh failed; see sanitized error type and source line above.')
-          if result.get('rows_after',0)>result.get('rows_before',0):
-              call=modal.Function.from_name('disease-monthly-pipeline','pipeline').spawn(submission_id='source-enrichment')
-              print('Training submitted after verified dataset publication:',call.object_id)
-              print('Training continues on Modal; dataset job success does not mean training completed.')
-          if result.get('status')=='already_running':
-              raise SystemExit('Another pipeline holds the lock; retry after that job completes.')
+          call=modal.Function.from_name('disease-monthly-pipeline','pipeline').spawn(submission_id='balanced-source-enrichment',wait_for_lock=True)
+          print('Pipeline submitted:',call.object_id)
+          print('It waits up to 30 minutes for an existing operation. Submission is not training completion or model promotion.')
+          print('After submission:',json.dumps(modal.Function.from_name('disease-monthly-pipeline','operations_status').remote(),ensure_ascii=False))
           PY

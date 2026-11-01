@@ -8,7 +8,7 @@ HTML='''<main><h1>Signs and Symptoms of Cholera</h1><h2>Early symptoms</h2><figu
 def fixture():
  import json
  root=Path(__file__).resolve().parents[1]
- config=json.loads((root/'enrichment_config.json').read_text());registry=json.loads((root/'crawl_sources.json').read_text());registry['sources']=registry['sources'][:1];config['published_sources_enabled']=False
+ config=json.loads((root/'enrichment_config.json').read_text());registry=json.loads((root/'crawl_sources.json').read_text());registry['sources']=registry['sources'][:1];config['published_sources_enabled']=False;config['ddxplus_enabled']=False
  rows=[{'text':f'unique existing observation {i} and distinct symptom history','label':'Tả','label_id':0,'split':s,'group_id':s,'record_id':str(i),'source_files':['old'],'language':'vi'} for i,s in enumerate(['train','validation','test'])]
  return rows,config,registry
 def test_extract_only_verbatim_symptom_list_not_caption_or_treatment():

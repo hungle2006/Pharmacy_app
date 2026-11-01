@@ -14,6 +14,11 @@ def promotion_decision(candidate,current,config,allow_new_benchmark=False):
  if current:
   if candidate['benchmark_sha256']!=current['benchmark_sha256'] and not allow_new_benchmark:return False,'benchmark_changed_requires_explicit_promotion'
   if candidate['benchmark_sha256']==current['benchmark_sha256'] and score+float(config['promotion_tolerance'])<float(current['validation_macro_f1']):return False,'validation_regression'
+ if config.get('prevent_accuracy_regression') and current and candidate['benchmark_sha256']==current['benchmark_sha256']:
+  def accuracy(value):return value.get('metrics',{}).get('validation',{}).get('validation_accuracy')
+  before,after=accuracy(current),accuracy(candidate)
+  if after is None or before is None or not math.isfinite(float(after)):return False,'missing_validation_accuracy'
+  if float(after)<float(before):return False,'validation_accuracy_regression'
  return True,'accepted'
 def model_directory(pointer,repo,cache=None):
  path=PurePosixPath(pointer['model_path'])
@@ -49,7 +54,7 @@ def publish(config,run_id,run_dir,prep,snapshot,allow_new_benchmark=False,api=No
  candidate={'run_id':run_id,'benchmark_sha256':prep['benchmark_sha256'],'validation_macro_f1':metrics['validation']['validation_macro_f1'],'dataset_revision':snapshot['dataset_revision'],'data_fingerprint':snapshot['data_fingerprint'],'model_path':f'versions/{run_id}/best_model','max_length':config['max_length'],'metrics':metrics}
  (root/'release.json').write_text(json.dumps(candidate,ensure_ascii=False,indent=2))
  paths=[p for p in (root/'best_model').rglob('*') if p.is_file() and p.suffix in ['.json','.safetensors','.txt','.model']]+[root/'evaluation.json',root/'per_class_test.json',root/'release.json',root/'preparation_report.json']
- paths += [root/name for name in ['diagnostics.json','training_history.json'] if (root/name).is_file()]
+ paths += [root/name for name in ['diagnostics.json','training_history.json','class_balance.json','run_config.json'] if (root/name).is_file()]
  operations=[CommitOperationAdd(path_in_repo=f'versions/{run_id}/'+str(p.relative_to(root)).replace('\\','/'),path_or_fileobj=str(p)) for p in paths]
  artifact=api.create_commit(repo_id=repo,repo_type='model',operations=operations,commit_message=f'Add immutable disease model run {run_id}')
  candidate['artifact_revision']=artifact.oid
