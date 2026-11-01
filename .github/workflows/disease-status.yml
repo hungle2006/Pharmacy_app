@@ -25,6 +25,25 @@ jobs:
           import modal,json,urllib.request
           result=modal.Function.from_name('disease-monthly-pipeline','operations_status').remote()
           print('Operations:',json.dumps(result,ensure_ascii=False))
+          run_id=result.get('latest_run_id')
+          if run_id:
+              try:
+                  volume=modal.Volume.from_name('disease-monthly-storage')
+                  entries=volume.listdir('/runs/'+run_id+'/training',recursive=False)
+                  checkpoints=[]
+                  for entry in entries:
+                      name=entry.path.rstrip('/').split('/')[-1]
+                      if name.startswith('checkpoint-') and name.split('-')[-1].isdigit():checkpoints.append((int(name.split('-')[-1]),entry.path))
+                  if checkpoints:
+                      step,path=max(checkpoints)
+                      raw=b''
+                      for chunk in volume.read_file(path.rstrip('/')+'/trainer_state.json'):
+                          raw+=chunk
+                          if len(raw)>5000000:raise ValueError('State file too large')
+                      state=json.loads(raw)
+                      print('Saved training progress:',json.dumps({'run_id':run_id,'global_step':state.get('global_step'),'max_steps':state.get('max_steps'),'epoch':state.get('epoch'),'last_logs':state.get('log_history',[])[-4:]},ensure_ascii=False))
+                  else:print('No committed epoch checkpoint yet:',run_id)
+              except Exception as error:print('Checkpoint inspection:',type(error).__name__)
           for call_id in ['fc-01M6AKTKZA9YR19YQWH1CBGWQT','fc-01M6ANMQ286C2RB8PBHW9GWKQA']:
               try:
                   value=modal.FunctionCall.from_id(call_id).get(timeout=0)
