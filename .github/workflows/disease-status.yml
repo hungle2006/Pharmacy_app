@@ -1,6 +1,11 @@
 name: Disease operation status
 on:
   workflow_dispatch:
+    inputs:
+      call_ids:
+        description: Optional comma-separated Modal pipeline call IDs
+        type: string
+        required: false
   push:
     branches: [main]
     paths: ['.github/workflows/disease-status.yml']
@@ -14,6 +19,7 @@ jobs:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
       MODAL_ENVIRONMENT: main
+      CALL_IDS: ${{ inputs.call_ids || 'fc-01M6AKTKZA9YR19YQWH1CBGWQT,fc-01M6ANMQ286C2RB8PBHW9GWKQA' }}
     steps:
       - uses: actions/setup-python@v5
         with:
@@ -22,7 +28,7 @@ jobs:
       - name: Read operation and submitted calls without starting training
         run: |
           python - <<'PY'
-          import modal,json,urllib.request
+          import modal,json,urllib.request,os
           result=modal.Function.from_name('disease-monthly-pipeline','operations_status').remote()
           print('Operations:',json.dumps(result,ensure_ascii=False))
           run_id=result.get('latest_run_id')
@@ -44,7 +50,12 @@ jobs:
                       print('Saved training progress:',json.dumps({'run_id':run_id,'global_step':state.get('global_step'),'max_steps':state.get('max_steps'),'epoch':state.get('epoch'),'last_logs':state.get('log_history',[])[-4:]},ensure_ascii=False))
                   else:print('No committed epoch checkpoint yet:',run_id)
               except Exception as error:print('Checkpoint inspection:',type(error).__name__)
-          for call_id in ['fc-01M6AKTKZA9YR19YQWH1CBGWQT','fc-01M6ANMQ286C2RB8PBHW9GWKQA']:
+          for call_id in filter(None,(x.strip() for x in os.environ.get('CALL_IDS','').split(','))):
+              try:
+                  def summary(nodes):
+                      return [{'function':getattr(n,'function_name',None),'status':str(getattr(n,'status',None)),'children':summary(getattr(n,'children',[]) or [])} for n in nodes[:20]]
+                  print('Call graph:',call_id,json.dumps(summary(modal.FunctionCall.from_id(call_id).get_call_graph())))
+              except Exception as error:print('Call graph inspection:',type(error).__name__)
               try:
                   value=modal.FunctionCall.from_id(call_id).get(timeout=0)
                   print('Call completed:',call_id,json.dumps(value,ensure_ascii=False))
