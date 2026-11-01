@@ -14,6 +14,11 @@ on:
       - disease_monthly_pipeline/balancing.py
       - disease_monthly_pipeline/config.json
       - disease_monthly_pipeline/train.py
+      - disease_monthly_pipeline/modal_app.py
+      - disease_monthly_pipeline/pipeline.py
+      - disease_monthly_pipeline/data_pipeline.py
+      - disease_monthly_pipeline/release.py
+      - disease_monthly_pipeline/requirements-train.txt
       - .github/workflows/disease-enrichment.yml
 permissions:
   contents: read

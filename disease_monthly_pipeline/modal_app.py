@@ -19,8 +19,10 @@ def environment():
 @app.function(image=image,cpu=4,memory=8192,timeout=3600,volumes={'/storage':volume},secrets=secrets)
 def prepare_data(force=False,submission_id='manual'):
  environment();volume.reload()
- from enrichment import run as enrich_dataset
- enrich_dataset('/storage',publish=True)
+ # Dataset publication has its own lock; training always uses its pinned snapshot.
+ result=refresh_dataset.remote()
+ if result.get('status') in {'failed','already_running'}:raise RuntimeError('Dataset refresh is not ready; retry preparation after it completes')
+ volume.reload()
  from pipeline import prepare_run
  result=prepare_run('/storage',force,submission_id);volume.commit();return result
 
@@ -88,7 +90,7 @@ def report():
 def refresh_dataset():
  import uuid,time
  environment();volume.reload();token=uuid.uuid4().hex
- if not locks.put('active',{'token':token,'started_at':time.time()},skip_if_exists=True):return {'status':'already_running'}
+ if not locks.put('dataset_refresh',{'token':token,'started_at':time.time()},skip_if_exists=True):return {'status':'already_running'}
  try:
   from enrichment import run
   return run('/storage',publish=True)
@@ -98,7 +100,7 @@ def refresh_dataset():
   return {'status':'failed','error_type':type(error).__name__,'error_frames':frames}
  finally:
   volume.commit()
-  if locks.get('active',{}).get('token')==token:locks.pop('active',None)
+  if locks.get('dataset_refresh',{}).get('token')==token:locks.pop('dataset_refresh',None)
 
 
 @app.function(image=image,cpu=.125,memory=512,timeout=120,max_containers=1,volumes={'/storage':volume},secrets=secrets)
@@ -106,8 +108,8 @@ def operations_status():
  """Read-only operation summaries, never credentials or patient text."""
  import time,json
  environment();volume.reload()
- active=locks.get('active',{})
- result={'active_operation':bool(active),'active_age_seconds':max(0,int(time.time()-active['started_at'])) if active else None}
+ active=locks.get('dataset_refresh',{})
+ result={'dataset_refresh_active':bool(locks.get('dataset_refresh',{})),'active_operation':bool(active),'active_age_seconds':max(0,int(time.time()-active['started_at'])) if active else None}
  path=Path('/storage/maintenance_status.json')
  if path.is_file():result['maintenance']=json.loads(path.read_text())
  runs=sorted(Path('/storage/runs').glob('*/context.json'),key=lambda p:p.stat().st_mtime,reverse=True)
