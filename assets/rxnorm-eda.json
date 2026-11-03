@@ -1,22 +1,22 @@
 {
   "source": "silver/rxnorm.csv",
-  "source_sha256": "b90f7d0b5f9452d7b660fed8dc3c23e621211f8ce10db91d53e0763d5265ad21",
-  "generated_utc": "2026-10-27T17:07:00.758759+00:00",
+  "source_sha256": "15d42e57d189cb5d58e674e9406086f0035d4458be538fd9c5693310fcc9140a",
+  "generated_utc": "2026-11-03T03:26:56.650905+00:00",
   "provenance": {
     "key": "silver/rxnorm.csv",
-    "sha": "b90f7d0b5f9452d7b660fed8dc3c23e621211f8ce10db91d53e0763d5265ad21",
-    "etag": "\"f1b4618aeb84ea5cb7b4c042b2805afa-3\"",
-    "size": 24125518
+    "sha": "15d42e57d189cb5d58e674e9406086f0035d4458be538fd9c5693310fcc9140a",
+    "etag": "\"c6a3a829480d210401adc3bf77da7d4f-3\"",
+    "size": 24142341
   },
   "report_3_eda": {
     "scope": "Term-level current Silver RxNorm; not unique products or clinical relationships",
-    "total_rows": 141074,
-    "distinct_rxcui_mapping_ready": 81620,
-    "mapping_ready_rows": 141074,
+    "total_rows": 141195,
+    "distinct_rxcui_mapping_ready": 81701,
+    "mapping_ready_rows": 141195,
     "excluded_rows": 0,
     "mapping_ready_rate_pct": 100.0,
-    "ingredient_terms": 7829,
-    "scd_terms": 12081,
+    "ingredient_terms": 7847,
+    "scd_terms": 12098,
     "normalization_difference_rows": 0,
     "normalization_difference_pct": 0.0,
     "missing_by_field": [
@@ -49,7 +49,7 @@
     "qc_distribution": [
       {
         "label": "ACCEPTED",
-        "count": 141074
+        "count": 141195
       }
     ],
     "excluded_reasons": [],
@@ -111,75 +111,75 @@
     "tty_distribution": [
       {
         "label": "SY",
-        "count": 28364
+        "count": 28382
       },
       {
         "label": "PSN",
-        "count": 21351
+        "count": 21374
       },
       {
         "label": "SCD",
-        "count": 12081
+        "count": 12098
       },
       {
         "label": "SCDC",
-        "count": 10172
+        "count": 10186
       },
       {
         "label": "TMSY",
-        "count": 9739
+        "count": 9738
       },
       {
         "label": "SBD",
-        "count": 8094
+        "count": 8099
       },
       {
         "label": "SBDC",
-        "count": 7025
+        "count": 7030
       },
       {
         "label": "SBDG",
-        "count": 6692
+        "count": 6696
       },
       {
         "label": "SCDG",
-        "count": 6288
+        "count": 6294
       },
       {
         "label": "IN",
-        "count": 5874
+        "count": 5886
       },
       {
         "label": "SCDF",
-        "count": 5566
+        "count": 5570
       },
       {
         "label": "SBDF",
-        "count": 4972
+        "count": 4974
       },
       {
         "label": "BN",
-        "count": 4140
+        "count": 4141
       },
       {
         "label": "SCDGP",
-        "count": 2512
+        "count": 2513
       },
       {
         "label": "SCDFP",
-        "count": 2025
+        "count": 2026
       },
       {
         "label": "PIN",
-        "count": 1955
+        "count": 1961
       },
       {
         "label": "SBDFP",
-        "count": 1762
+        "count": 1763
       },
       {
         "label": "MIN",
-        "count": 960
+        "count": 961
       },
       {
         "label": "BPCK",
@@ -187,7 +187,7 @@
       },
       {
         "label": "GPCK",
-        "count": 622
+        "count": 623
       },
       {
         "label": "DF",
@@ -201,41 +201,41 @@
     "sab_distribution": [
       {
         "label": "RXNORM",
-        "count": 141074
+        "count": 141195
       }
     ],
     "name_length_distribution": [
       {
         "label": "0-19",
-        "count": 16292
+        "count": 16311
       },
       {
         "label": "20-39",
-        "count": 62050
+        "count": 62117
       },
       {
         "label": "40-79",
-        "count": 51523
+        "count": 51562
       },
       {
         "label": "80-159",
-        "count": 8847
+        "count": 8844
       },
       {
         "label": "160+",
-        "count": 2362
+        "count": 2361
       }
     ],
     "qc_distribution": [
       {
         "label": "ACCEPTED",
-        "count": 141074
+        "count": 141195
       }
     ],
     "mapping_readiness": [
       {
         "label": "Mapping-ready",
-        "count": 141074
+        "count": 141195
       },
       {
         "label": "Excluded/review before mapping",
@@ -245,38 +245,38 @@
   },
   "report_3_multivariate": {
     "scope": "Exploratory cross-column RxNorm terminology analysis",
-    "source_rows": 141074,
-    "analyzed_rows": 141074,
-    "concepts": 81620,
+    "source_rows": 141195,
+    "analyzed_rows": 141195,
+    "concepts": 81701,
     "cross_column_quality": {
       "source_missing": {},
       "tty_qc_unique_labels": 1,
       "sab_unique_values": 1,
       "tty_unique_values": 22,
-      "concepts_with_multiple_names": 27407,
-      "concepts_single_term": 54213
+      "concepts_with_multiple_names": 27431,
+      "concepts_single_term": 54270
     },
     "correlations": [
       {
         "x": "terms_per_rxcui",
         "y": "avg_name_length",
-        "n": 81620,
-        "pearson_r": 0.1862,
-        "spearman_rho": 0.4473,
+        "n": 81701,
+        "pearson_r": 0.1863,
+        "spearman_rho": 0.4475,
         "unit": "unique RxCUI"
       },
       {
         "x": "terms_per_rxcui",
         "y": "max_name_length",
-        "n": 81620,
+        "n": 81701,
         "pearson_r": 0.2548,
-        "spearman_rho": 0.5402,
+        "spearman_rho": 0.5403,
         "unit": "unique RxCUI"
       },
       {
         "x": "distinct_tty_per_rxcui",
         "y": "terms_per_rxcui",
-        "n": 81620,
+        "n": 81701,
         "pearson_r": 0.909,
         "spearman_rho": 0.9944,
         "unit": "unique RxCUI"
@@ -284,9 +284,9 @@
       {
         "x": "distinct_tty_per_rxcui",
         "y": "avg_name_length",
-        "n": 81620,
-        "pearson_r": 0.1672,
-        "spearman_rho": 0.4465,
+        "n": 81701,
+        "pearson_r": 0.1673,
+        "spearman_rho": 0.4467,
         "unit": "unique RxCUI"
       }
     ],
@@ -294,20 +294,20 @@
       {
         "comparison": "IN vs SCD",
         "unit": "one independent RxCUI per group",
-        "n_a": 5874,
-        "n_b": 12081,
+        "n_a": 5886,
+        "n_b": 12098,
         "method": "Welch unequal-variance t-test",
         "p_value": 0.0,
         "status": "computed",
-        "mean_a": 20.768,
-        "mean_b": 53.207,
-        "difference": -32.439,
-        "t": -58.6136,
-        "df": 14710.01,
+        "mean_a": 20.783,
+        "mean_b": 53.193,
+        "difference": -32.41,
+        "t": -58.6362,
+        "df": 14733.74,
         "cohen_d": -0.678,
         "ci95_normal_approx": [
-          -33.524,
-          -31.354
+          -33.493,
+          -31.327
         ],
         "group_a": "IN",
         "group_b": "SCD",
@@ -317,48 +317,48 @@
       {
         "comparison": "SCD vs SBD",
         "unit": "one independent RxCUI per group",
-        "n_a": 12081,
-        "n_b": 8094,
+        "n_a": 12098,
+        "n_b": 8099,
         "method": "Welch unequal-variance t-test",
-        "p_value": 8.593347600461072e-29,
+        "p_value": 7.955231583328266e-29,
         "status": "computed",
-        "mean_a": 53.207,
-        "mean_b": 63.424,
-        "difference": -10.217,
-        "t": -11.1564,
-        "df": 15405.69,
+        "mean_a": 53.193,
+        "mean_b": 63.408,
+        "difference": -10.215,
+        "t": -11.1633,
+        "df": 15407.99,
         "cohen_d": -0.165,
         "ci95_normal_approx": [
-          -12.012,
+          -12.009,
           -8.422
         ],
         "group_a": "SCD",
         "group_b": "SBD",
         "overlapping_rxcui_excluded": 0,
-        "p_holm": 1.7186695200922144e-28
+        "p_holm": 1.5910463166656532e-28
       },
       {
         "comparison": "SY vs PSN",
         "unit": "one independent RxCUI per group",
-        "n_a": 1040,
-        "n_b": 3230,
+        "n_a": 1039,
+        "n_b": 3233,
         "method": "Welch unequal-variance t-test",
-        "p_value": 0.0016859117256117606,
+        "p_value": 0.0015554067327756473,
         "status": "computed",
-        "mean_a": 48.404,
-        "mean_b": 41.167,
-        "difference": 7.237,
-        "t": 3.1484,
-        "df": 1105.68,
-        "cohen_d": 0.176,
+        "mean_a": 48.452,
+        "mean_b": 41.155,
+        "difference": 7.297,
+        "t": 3.172,
+        "df": 1104.41,
+        "cohen_d": 0.177,
         "ci95_normal_approx": [
-          2.732,
-          11.743
+          2.788,
+          11.806
         ],
         "group_a": "SY",
         "group_b": "PSN",
-        "overlapping_rxcui_excluded": 18121,
-        "p_holm": 0.0016859117256117606
+        "overlapping_rxcui_excluded": 18141,
+        "p_holm": 0.0015554067327756473
       }
     ],
     "chi_square": {
@@ -367,12 +367,12 @@
         "derived_name_length_bin"
       ],
       "method": "Pearson chi-square",
-      "n_rows": 141074,
-      "statistic": 40532.589,
+      "n_rows": 141195,
+      "statistic": 40575.027,
       "df": 32,
       "p_value": 0.0,
       "cramers_v": 0.268,
-      "min_expected_cell": 291.779,
+      "min_expected_cell": 291.609,
       "valid_expected_counts": true,
       "unit": "terminology row; RxCUI repeated (independence assumption not strictly met)",
       "row_labels": [
@@ -395,65 +395,65 @@
       ],
       "observed": [
         [
-          458,
-          11117,
-          9000,
-          5780,
+          457,
+          11124,
+          9003,
+          5789,
           2009
         ],
         [
           104,
-          10890,
-          6991,
-          2940,
+          10905,
+          6998,
+          2941,
           426
         ],
         [
           0,
-          4731,
-          4573,
-          2192,
+          4737,
+          4583,
+          2193,
           585
         ],
         [
-          3834,
-          5561,
+          3844,
+          5566,
           558,
-          142,
+          141,
           77
         ],
         [
-          684,
+          685,
           3401,
-          2925,
+          2924,
           2236,
-          493
-        ],
-        [
-          0,
-          1005,
-          4302,
-          2295,
           492
         ],
         [
           0,
-          4493,
-          1541,
+          1012,
+          4297,
+          2299,
+          491
+        ],
+        [
+          0,
+          4497,
+          1542,
           754,
           237
         ],
         [
-          1871,
+          1875,
           4652,
           162,
           7,
           0
         ],
         [
-          9341,
-          16200,
-          7161,
+          9346,
+          16223,
+          7169,
           3022,
           1832
         ]
@@ -461,8 +461,8 @@
     },
     "lexical_coherence": {
       "metric": "average Jaccard token overlap versus first name within each RxCUI (up to 15 terms), not clinical equivalence",
-      "n_comparable_rxcui": 27407,
-      "mean": 0.755,
+      "n_comparable_rxcui": 27431,
+      "mean": 0.7551,
       "median": 0.75,
       "distribution": [
         {
@@ -471,11 +471,11 @@
         },
         {
           "label": "medium (0.3–0.7)",
-          "count": 9484
+          "count": 9487
         },
         {
           "label": "high (≥0.7)",
-          "count": 16985
+          "count": 17006
         }
       ],
       "review_examples": [
@@ -559,41 +559,41 @@
   },
   "report_4_statistics": {
     "grain": "RxNorm terminology row, not a clinical product or longitudinal record",
-    "n_terms": 141074,
-    "n_rxcui": 81620,
+    "n_terms": 141195,
+    "n_rxcui": 81701,
     "name_length_unit": "Unicode characters in display_name",
     "population_statistics": "population variance and SD (ddof=0) of this available RxNorm snapshot",
     "name_length": {
-      "n": 141074,
+      "n": 141195,
       "min": 3,
       "max": 2404,
-      "mean": 45.405,
+      "mean": 45.395,
       "median": 37.0,
       "mode": 27,
-      "variance": 2374.115,
-      "std_dev": 48.725,
+      "variance": 2372.197,
+      "std_dev": 48.705,
       "q1": 27.0,
       "q3": 52.0,
       "iqr": 25.0,
       "whisker_low": 3,
       "whisker_high": 89,
-      "outliers": 8309
+      "outliers": 8304
     },
     "terms_per_rxcui": {
-      "n": 81620,
+      "n": 81701,
       "min": 1,
       "max": 50,
       "mean": 1.728,
       "median": 1.0,
       "mode": 1,
-      "variance": 1.583,
+      "variance": 1.582,
       "std_dev": 1.258,
       "q1": 1.0,
       "q3": 2.0,
       "iqr": 1.0,
       "whisker_low": 1,
       "whisker_high": 3,
-      "outliers": 8364
+      "outliers": 8359
     },
     "histogram_name_length": [
       {
@@ -602,61 +602,61 @@
       },
       {
         "bin": "10-19",
-        "count": 12161
+        "count": 12180
       },
       {
         "bin": "20-29",
-        "count": 30676
+        "count": 30714
       },
       {
         "bin": "30-39",
-        "count": 31374
+        "count": 31403
       },
       {
         "bin": "40-49",
-        "count": 22665
+        "count": 22679
       },
       {
         "bin": "50-59",
-        "count": 14548
+        "count": 14557
       },
       {
         "bin": "60-69",
-        "count": 9470
+        "count": 9479
       },
       {
         "bin": "70-79",
-        "count": 4840
+        "count": 4847
       },
       {
         "bin": "80-89",
-        "count": 2900
+        "count": 2901
       },
       {
         "bin": "90-99",
-        "count": 2158
+        "count": 2155
       },
       {
         "bin": "100+",
-        "count": 6151
+        "count": 6149
       }
     ],
     "histogram_terms_per_rxcui": [
       {
         "bin": "1",
-        "count": 54213
+        "count": 54270
       },
       {
         "bin": "2",
-        "count": 8601
+        "count": 8605
       },
       {
         "bin": "3",
-        "count": 10442
+        "count": 10467
       },
       {
         "bin": "4-5",
-        "count": 7530
+        "count": 7525
       },
       {
         "bin": "6-10",
@@ -674,75 +674,75 @@
     "tty_distribution": [
       {
         "label": "SY",
-        "count": 28364
+        "count": 28382
       },
       {
         "label": "PSN",
-        "count": 21351
+        "count": 21374
       },
       {
         "label": "SCD",
-        "count": 12081
+        "count": 12098
       },
       {
         "label": "SCDC",
-        "count": 10172
+        "count": 10186
       },
       {
         "label": "TMSY",
-        "count": 9739
+        "count": 9738
       },
       {
         "label": "SBD",
-        "count": 8094
+        "count": 8099
       },
       {
         "label": "SBDC",
-        "count": 7025
+        "count": 7030
       },
       {
         "label": "SBDG",
-        "count": 6692
+        "count": 6696
       },
       {
         "label": "SCDG",
-        "count": 6288
+        "count": 6294
       },
       {
         "label": "IN",
-        "count": 5874
+        "count": 5886
       },
       {
         "label": "SCDF",
-        "count": 5566
+        "count": 5570
       },
       {
         "label": "SBDF",
-        "count": 4972
+        "count": 4974
       },
       {
         "label": "BN",
-        "count": 4140
+        "count": 4141
       },
       {
         "label": "SCDGP",
-        "count": 2512
+        "count": 2513
       },
       {
         "label": "SCDFP",
-        "count": 2025
+        "count": 2026
       },
       {
         "label": "PIN",
-        "count": 1955
+        "count": 1961
       },
       {
         "label": "SBDFP",
-        "count": 1762
+        "count": 1763
       },
       {
         "label": "MIN",
-        "count": 960
+        "count": 961
       },
       {
         "label": "BPCK",
@@ -750,7 +750,7 @@
       },
       {
         "label": "GPCK",
-        "count": 622
+        "count": 623
       },
       {
         "label": "DF",
@@ -764,51 +764,51 @@
     "tty_composition": [
       {
         "label": "SY",
-        "count": 28364,
-        "pct": 20.11
+        "count": 28382,
+        "pct": 20.1
       },
       {
         "label": "PSN",
-        "count": 21351,
-        "pct": 15.13
+        "count": 21374,
+        "pct": 15.14
       },
       {
         "label": "SCD",
-        "count": 12081,
-        "pct": 8.56
+        "count": 12098,
+        "pct": 8.57
       },
       {
         "label": "SCDC",
-        "count": 10172,
+        "count": 10186,
         "pct": 7.21
       },
       {
         "label": "TMSY",
-        "count": 9739,
+        "count": 9738,
         "pct": 6.9
       },
       {
         "label": "SBD",
-        "count": 8094,
+        "count": 8099,
         "pct": 5.74
       },
       {
         "label": "Khác",
-        "count": 51273,
-        "pct": 36.34
+        "count": 51318,
+        "pct": 36.35
       }
     ],
     "boxplot_by_tty": [
       {
         "tty": "SY",
-        "n": 28364,
+        "n": 28382,
         "min": 3,
         "max": 782,
-        "mean": 56.054,
+        "mean": 56.051,
         "median": 44.0,
         "mode": 34,
-        "variance": 2403.095,
-        "std_dev": 49.021,
+        "variance": 2401.633,
+        "std_dev": 49.006,
         "q1": 33.0,
         "q3": 62.0,
         "iqr": 29.0,
@@ -818,31 +818,31 @@
       },
       {
         "tty": "PSN",
-        "n": 21351,
+        "n": 21374,
         "min": 13,
         "max": 532,
-        "mean": 44.064,
+        "mean": 44.057,
         "median": 39.0,
         "mode": 27,
-        "variance": 478.891,
-        "std_dev": 21.884,
+        "variance": 478.541,
+        "std_dev": 21.876,
         "q1": 30.0,
         "q3": 51.0,
         "iqr": 21.0,
         "whisker_low": 13,
         "whisker_high": 82,
-        "outliers": 929
+        "outliers": 928
       },
       {
         "tty": "SCD",
-        "n": 12081,
+        "n": 12098,
         "min": 20,
         "max": 2392,
-        "mean": 53.207,
+        "mean": 53.193,
         "median": 44.0,
         "mode": 28,
-        "variance": 3304.734,
-        "std_dev": 57.487,
+        "variance": 3300.466,
+        "std_dev": 57.45,
         "q1": 34.0,
         "q3": 58.0,
         "iqr": 24.0,
@@ -852,31 +852,31 @@
       },
       {
         "tty": "SCDC",
-        "n": 10172,
+        "n": 10186,
         "min": 10,
         "max": 123,
-        "mean": 25.476,
+        "mean": 25.466,
         "median": 22.0,
         "mode": 17,
-        "variance": 154.479,
-        "std_dev": 12.429,
+        "variance": 154.309,
+        "std_dev": 12.422,
         "q1": 18.0,
         "q3": 30.0,
         "iqr": 12.0,
         "whisker_low": 10,
         "whisker_high": 48,
-        "outliers": 369
+        "outliers": 368
       },
       {
         "tty": "TMSY",
-        "n": 9739,
+        "n": 9738,
         "min": 6,
         "max": 363,
-        "mean": 50.23,
+        "mean": 50.222,
         "median": 44.0,
         "mode": 29,
-        "variance": 928.147,
-        "std_dev": 30.465,
+        "variance": 928.005,
+        "std_dev": 30.463,
         "q1": 30.0,
         "q3": 63.0,
         "iqr": 33.0,
@@ -886,20 +886,20 @@
       },
       {
         "tty": "SBD",
-        "n": 8094,
+        "n": 8099,
         "min": 33,
         "max": 2404,
-        "mean": 63.424,
+        "mean": 63.408,
         "median": 53.0,
         "mode": 40,
-        "variance": 4573.989,
-        "std_dev": 67.631,
-        "q1": 44.0,
+        "variance": 4571.375,
+        "std_dev": 67.612,
+        "q1": 43.0,
         "q3": 65.0,
-        "iqr": 21.0,
+        "iqr": 22.0,
         "whisker_low": 33,
-        "whisker_high": 96,
-        "outliers": 559
+        "whisker_high": 98,
+        "outliers": 511
       }
     ],
     "scatter_illustrative": [
@@ -909,424 +909,424 @@
         "avg_name_length": 8.0
       },
       {
-        "rxcui": "9801",
-        "terms": 1,
-        "avg_name_length": 7.0
-      },
-      {
-        "rxcui": "53654",
-        "terms": 1,
-        "avg_name_length": 10.0
-      },
-      {
-        "rxcui": "175184",
-        "terms": 1,
-        "avg_name_length": 8.0
-      },
-      {
-        "rxcui": "218646",
-        "terms": 1,
-        "avg_name_length": 8.0
-      },
-      {
-        "rxcui": "285064",
+        "rxcui": "9853",
         "terms": 1,
         "avg_name_length": 6.0
       },
       {
-        "rxcui": "316758",
+        "rxcui": "54034",
         "terms": 1,
-        "avg_name_length": 15.0
+        "avg_name_length": 11.0
       },
       {
-        "rxcui": "329899",
-        "terms": 1,
-        "avg_name_length": 15.0
-      },
-      {
-        "rxcui": "336330",
-        "terms": 1,
-        "avg_name_length": 21.0
-      },
-      {
-        "rxcui": "358422",
-        "terms": 1,
-        "avg_name_length": 21.0
-      },
-      {
-        "rxcui": "368672",
-        "terms": 1,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "372685",
-        "terms": 1,
-        "avg_name_length": 35.0
-      },
-      {
-        "rxcui": "376286",
-        "terms": 1,
-        "avg_name_length": 38.0
-      },
-      {
-        "rxcui": "393032",
-        "terms": 1,
-        "avg_name_length": 13.0
-      },
-      {
-        "rxcui": "485420",
-        "terms": 1,
-        "avg_name_length": 40.0
-      },
-      {
-        "rxcui": "569227",
-        "terms": 1,
-        "avg_name_length": 37.0
-      },
-      {
-        "rxcui": "579527",
-        "terms": 1,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "636533",
-        "terms": 1,
-        "avg_name_length": 22.0
-      },
-      {
-        "rxcui": "722118",
-        "terms": 1,
-        "avg_name_length": 28.0
-      },
-      {
-        "rxcui": "795723",
-        "terms": 1,
-        "avg_name_length": 43.0
-      },
-      {
-        "rxcui": "802675",
-        "terms": 1,
-        "avg_name_length": 15.0
-      },
-      {
-        "rxcui": "846144",
-        "terms": 1,
-        "avg_name_length": 24.0
-      },
-      {
-        "rxcui": "855199",
-        "terms": 1,
-        "avg_name_length": 27.0
-      },
-      {
-        "rxcui": "885224",
-        "terms": 1,
-        "avg_name_length": 37.0
-      },
-      {
-        "rxcui": "900046",
-        "terms": 1,
-        "avg_name_length": 34.0
-      },
-      {
-        "rxcui": "979548",
-        "terms": 1,
-        "avg_name_length": 30.0
-      },
-      {
-        "rxcui": "1008224",
-        "terms": 1,
-        "avg_name_length": 49.0
-      },
-      {
-        "rxcui": "1045538",
-        "terms": 1,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "1094108",
-        "terms": 1,
-        "avg_name_length": 47.0
-      },
-      {
-        "rxcui": "1150297",
-        "terms": 1,
-        "avg_name_length": 10.0
-      },
-      {
-        "rxcui": "1154205",
-        "terms": 1,
-        "avg_name_length": 24.0
-      },
-      {
-        "rxcui": "1157066",
-        "terms": 1,
-        "avg_name_length": 29.0
-      },
-      {
-        "rxcui": "1159349",
-        "terms": 1,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "1161667",
-        "terms": 1,
-        "avg_name_length": 24.0
-      },
-      {
-        "rxcui": "1164430",
-        "terms": 1,
-        "avg_name_length": 44.0
-      },
-      {
-        "rxcui": "1167078",
-        "terms": 1,
-        "avg_name_length": 18.0
-      },
-      {
-        "rxcui": "1171256",
-        "terms": 1,
-        "avg_name_length": 25.0
-      },
-      {
-        "rxcui": "1174950",
-        "terms": 1,
-        "avg_name_length": 19.0
-      },
-      {
-        "rxcui": "1179438",
-        "terms": 1,
-        "avg_name_length": 20.0
-      },
-      {
-        "rxcui": "1184215",
-        "terms": 1,
-        "avg_name_length": 22.0
-      },
-      {
-        "rxcui": "1188086",
-        "terms": 1,
-        "avg_name_length": 18.0
-      },
-      {
-        "rxcui": "1247760",
-        "terms": 1,
-        "avg_name_length": 30.0
-      },
-      {
-        "rxcui": "1296245",
-        "terms": 1,
-        "avg_name_length": 26.0
-      },
-      {
-        "rxcui": "1306098",
-        "terms": 1,
-        "avg_name_length": 33.0
-      },
-      {
-        "rxcui": "1311743",
-        "terms": 1,
-        "avg_name_length": 18.0
-      },
-      {
-        "rxcui": "1363352",
-        "terms": 1,
-        "avg_name_length": 27.0
-      },
-      {
-        "rxcui": "1372269",
-        "terms": 1,
-        "avg_name_length": 19.0
-      },
-      {
-        "rxcui": "1431644",
-        "terms": 1,
-        "avg_name_length": 30.0
-      },
-      {
-        "rxcui": "1488567",
-        "terms": 1,
-        "avg_name_length": 18.0
-      },
-      {
-        "rxcui": "1545168",
-        "terms": 1,
-        "avg_name_length": 21.0
-      },
-      {
-        "rxcui": "1598283",
-        "terms": 1,
-        "avg_name_length": 20.0
-      },
-      {
-        "rxcui": "1654024",
-        "terms": 1,
-        "avg_name_length": 34.0
-      },
-      {
-        "rxcui": "1668059",
-        "terms": 1,
-        "avg_name_length": 33.0
-      },
-      {
-        "rxcui": "1727006",
-        "terms": 1,
-        "avg_name_length": 22.0
-      },
-      {
-        "rxcui": "1746531",
-        "terms": 1,
-        "avg_name_length": 28.0
-      },
-      {
-        "rxcui": "1804260",
-        "terms": 1,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "1866514",
-        "terms": 1,
-        "avg_name_length": 33.0
-      },
-      {
-        "rxcui": "1926219",
-        "terms": 1,
-        "avg_name_length": 45.0
-      },
-      {
-        "rxcui": "1992534",
-        "terms": 1,
-        "avg_name_length": 48.0
-      },
-      {
-        "rxcui": "2048024",
-        "terms": 1,
-        "avg_name_length": 27.0
-      },
-      {
-        "rxcui": "2101718",
-        "terms": 1,
-        "avg_name_length": 55.0
-      },
-      {
-        "rxcui": "2123130",
-        "terms": 1,
-        "avg_name_length": 23.0
-      },
-      {
-        "rxcui": "2257670",
-        "terms": 1,
-        "avg_name_length": 20.0
-      },
-      {
-        "rxcui": "2286287",
-        "terms": 1,
-        "avg_name_length": 17.0
-      },
-      {
-        "rxcui": "2393592",
-        "terms": 1,
-        "avg_name_length": 14.0
-      },
-      {
-        "rxcui": "2535239",
+        "rxcui": "187220",
         "terms": 1,
         "avg_name_length": 9.0
       },
       {
-        "rxcui": "2572104",
+        "rxcui": "218741",
         "terms": 1,
-        "avg_name_length": 21.0
+        "avg_name_length": 9.0
       },
       {
-        "rxcui": "2598690",
+        "rxcui": "285170",
         "terms": 1,
-        "avg_name_length": 20.0
+        "avg_name_length": 27.0
       },
       {
-        "rxcui": "2621020",
+        "rxcui": "316779",
         "terms": 1,
-        "avg_name_length": 18.0
+        "avg_name_length": 41.0
       },
       {
-        "rxcui": "2637764",
+        "rxcui": "329959",
         "terms": 1,
-        "avg_name_length": 54.0
+        "avg_name_length": 29.0
       },
       {
-        "rxcui": "2645927",
+        "rxcui": "336469",
         "terms": 1,
-        "avg_name_length": 78.0
+        "avg_name_length": 17.0
       },
       {
-        "rxcui": "2647725",
+        "rxcui": "358434",
         "terms": 1,
-        "avg_name_length": 42.0
+        "avg_name_length": 15.0
       },
       {
-        "rxcui": "2654185",
+        "rxcui": "368789",
         "terms": 1,
-        "avg_name_length": 35.0
+        "avg_name_length": 33.0
       },
       {
-        "rxcui": "2656778",
+        "rxcui": "372749",
         "terms": 1,
-        "avg_name_length": 63.0
+        "avg_name_length": 22.0
       },
       {
-        "rxcui": "2659217",
-        "terms": 1,
-        "avg_name_length": 35.0
-      },
-      {
-        "rxcui": "2660777",
-        "terms": 1,
-        "avg_name_length": 19.0
-      },
-      {
-        "rxcui": "2662332",
-        "terms": 1,
-        "avg_name_length": 44.0
-      },
-      {
-        "rxcui": "2665013",
-        "terms": 1,
-        "avg_name_length": 7.0
-      },
-      {
-        "rxcui": "2675285",
-        "terms": 1,
-        "avg_name_length": 36.0
-      },
-      {
-        "rxcui": "2689291",
-        "terms": 1,
-        "avg_name_length": 6.0
-      },
-      {
-        "rxcui": "2700754",
+        "rxcui": "376407",
         "terms": 1,
         "avg_name_length": 39.0
       },
       {
-        "rxcui": "2712470",
-        "terms": 1,
-        "avg_name_length": 28.0
-      },
-      {
-        "rxcui": "2722398",
+        "rxcui": "393061",
         "terms": 1,
         "avg_name_length": 13.0
       },
       {
-        "rxcui": "2730303",
+        "rxcui": "485632",
         "terms": 1,
-        "avg_name_length": 22.0
+        "avg_name_length": 35.0
       },
       {
-        "rxcui": "2745753",
+        "rxcui": "569619",
         "terms": 1,
-        "avg_name_length": 22.0
+        "avg_name_length": 32.0
+      },
+      {
+        "rxcui": "580318",
+        "terms": 1,
+        "avg_name_length": 35.0
+      },
+      {
+        "rxcui": "637128",
+        "terms": 1,
+        "avg_name_length": 26.0
+      },
+      {
+        "rxcui": "723743",
+        "terms": 1,
+        "avg_name_length": 40.0
+      },
+      {
+        "rxcui": "797448",
+        "terms": 1,
+        "avg_name_length": 32.0
+      },
+      {
+        "rxcui": "803238",
+        "terms": 1,
+        "avg_name_length": 103.0
+      },
+      {
+        "rxcui": "847728",
+        "terms": 1,
+        "avg_name_length": 12.0
+      },
+      {
+        "rxcui": "855663",
+        "terms": 1,
+        "avg_name_length": 23.0
+      },
+      {
+        "rxcui": "889647",
+        "terms": 1,
+        "avg_name_length": 35.0
+      },
+      {
+        "rxcui": "900604",
+        "terms": 1,
+        "avg_name_length": 11.0
+      },
+      {
+        "rxcui": "992398",
+        "terms": 1,
+        "avg_name_length": 42.0
+      },
+      {
+        "rxcui": "1008535",
+        "terms": 1,
+        "avg_name_length": 49.0
+      },
+      {
+        "rxcui": "1046774",
+        "terms": 1,
+        "avg_name_length": 36.0
+      },
+      {
+        "rxcui": "1095700",
+        "terms": 1,
+        "avg_name_length": 50.0
+      },
+      {
+        "rxcui": "1151177",
+        "terms": 1,
+        "avg_name_length": 27.0
+      },
+      {
+        "rxcui": "1154413",
+        "terms": 1,
+        "avg_name_length": 39.0
+      },
+      {
+        "rxcui": "1157213",
+        "terms": 1,
+        "avg_name_length": 58.0
+      },
+      {
+        "rxcui": "1159561",
+        "terms": 1,
+        "avg_name_length": 28.0
+      },
+      {
+        "rxcui": "1161786",
+        "terms": 1,
+        "avg_name_length": 18.0
+      },
+      {
+        "rxcui": "1164574",
+        "terms": 1,
+        "avg_name_length": 24.0
+      },
+      {
+        "rxcui": "1167380",
+        "terms": 1,
+        "avg_name_length": 20.0
+      },
+      {
+        "rxcui": "1171566",
+        "terms": 1,
+        "avg_name_length": 31.0
+      },
+      {
+        "rxcui": "1175364",
+        "terms": 1,
+        "avg_name_length": 13.0
+      },
+      {
+        "rxcui": "1179769",
+        "terms": 1,
+        "avg_name_length": 21.0
+      },
+      {
+        "rxcui": "1184585",
+        "terms": 1,
+        "avg_name_length": 20.0
+      },
+      {
+        "rxcui": "1190326",
+        "terms": 1,
+        "avg_name_length": 9.0
+      },
+      {
+        "rxcui": "1250975",
+        "terms": 1,
+        "avg_name_length": 49.0
+      },
+      {
+        "rxcui": "1296555",
+        "terms": 1,
+        "avg_name_length": 21.0
+      },
+      {
+        "rxcui": "1306947",
+        "terms": 1,
+        "avg_name_length": 14.0
+      },
+      {
+        "rxcui": "1312740",
+        "terms": 1,
+        "avg_name_length": 11.0
+      },
+      {
+        "rxcui": "1363700",
+        "terms": 1,
+        "avg_name_length": 16.0
+      },
+      {
+        "rxcui": "1373206",
+        "terms": 1,
+        "avg_name_length": 24.0
+      },
+      {
+        "rxcui": "1433733",
+        "terms": 1,
+        "avg_name_length": 34.0
+      },
+      {
+        "rxcui": "1490715",
+        "terms": 1,
+        "avg_name_length": 65.0
+      },
+      {
+        "rxcui": "1546176",
+        "terms": 1,
+        "avg_name_length": 27.0
+      },
+      {
+        "rxcui": "1599653",
+        "terms": 1,
+        "avg_name_length": 41.0
+      },
+      {
+        "rxcui": "1655964",
+        "terms": 1,
+        "avg_name_length": 36.0
+      },
+      {
+        "rxcui": "1672971",
+        "terms": 1,
+        "avg_name_length": 30.0
+      },
+      {
+        "rxcui": "1729062",
+        "terms": 1,
+        "avg_name_length": 16.0
+      },
+      {
+        "rxcui": "1788996",
+        "terms": 1,
+        "avg_name_length": 27.0
+      },
+      {
+        "rxcui": "1806004",
+        "terms": 1,
+        "avg_name_length": 29.0
+      },
+      {
+        "rxcui": "1869525",
+        "terms": 1,
+        "avg_name_length": 21.0
+      },
+      {
+        "rxcui": "1927886",
+        "terms": 1,
+        "avg_name_length": 14.0
+      },
+      {
+        "rxcui": "1995087",
+        "terms": 1,
+        "avg_name_length": 14.0
+      },
+      {
+        "rxcui": "2049674",
+        "terms": 1,
+        "avg_name_length": 84.0
+      },
+      {
+        "rxcui": "2104613",
+        "terms": 1,
+        "avg_name_length": 34.0
+      },
+      {
+        "rxcui": "2167837",
+        "terms": 1,
+        "avg_name_length": 75.0
+      },
+      {
+        "rxcui": "2262428",
+        "terms": 1,
+        "avg_name_length": 33.0
+      },
+      {
+        "rxcui": "2289421",
+        "terms": 1,
+        "avg_name_length": 35.0
+      },
+      {
+        "rxcui": "2397990",
+        "terms": 1,
+        "avg_name_length": 11.0
+      },
+      {
+        "rxcui": "2540704",
+        "terms": 1,
+        "avg_name_length": 8.0
+      },
+      {
+        "rxcui": "2584352",
+        "terms": 1,
+        "avg_name_length": 20.0
+      },
+      {
+        "rxcui": "2601124",
+        "terms": 1,
+        "avg_name_length": 24.0
+      },
+      {
+        "rxcui": "2624734",
+        "terms": 1,
+        "avg_name_length": 36.0
+      },
+      {
+        "rxcui": "2639728",
+        "terms": 1,
+        "avg_name_length": 7.0
+      },
+      {
+        "rxcui": "2646124",
+        "terms": 1,
+        "avg_name_length": 123.0
+      },
+      {
+        "rxcui": "2648055",
+        "terms": 1,
+        "avg_name_length": 33.0
+      },
+      {
+        "rxcui": "2654552",
+        "terms": 1,
+        "avg_name_length": 45.0
+      },
+      {
+        "rxcui": "2657148",
+        "terms": 1,
+        "avg_name_length": 47.0
+      },
+      {
+        "rxcui": "2659445",
+        "terms": 1,
+        "avg_name_length": 48.0
+      },
+      {
+        "rxcui": "2661022",
+        "terms": 1,
+        "avg_name_length": 69.0
+      },
+      {
+        "rxcui": "2662600",
+        "terms": 1,
+        "avg_name_length": 80.0
+      },
+      {
+        "rxcui": "2667925",
+        "terms": 1,
+        "avg_name_length": 84.0
+      },
+      {
+        "rxcui": "2677463",
+        "terms": 1,
+        "avg_name_length": 21.0
+      },
+      {
+        "rxcui": "2691168",
+        "terms": 1,
+        "avg_name_length": 55.0
+      },
+      {
+        "rxcui": "2702622",
+        "terms": 1,
+        "avg_name_length": 30.0
+      },
+      {
+        "rxcui": "2714519",
+        "terms": 1,
+        "avg_name_length": 25.0
+      },
+      {
+        "rxcui": "2723380",
+        "terms": 1,
+        "avg_name_length": 34.0
+      },
+      {
+        "rxcui": "2734140",
+        "terms": 1,
+        "avg_name_length": 26.0
+      },
+      {
+        "rxcui": "2746567",
+        "terms": 1,
+        "avg_name_length": 32.0
       },
       {
         "rxcui": "74",
@@ -1339,69 +1339,69 @@
         "avg_name_length": 12.0
       },
       {
-        "rxcui": "23162",
-        "terms": 2,
-        "avg_name_length": 24.5
-      },
-      {
-        "rxcui": "93249",
-        "terms": 2,
-        "avg_name_length": 69.0
-      },
-      {
-        "rxcui": "197508",
-        "terms": 2,
-        "avg_name_length": 29.0
-      },
-      {
-        "rxcui": "198075",
-        "terms": 2,
-        "avg_name_length": 30.0
-      },
-      {
-        "rxcui": "199245",
-        "terms": 2,
-        "avg_name_length": 28.0
-      },
-      {
-        "rxcui": "203213",
-        "terms": 2,
-        "avg_name_length": 24.0
-      },
-      {
-        "rxcui": "236875",
-        "terms": 2,
-        "avg_name_length": 23.0
-      },
-      {
-        "rxcui": "259935",
-        "terms": 2,
-        "avg_name_length": 39.0
-      },
-      {
-        "rxcui": "310014",
-        "terms": 2,
-        "avg_name_length": 40.0
-      },
-      {
-        "rxcui": "313361",
-        "terms": 2,
-        "avg_name_length": 30.0
-      },
-      {
-        "rxcui": "316014",
-        "terms": 2,
-        "avg_name_length": 20.0
-      },
-      {
-        "rxcui": "317431",
+        "rxcui": "24902",
         "terms": 2,
         "avg_name_length": 18.0
       },
       {
-        "rxcui": "331477",
+        "rxcui": "93250",
         "terms": 2,
-        "avg_name_length": 19.0
+        "avg_name_length": 71.0
+      },
+      {
+        "rxcui": "197516",
+        "terms": 2,
+        "avg_name_length": 33.0
+      },
+      {
+        "rxcui": "198077",
+        "terms": 2,
+        "avg_name_length": 29.0
+      },
+      {
+        "rxcui": "199247",
+        "terms": 2,
+        "avg_name_length": 28.0
+      },
+      {
+        "rxcui": "203345",
+        "terms": 2,
+        "avg_name_length": 8.0
+      },
+      {
+        "rxcui": "237210",
+        "terms": 2,
+        "avg_name_length": 48.0
+      },
+      {
+        "rxcui": "260040",
+        "terms": 2,
+        "avg_name_length": 27.5
+      },
+      {
+        "rxcui": "310154",
+        "terms": 2,
+        "avg_name_length": 48.0
+      },
+      {
+        "rxcui": "313364",
+        "terms": 2,
+        "avg_name_length": 29.0
+      },
+      {
+        "rxcui": "316018",
+        "terms": 2,
+        "avg_name_length": 20.0
+      },
+      {
+        "rxcui": "317450",
+        "terms": 2,
+        "avg_name_length": 15.0
+      },
+      {
+        "rxcui": "331548",
+        "terms": 2,
+        "avg_name_length": 16.0
       },
       {
         "rxcui": "349472",
@@ -1414,27 +1414,27 @@
         "avg_name_length": 29.0
       },
       {
-        "rxcui": "371253",
+        "rxcui": "371164",
         "terms": 2,
-        "avg_name_length": 43.0
+        "avg_name_length": 21.0
       },
       {
-        "rxcui": "373088",
+        "rxcui": "373087",
         "terms": 2,
-        "avg_name_length": 24.0
+        "avg_name_length": 23.0
       },
       {
-        "rxcui": "376884",
+        "rxcui": "376857",
+        "terms": 2,
+        "avg_name_length": 31.0
+      },
+      {
+        "rxcui": "406257",
         "terms": 2,
         "avg_name_length": 32.0
       },
       {
-        "rxcui": "406396",
-        "terms": 2,
-        "avg_name_length": 61.0
-      },
-      {
-        "rxcui": "485442",
+        "rxcui": "485440",
         "terms": 2,
         "avg_name_length": 28.0
       },
@@ -1444,312 +1444,312 @@
         "avg_name_length": 31.0
       },
       {
-        "rxcui": "574982",
+        "rxcui": "574983",
         "terms": 2,
         "avg_name_length": 27.0
       },
       {
-        "rxcui": "605496",
-        "terms": 2,
-        "avg_name_length": 28.0
-      },
-      {
-        "rxcui": "662019",
-        "terms": 2,
-        "avg_name_length": 12.0
-      },
-      {
-        "rxcui": "723832",
-        "terms": 2,
-        "avg_name_length": 40.0
-      },
-      {
-        "rxcui": "754717",
-        "terms": 2,
-        "avg_name_length": 43.0
-      },
-      {
-        "rxcui": "823970",
-        "terms": 2,
-        "avg_name_length": 57.0
-      },
-      {
-        "rxcui": "835591",
-        "terms": 2,
-        "avg_name_length": 38.0
-      },
-      {
-        "rxcui": "852148",
-        "terms": 2,
-        "avg_name_length": 26.5
-      },
-      {
-        "rxcui": "855338",
-        "terms": 2,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "859747",
-        "terms": 2,
-        "avg_name_length": 38.0
-      },
-      {
-        "rxcui": "876513",
-        "terms": 2,
-        "avg_name_length": 36.0
-      },
-      {
-        "rxcui": "896854",
-        "terms": 2,
-        "avg_name_length": 55.5
-      },
-      {
-        "rxcui": "905032",
-        "terms": 2,
-        "avg_name_length": 36.0
-      },
-      {
-        "rxcui": "992529",
-        "terms": 2,
-        "avg_name_length": 44.0
-      },
-      {
-        "rxcui": "1000140",
-        "terms": 2,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "1020065",
-        "terms": 2,
-        "avg_name_length": 64.5
-      },
-      {
-        "rxcui": "1052658",
-        "terms": 2,
-        "avg_name_length": 29.0
-      },
-      {
-        "rxcui": "1094392",
-        "terms": 2,
-        "avg_name_length": 50.0
-      },
-      {
-        "rxcui": "1151144",
-        "terms": 2,
-        "avg_name_length": 37.0
-      },
-      {
-        "rxcui": "1154524",
-        "terms": 2,
-        "avg_name_length": 45.0
-      },
-      {
-        "rxcui": "1157680",
-        "terms": 2,
-        "avg_name_length": 14.0
-      },
-      {
-        "rxcui": "1161255",
-        "terms": 2,
-        "avg_name_length": 58.0
-      },
-      {
-        "rxcui": "1163406",
-        "terms": 2,
-        "avg_name_length": 16.0
-      },
-      {
-        "rxcui": "1165474",
-        "terms": 2,
-        "avg_name_length": 24.0
-      },
-      {
-        "rxcui": "1235247",
-        "terms": 2,
-        "avg_name_length": 37.0
-      },
-      {
-        "rxcui": "1295553",
-        "terms": 2,
-        "avg_name_length": 40.0
-      },
-      {
-        "rxcui": "1307639",
-        "terms": 2,
-        "avg_name_length": 42.0
-      },
-      {
-        "rxcui": "1314329",
-        "terms": 2,
-        "avg_name_length": 23.0
-      },
-      {
-        "rxcui": "1363471",
-        "terms": 2,
-        "avg_name_length": 49.0
-      },
-      {
-        "rxcui": "1372010",
-        "terms": 2,
-        "avg_name_length": 29.0
-      },
-      {
-        "rxcui": "1430121",
-        "terms": 2,
-        "avg_name_length": 23.0
-      },
-      {
-        "rxcui": "1491529",
-        "terms": 2,
-        "avg_name_length": 31.0
-      },
-      {
-        "rxcui": "1551464",
+        "rxcui": "605729",
         "terms": 2,
         "avg_name_length": 35.0
       },
       {
-        "rxcui": "1650198",
-        "terms": 2,
-        "avg_name_length": 111.5
-      },
-      {
-        "rxcui": "1661434",
-        "terms": 2,
-        "avg_name_length": 25.5
-      },
-      {
-        "rxcui": "1720601",
-        "terms": 2,
-        "avg_name_length": 28.0
-      },
-      {
-        "rxcui": "1736049",
-        "terms": 2,
-        "avg_name_length": 30.0
-      },
-      {
-        "rxcui": "1790136",
-        "terms": 2,
-        "avg_name_length": 29.0
-      },
-      {
-        "rxcui": "1812477",
-        "terms": 2,
-        "avg_name_length": 27.0
-      },
-      {
-        "rxcui": "1925501",
-        "terms": 2,
-        "avg_name_length": 47.0
-      },
-      {
-        "rxcui": "1992823",
-        "terms": 2,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "2055109",
-        "terms": 2,
-        "avg_name_length": 31.0
-      },
-      {
-        "rxcui": "2122656",
+        "rxcui": "664823",
         "terms": 2,
         "avg_name_length": 38.5
       },
       {
-        "rxcui": "2261788",
+        "rxcui": "724153",
         "terms": 2,
         "avg_name_length": 54.0
       },
       {
-        "rxcui": "2285806",
+        "rxcui": "756776",
         "terms": 2,
-        "avg_name_length": 44.0
+        "avg_name_length": 28.0
       },
       {
-        "rxcui": "2471430",
+        "rxcui": "823984",
         "terms": 2,
-        "avg_name_length": 26.0
+        "avg_name_length": 59.0
       },
       {
-        "rxcui": "2569615",
+        "rxcui": "835604",
         "terms": 2,
-        "avg_name_length": 39.0
+        "avg_name_length": 37.0
       },
       {
-        "rxcui": "2599282",
+        "rxcui": "852193",
         "terms": 2,
-        "avg_name_length": 17.0
+        "avg_name_length": 26.5
       },
       {
-        "rxcui": "2637957",
-        "terms": 2,
-        "avg_name_length": 19.0
-      },
-      {
-        "rxcui": "2646362",
-        "terms": 2,
-        "avg_name_length": 100.0
-      },
-      {
-        "rxcui": "2647866",
-        "terms": 2,
-        "avg_name_length": 38.0
-      },
-      {
-        "rxcui": "2654338",
+        "rxcui": "855683",
         "terms": 2,
         "avg_name_length": 56.0
       },
       {
-        "rxcui": "2656193",
-        "terms": 2,
-        "avg_name_length": 81.0
-      },
-      {
-        "rxcui": "2658035",
-        "terms": 2,
-        "avg_name_length": 42.0
-      },
-      {
-        "rxcui": "2659764",
-        "terms": 2,
-        "avg_name_length": 50.0
-      },
-      {
-        "rxcui": "2661070",
-        "terms": 2,
-        "avg_name_length": 57.0
-      },
-      {
-        "rxcui": "2662169",
-        "terms": 2,
-        "avg_name_length": 62.0
-      },
-      {
-        "rxcui": "2663418",
-        "terms": 2,
-        "avg_name_length": 68.0
-      },
-      {
-        "rxcui": "2682562",
-        "terms": 2,
-        "avg_name_length": 23.0
-      },
-      {
-        "rxcui": "2707355",
-        "terms": 2,
-        "avg_name_length": 23.0
-      },
-      {
-        "rxcui": "2723907",
+        "rxcui": "859834",
         "terms": 2,
         "avg_name_length": 36.0
       },
       {
-        "rxcui": "2745786",
+        "rxcui": "876521",
+        "terms": 2,
+        "avg_name_length": 46.0
+      },
+      {
+        "rxcui": "897042",
+        "terms": 2,
+        "avg_name_length": 27.0
+      },
+      {
+        "rxcui": "905083",
+        "terms": 2,
+        "avg_name_length": 36.0
+      },
+      {
+        "rxcui": "992669",
+        "terms": 2,
+        "avg_name_length": 78.0
+      },
+      {
+        "rxcui": "1000157",
+        "terms": 2,
+        "avg_name_length": 57.0
+      },
+      {
+        "rxcui": "1020478",
+        "terms": 2,
+        "avg_name_length": 46.0
+      },
+      {
+        "rxcui": "1053140",
+        "terms": 2,
+        "avg_name_length": 72.0
+      },
+      {
+        "rxcui": "1095223",
+        "terms": 2,
+        "avg_name_length": 38.0
+      },
+      {
+        "rxcui": "1151196",
+        "terms": 2,
+        "avg_name_length": 60.0
+      },
+      {
+        "rxcui": "1154533",
+        "terms": 2,
+        "avg_name_length": 32.0
+      },
+      {
+        "rxcui": "1157967",
+        "terms": 2,
+        "avg_name_length": 28.0
+      },
+      {
+        "rxcui": "1161268",
+        "terms": 2,
+        "avg_name_length": 15.0
+      },
+      {
+        "rxcui": "1163450",
+        "terms": 2,
+        "avg_name_length": 33.0
+      },
+      {
+        "rxcui": "1165478",
+        "terms": 2,
+        "avg_name_length": 30.0
+      },
+      {
+        "rxcui": "1236013",
+        "terms": 2,
+        "avg_name_length": 29.0
+      },
+      {
+        "rxcui": "1295592",
+        "terms": 2,
+        "avg_name_length": 30.0
+      },
+      {
+        "rxcui": "1307688",
+        "terms": 2,
+        "avg_name_length": 32.5
+      },
+      {
+        "rxcui": "1314346",
+        "terms": 2,
+        "avg_name_length": 23.0
+      },
+      {
+        "rxcui": "1363472",
+        "terms": 2,
+        "avg_name_length": 42.0
+      },
+      {
+        "rxcui": "1372250",
+        "terms": 2,
+        "avg_name_length": 28.0
+      },
+      {
+        "rxcui": "1430125",
+        "terms": 2,
+        "avg_name_length": 35.0
+      },
+      {
+        "rxcui": "1491637",
+        "terms": 2,
+        "avg_name_length": 73.0
+      },
+      {
+        "rxcui": "1551465",
+        "terms": 2,
+        "avg_name_length": 27.0
+      },
+      {
+        "rxcui": "1650268",
+        "terms": 2,
+        "avg_name_length": 118.0
+      },
+      {
+        "rxcui": "1661437",
+        "terms": 2,
+        "avg_name_length": 31.5
+      },
+      {
+        "rxcui": "1720758",
+        "terms": 2,
+        "avg_name_length": 20.0
+      },
+      {
+        "rxcui": "1736560",
+        "terms": 2,
+        "avg_name_length": 18.0
+      },
+      {
+        "rxcui": "1790332",
+        "terms": 2,
+        "avg_name_length": 32.0
+      },
+      {
+        "rxcui": "1812481",
+        "terms": 2,
+        "avg_name_length": 27.0
+      },
+      {
+        "rxcui": "1925834",
+        "terms": 2,
+        "avg_name_length": 27.0
+      },
+      {
+        "rxcui": "1992825",
+        "terms": 2,
+        "avg_name_length": 27.0
+      },
+      {
+        "rxcui": "2055665",
+        "terms": 2,
+        "avg_name_length": 21.0
+      },
+      {
+        "rxcui": "2122660",
+        "terms": 2,
+        "avg_name_length": 39.5
+      },
+      {
+        "rxcui": "2262026",
+        "terms": 2,
+        "avg_name_length": 86.0
+      },
+      {
+        "rxcui": "2285813",
+        "terms": 2,
+        "avg_name_length": 44.0
+      },
+      {
+        "rxcui": "2472315",
+        "terms": 2,
+        "avg_name_length": 31.5
+      },
+      {
+        "rxcui": "2569623",
+        "terms": 2,
+        "avg_name_length": 39.0
+      },
+      {
+        "rxcui": "2599525",
+        "terms": 2,
+        "avg_name_length": 38.0
+      },
+      {
+        "rxcui": "2637963",
+        "terms": 2,
+        "avg_name_length": 34.0
+      },
+      {
+        "rxcui": "2646375",
+        "terms": 2,
+        "avg_name_length": 24.0
+      },
+      {
+        "rxcui": "2647933",
+        "terms": 2,
+        "avg_name_length": 41.0
+      },
+      {
+        "rxcui": "2654364",
+        "terms": 2,
+        "avg_name_length": 58.0
+      },
+      {
+        "rxcui": "2656204",
+        "terms": 2,
+        "avg_name_length": 69.0
+      },
+      {
+        "rxcui": "2658064",
+        "terms": 2,
+        "avg_name_length": 44.0
+      },
+      {
+        "rxcui": "2659792",
+        "terms": 2,
+        "avg_name_length": 42.0
+      },
+      {
+        "rxcui": "2661078",
+        "terms": 2,
+        "avg_name_length": 39.0
+      },
+      {
+        "rxcui": "2662240",
+        "terms": 2,
+        "avg_name_length": 83.0
+      },
+      {
+        "rxcui": "2663422",
+        "terms": 2,
+        "avg_name_length": 28.0
+      },
+      {
+        "rxcui": "2682566",
+        "terms": 2,
+        "avg_name_length": 25.0
+      },
+      {
+        "rxcui": "2707547",
+        "terms": 2,
+        "avg_name_length": 30.0
+      },
+      {
+        "rxcui": "2724460",
+        "terms": 2,
+        "avg_name_length": 20.0
+      },
+      {
+        "rxcui": "2745794",
         "terms": 2,
         "avg_name_length": 30.0
       },
@@ -1779,404 +1779,404 @@
         "avg_name_length": 39.6
       },
       {
-        "rxcui": "210759",
+        "rxcui": "210756",
         "terms": 3,
-        "avg_name_length": 40.33
+        "avg_name_length": 31.33
       },
       {
-        "rxcui": "226597",
-        "terms": 3,
-        "avg_name_length": 30.0
-      },
-      {
-        "rxcui": "248678",
-        "terms": 3,
-        "avg_name_length": 51.0
-      },
-      {
-        "rxcui": "284191",
+        "rxcui": "226552",
         "terms": 5,
-        "avg_name_length": 32.4
-      },
-      {
-        "rxcui": "309374",
-        "terms": 3,
-        "avg_name_length": 28.0
-      },
-      {
-        "rxcui": "311714",
-        "terms": 3,
-        "avg_name_length": 38.67
-      },
-      {
-        "rxcui": "313477",
-        "terms": 3,
-        "avg_name_length": 37.67
-      },
-      {
-        "rxcui": "351297",
-        "terms": 3,
-        "avg_name_length": 77.67
-      },
-      {
-        "rxcui": "404065",
-        "terms": 4,
-        "avg_name_length": 34.5
-      },
-      {
-        "rxcui": "540409",
-        "terms": 3,
-        "avg_name_length": 28.67
-      },
-      {
-        "rxcui": "597959",
-        "terms": 5,
-        "avg_name_length": 33.0
-      },
-      {
-        "rxcui": "637462",
-        "terms": 4,
-        "avg_name_length": 49.25
-      },
-      {
-        "rxcui": "705617",
-        "terms": 3,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "746763",
-        "terms": 5,
-        "avg_name_length": 75.0
-      },
-      {
-        "rxcui": "763116",
-        "terms": 3,
-        "avg_name_length": 63.67
-      },
-      {
-        "rxcui": "803364",
-        "terms": 3,
-        "avg_name_length": 91.67
-      },
-      {
-        "rxcui": "830253",
-        "terms": 5,
-        "avg_name_length": 68.2
-      },
-      {
-        "rxcui": "847230",
-        "terms": 5,
-        "avg_name_length": 47.4
-      },
-      {
-        "rxcui": "852494",
-        "terms": 5,
-        "avg_name_length": 62.4
-      },
-      {
-        "rxcui": "856792",
-        "terms": 3,
-        "avg_name_length": 66.67
-      },
-      {
-        "rxcui": "861363",
-        "terms": 3,
-        "avg_name_length": 53.33
-      },
-      {
-        "rxcui": "881409",
-        "terms": 4,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "895038",
-        "terms": 3,
-        "avg_name_length": 57.33
-      },
-      {
-        "rxcui": "897970",
-        "terms": 4,
-        "avg_name_length": 63.5
-      },
-      {
-        "rxcui": "902624",
-        "terms": 3,
-        "avg_name_length": 49.0
-      },
-      {
-        "rxcui": "966404",
-        "terms": 3,
-        "avg_name_length": 40.67
-      },
-      {
-        "rxcui": "992432",
-        "terms": 3,
-        "avg_name_length": 47.0
-      },
-      {
-        "rxcui": "998426",
-        "terms": 4,
-        "avg_name_length": 64.5
-      },
-      {
-        "rxcui": "1010732",
-        "terms": 3,
-        "avg_name_length": 48.0
-      },
-      {
-        "rxcui": "1037205",
-        "terms": 3,
-        "avg_name_length": 34.67
-      },
-      {
-        "rxcui": "1048447",
-        "terms": 4,
-        "avg_name_length": 33.25
-      },
-      {
-        "rxcui": "1087438",
-        "terms": 5,
-        "avg_name_length": 97.0
-      },
-      {
-        "rxcui": "1098356",
-        "terms": 5,
-        "avg_name_length": 72.4
-      },
-      {
-        "rxcui": "1115592",
-        "terms": 3,
-        "avg_name_length": 83.0
-      },
-      {
-        "rxcui": "1191313",
-        "terms": 4,
-        "avg_name_length": 38.75
-      },
-      {
-        "rxcui": "1244064",
-        "terms": 4,
-        "avg_name_length": 48.5
-      },
-      {
-        "rxcui": "1292459",
-        "terms": 4,
-        "avg_name_length": 49.5
-      },
-      {
-        "rxcui": "1302737",
-        "terms": 3,
         "avg_name_length": 46.0
       },
       {
-        "rxcui": "1359134",
+        "rxcui": "248656",
         "terms": 3,
-        "avg_name_length": 105.67
+        "avg_name_length": 41.0
       },
       {
-        "rxcui": "1373136",
-        "terms": 3,
-        "avg_name_length": 60.33
-      },
-      {
-        "rxcui": "1437278",
-        "terms": 3,
-        "avg_name_length": 51.67
-      },
-      {
-        "rxcui": "1491643",
-        "terms": 3,
-        "avg_name_length": 69.33
-      },
-      {
-        "rxcui": "1545780",
-        "terms": 3,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "1597075",
-        "terms": 3,
-        "avg_name_length": 63.67
-      },
-      {
-        "rxcui": "1648646",
-        "terms": 3,
-        "avg_name_length": 175.0
-      },
-      {
-        "rxcui": "1658165",
-        "terms": 3,
-        "avg_name_length": 48.0
-      },
-      {
-        "rxcui": "1670021",
-        "terms": 3,
-        "avg_name_length": 47.33
-      },
-      {
-        "rxcui": "1725044",
-        "terms": 5,
-        "avg_name_length": 43.6
-      },
-      {
-        "rxcui": "1737453",
-        "terms": 3,
-        "avg_name_length": 45.0
-      },
-      {
-        "rxcui": "1788864",
-        "terms": 3,
-        "avg_name_length": 29.67
-      },
-      {
-        "rxcui": "1797870",
+        "rxcui": "284008",
         "terms": 4,
-        "avg_name_length": 51.75
+        "avg_name_length": 39.25
       },
       {
-        "rxcui": "1809439",
-        "terms": 5,
-        "avg_name_length": 38.8
-      },
-      {
-        "rxcui": "1862692",
-        "terms": 4,
-        "avg_name_length": 82.0
-      },
-      {
-        "rxcui": "1919507",
+        "rxcui": "309368",
         "terms": 3,
-        "avg_name_length": 35.0
+        "avg_name_length": 31.67
       },
       {
-        "rxcui": "1946772",
+        "rxcui": "311700",
         "terms": 3,
-        "avg_name_length": 49.33
+        "avg_name_length": 46.67
       },
       {
-        "rxcui": "1999667",
-        "terms": 3,
-        "avg_name_length": 106.67
-      },
-      {
-        "rxcui": "2049278",
-        "terms": 4,
-        "avg_name_length": 42.75
-      },
-      {
-        "rxcui": "2059292",
-        "terms": 3,
-        "avg_name_length": 28.0
-      },
-      {
-        "rxcui": "2121061",
-        "terms": 3,
-        "avg_name_length": 30.0
-      },
-      {
-        "rxcui": "2176321",
-        "terms": 5,
-        "avg_name_length": 51.8
-      },
-      {
-        "rxcui": "2266525",
-        "terms": 3,
-        "avg_name_length": 32.0
-      },
-      {
-        "rxcui": "2359279",
-        "terms": 5,
-        "avg_name_length": 106.8
-      },
-      {
-        "rxcui": "2395839",
-        "terms": 3,
-        "avg_name_length": 78.67
-      },
-      {
-        "rxcui": "2536554",
-        "terms": 4,
-        "avg_name_length": 53.0
-      },
-      {
-        "rxcui": "2570402",
-        "terms": 5,
-        "avg_name_length": 61.6
-      },
-      {
-        "rxcui": "2595044",
-        "terms": 3,
-        "avg_name_length": 44.33
-      },
-      {
-        "rxcui": "2610319",
-        "terms": 3,
-        "avg_name_length": 121.67
-      },
-      {
-        "rxcui": "2626819",
-        "terms": 3,
-        "avg_name_length": 70.33
-      },
-      {
-        "rxcui": "2636052",
-        "terms": 5,
-        "avg_name_length": 46.4
-      },
-      {
-        "rxcui": "2641672",
-        "terms": 3,
-        "avg_name_length": 85.0
-      },
-      {
-        "rxcui": "2645305",
-        "terms": 4,
-        "avg_name_length": 39.75
-      },
-      {
-        "rxcui": "2671680",
-        "terms": 5,
-        "avg_name_length": 44.2
-      },
-      {
-        "rxcui": "2680138",
+        "rxcui": "313451",
         "terms": 3,
         "avg_name_length": 31.0
       },
       {
-        "rxcui": "2690992",
+        "rxcui": "351270",
         "terms": 3,
-        "avg_name_length": 35.67
+        "avg_name_length": 48.67
       },
       {
-        "rxcui": "2700798",
-        "terms": 3,
-        "avg_name_length": 68.33
-      },
-      {
-        "rxcui": "2709440",
+        "rxcui": "404061",
         "terms": 4,
-        "avg_name_length": 37.5
+        "avg_name_length": 35.5
       },
       {
-        "rxcui": "2719494",
+        "rxcui": "540263",
+        "terms": 4,
+        "avg_name_length": 41.5
+      },
+      {
+        "rxcui": "597921",
+        "terms": 4,
+        "avg_name_length": 49.25
+      },
+      {
+        "rxcui": "637254",
+        "terms": 5,
+        "avg_name_length": 82.8
+      },
+      {
+        "rxcui": "705164",
+        "terms": 3,
+        "avg_name_length": 36.67
+      },
+      {
+        "rxcui": "746803",
+        "terms": 3,
+        "avg_name_length": 63.33
+      },
+      {
+        "rxcui": "763138",
+        "terms": 3,
+        "avg_name_length": 26.0
+      },
+      {
+        "rxcui": "803371",
+        "terms": 3,
+        "avg_name_length": 89.67
+      },
+      {
+        "rxcui": "830263",
+        "terms": 5,
+        "avg_name_length": 60.2
+      },
+      {
+        "rxcui": "847245",
+        "terms": 3,
+        "avg_name_length": 44.67
+      },
+      {
+        "rxcui": "852512",
+        "terms": 5,
+        "avg_name_length": 59.4
+      },
+      {
+        "rxcui": "856980",
+        "terms": 5,
+        "avg_name_length": 59.4
+      },
+      {
+        "rxcui": "861366",
+        "terms": 4,
+        "avg_name_length": 48.25
+      },
+      {
+        "rxcui": "882506",
+        "terms": 4,
+        "avg_name_length": 63.75
+      },
+      {
+        "rxcui": "895061",
+        "terms": 4,
+        "avg_name_length": 58.0
+      },
+      {
+        "rxcui": "897991",
+        "terms": 5,
+        "avg_name_length": 58.8
+      },
+      {
+        "rxcui": "902648",
+        "terms": 4,
+        "avg_name_length": 62.0
+      },
+      {
+        "rxcui": "966407",
+        "terms": 3,
+        "avg_name_length": 40.33
+      },
+      {
+        "rxcui": "992456",
+        "terms": 3,
+        "avg_name_length": 42.67
+      },
+      {
+        "rxcui": "998442",
+        "terms": 3,
+        "avg_name_length": 41.33
+      },
+      {
+        "rxcui": "1010769",
+        "terms": 3,
+        "avg_name_length": 39.33
+      },
+      {
+        "rxcui": "1037273",
+        "terms": 3,
+        "avg_name_length": 84.0
+      },
+      {
+        "rxcui": "1048969",
+        "terms": 4,
+        "avg_name_length": 50.25
+      },
+      {
+        "rxcui": "1087519",
+        "terms": 4,
+        "avg_name_length": 38.0
+      },
+      {
+        "rxcui": "1098435",
+        "terms": 5,
+        "avg_name_length": 118.6
+      },
+      {
+        "rxcui": "1115802",
+        "terms": 3,
+        "avg_name_length": 38.33
+      },
+      {
+        "rxcui": "1191359",
+        "terms": 3,
+        "avg_name_length": 70.67
+      },
+      {
+        "rxcui": "1244634",
+        "terms": 3,
+        "avg_name_length": 43.0
+      },
+      {
+        "rxcui": "1293193",
+        "terms": 3,
+        "avg_name_length": 28.67
+      },
+      {
+        "rxcui": "1303107",
+        "terms": 5,
+        "avg_name_length": 67.4
+      },
+      {
+        "rxcui": "1359356",
+        "terms": 3,
+        "avg_name_length": 113.67
+      },
+      {
+        "rxcui": "1373327",
+        "terms": 4,
+        "avg_name_length": 93.5
+      },
+      {
+        "rxcui": "1437685",
+        "terms": 3,
+        "avg_name_length": 35.33
+      },
+      {
+        "rxcui": "1492747",
+        "terms": 3,
+        "avg_name_length": 76.67
+      },
+      {
+        "rxcui": "1546700",
+        "terms": 3,
+        "avg_name_length": 63.0
+      },
+      {
+        "rxcui": "1597127",
+        "terms": 4,
+        "avg_name_length": 46.0
+      },
+      {
+        "rxcui": "1648788",
+        "terms": 4,
+        "avg_name_length": 95.5
+      },
+      {
+        "rxcui": "1658262",
+        "terms": 3,
+        "avg_name_length": 42.67
+      },
+      {
+        "rxcui": "1670351",
+        "terms": 4,
+        "avg_name_length": 39.25
+      },
+      {
+        "rxcui": "1726102",
+        "terms": 3,
+        "avg_name_length": 45.67
+      },
+      {
+        "rxcui": "1737567",
+        "terms": 5,
+        "avg_name_length": 39.4
+      },
+      {
+        "rxcui": "1789746",
+        "terms": 5,
+        "avg_name_length": 49.2
+      },
+      {
+        "rxcui": "1797902",
+        "terms": 4,
+        "avg_name_length": 52.0
+      },
+      {
+        "rxcui": "1809464",
+        "terms": 5,
+        "avg_name_length": 40.8
+      },
+      {
+        "rxcui": "1863607",
+        "terms": 5,
+        "avg_name_length": 83.6
+      },
+      {
+        "rxcui": "1921238",
+        "terms": 3,
+        "avg_name_length": 40.67
+      },
+      {
+        "rxcui": "1986331",
+        "terms": 3,
+        "avg_name_length": 31.67
+      },
+      {
+        "rxcui": "2000133",
+        "terms": 3,
+        "avg_name_length": 34.33
+      },
+      {
+        "rxcui": "2049677",
+        "terms": 3,
+        "avg_name_length": 100.33
+      },
+      {
+        "rxcui": "2099366",
+        "terms": 4,
+        "avg_name_length": 36.25
+      },
+      {
+        "rxcui": "2121705",
+        "terms": 4,
+        "avg_name_length": 29.0
+      },
+      {
+        "rxcui": "2178281",
+        "terms": 4,
+        "avg_name_length": 44.0
+      },
+      {
+        "rxcui": "2267310",
+        "terms": 3,
+        "avg_name_length": 31.67
+      },
+      {
+        "rxcui": "2359358",
+        "terms": 5,
+        "avg_name_length": 109.8
+      },
+      {
+        "rxcui": "2396892",
+        "terms": 5,
+        "avg_name_length": 44.4
+      },
+      {
+        "rxcui": "2539186",
+        "terms": 4,
+        "avg_name_length": 54.75
+      },
+      {
+        "rxcui": "2570742",
         "terms": 3,
         "avg_name_length": 43.33
       },
       {
-        "rxcui": "2726010",
-        "terms": 3,
-        "avg_name_length": 49.67
+        "rxcui": "2595961",
+        "terms": 4,
+        "avg_name_length": 51.75
       },
       {
-        "rxcui": "2739001",
+        "rxcui": "2611536",
         "terms": 3,
-        "avg_name_length": 30.0
+        "avg_name_length": 34.0
       },
       {
-        "rxcui": "2747129",
+        "rxcui": "2626833",
         "terms": 3,
-        "avg_name_length": 40.67
+        "avg_name_length": 72.0
+      },
+      {
+        "rxcui": "2636658",
+        "terms": 4,
+        "avg_name_length": 112.0
+      },
+      {
+        "rxcui": "2641695",
+        "terms": 3,
+        "avg_name_length": 76.33
+      },
+      {
+        "rxcui": "2663917",
+        "terms": 3,
+        "avg_name_length": 43.33
+      },
+      {
+        "rxcui": "2672105",
+        "terms": 5,
+        "avg_name_length": 41.0
+      },
+      {
+        "rxcui": "2680309",
+        "terms": 4,
+        "avg_name_length": 36.5
+      },
+      {
+        "rxcui": "2691328",
+        "terms": 3,
+        "avg_name_length": 34.33
+      },
+      {
+        "rxcui": "2701523",
+        "terms": 3,
+        "avg_name_length": 121.0
+      },
+      {
+        "rxcui": "2709603",
+        "terms": 3,
+        "avg_name_length": 40.0
+      },
+      {
+        "rxcui": "2720026",
+        "terms": 3,
+        "avg_name_length": 44.0
+      },
+      {
+        "rxcui": "2726064",
+        "terms": 4,
+        "avg_name_length": 44.5
+      },
+      {
+        "rxcui": "2739529",
+        "terms": 3,
+        "avg_name_length": 29.33
+      },
+      {
+        "rxcui": "2747295",
+        "terms": 3,
+        "avg_name_length": 148.33
       },
       {
         "rxcui": "92752",
@@ -2750,7 +2750,7 @@
       }
     ],
     "scatter_sample_size": 369,
-    "pearson_all_rxcui": 0.1862,
+    "pearson_all_rxcui": 0.1863,
     "scope_notice": "Không có chuỗi thời gian nhiều kỳ trong bản RxNorm này; không vẽ biểu đồ xu hướng hoặc kiểm định phân phối chuẩn khi thiếu cơ sở."
   },
   "mapping_handoff": {
@@ -2769,11 +2769,11 @@
     "mapping_status_distribution": [
       {
         "label": "UNMATCHED_REVIEW",
-        "count": 35807
+        "count": 35868
       },
       {
         "label": "CANDIDATE_REVIEW",
-        "count": 4061
+        "count": 4064
       }
     ],
     "candidate_examples": [
