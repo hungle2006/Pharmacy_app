@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "name": "rxnorm",
+      "prefix": "bronze/rxnorm/",
+      "format": "rxnconso",
+      "glob": "RXNCONSO.RRF"
+    },
+    {
+      "name": "medi",
+      "prefix": "bronze/medi/",
+      "format": "csv",
+      "glob": "*.csv"
+    },
+    {
+      "name": "source3",
+      "prefix": "bronze/source3/",
+      "format": "csv",
+      "glob": "*.csv"
+    },
+    {
+      "name": "source4",
+      "prefix": "bronze/source4/",
+      "format": "csv",
+      "glob": "*.csv"
+    }
+  ]
+}
