@@ -133,19 +133,22 @@ def train_change(train,val,test,horizon):
     test_baseline=float(np.mean(abs(t_truth)))
     test_mae=float(np.mean(abs(t_truth-applied)))
     gain=(test_baseline-test_mae)/max(test_baseline,1e-8)
-    approved=(weight>0 and val_mae < baseline_val*0.99 and gain>=0.01
+    conditional_pass=(weight>0 and val_mae < baseline_val*0.99 and gain>=0.01
               and len(t.registration_number.unique())>=15)
+    # Legacy research helper; conditional non-filer labels cannot approve
+    # an unconditional market forecast. Production uses market_models.
     result.update({
-        "status":"approved" if approved else "rejected_quality_gate",
+        "status":"experimental_conditional" if conditional_pass else "rejected_quality_gate",
         "validation_log_mae":finite_number(val_mae,5),
         "validation_baseline_log_mae":finite_number(baseline_val,5),
         "test_log_mae":finite_number(test_mae,5),
         "test_baseline_log_mae":finite_number(test_baseline,5),
         "test_gain_fraction":finite_number(gain,5),
-        "forecast_change_pct":finite_number(pct(applied)) if approved else None,
+        "forecast_change_pct":None,
+        "conditional_change_pct":finite_number(pct(applied)) if conditional_pass else None,
         "candidate_change_pct":finite_number(pct(applied)) if weight>0 else None,
         "selected_weight":float(weight),
-        "reason":("approved" if approved else
+        "reason":("UNVERIFIED_FULL_HORIZON_COVERAGE" if conditional_pass else
                   "NO_DIRECTIONAL_SIGNAL" if weight==0 else
                   "VALIDATION_NOT_BETTER_THAN_BASELINE" if val_mae >= baseline_val*0.99 else
                   "INSUFFICIENT_DISTINCT_TEST_DRUGS" if len(t.registration_number.unique())<15 else
