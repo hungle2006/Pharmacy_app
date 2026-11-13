@@ -18,7 +18,7 @@ import pandas as pd
 
 from ml_price.forecast import clean_observations, load_gold, make_examples, time_split
 from ml_price.forecast_schema import HORIZONS
-from ml_price.market_models import evaluate_market_horizon, exploratory_scenario
+from ml_price.market_models import evaluate_market_horizon, exploratory_scenario, exploratory_candidate_comparison
 
 MIN_REFERENCE = 20
 MIN_VALIDATION = 20
@@ -203,6 +203,13 @@ def make_market_report(raw, directory="models/market"):
         exploratory=exploratory_scenario(examples,h,observations,
                                           verification.get("selected_model"))
         result={**historical,**verification,**(exploratory or {})}
+        result["candidate_scenarios"]=exploratory_candidate_comparison(
+            examples, h, observations)
+        result["candidate_scenarios_warning"]=(
+            "Unvalidated conditional estimates on observed re-filers, not "
+            "walk-forward MAE, not an approved market forecast; interpret "
+            "each candidate's percentage separately from validation scores.")
+
         report["horizons"][str(h)]=result
         if result["status"]=="approved":
             report["approved_horizons"].append(int(h))
