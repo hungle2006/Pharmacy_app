@@ -21,8 +21,7 @@ crawl cannot be recovered by this pipeline.
 
 Model history must compare an exact registration/specification/packaging/price
 context. It must not create another temporal observation from another crawl of
-the same filing. Multiple source dates for one filing ID and conflicting prices
-on the same comparable date are conservatively excluded pending lineage review.
+the same filing. Multiple source dates for one DAV ID are retained as distinct filing events ONLY when each date is verified from the DAV filing/publication source. Ambiguous legacy revisions and conflicting prices on the same comparable date remain excluded pending source lineage review.
 Missing specifications also prevent automatic temporal pairing. The model does
 not fill absent dates or use ingestion time as a source price date.
 
@@ -59,3 +58,8 @@ Gold additionally stores `source_observed_at` for newly inserted observations.
 Lookup can show a newly recorded revision even when its filing date is unknown.
 That timestamp is never substituted for declaration dates in model labels; older
 rows retain a null observation timestamp instead of an invented historical one.
+
+
+## Irregular filing-window model update (13 Nov 2026)
+
+See [market-irregular-filing-training.md](market-irregular-filing-training.md). Calendar 3/6/12-month labels use every genuine observed filing in the window, with time embargo at full window end. Missing filings are censored, NOT synthetic zero-price movements. Conditional test performance is not proof of an unconditional market forecast.
