@@ -83,6 +83,9 @@ class GoldIntegrationTest(unittest.TestCase):
     cur.execute("""INSERT INTO price_record
      (price_id,dav_row_id,declaration_date,price_vnd,currency,price_type,unit,package,source)
      VALUES ('legacy-price','1','2026-10-20',5000,'VND','KKL','viên','Hộp','DAV')""")
+    cur.execute("""INSERT INTO price_record
+     (price_id,dav_row_id,declaration_date,price_vnd,currency,price_type,unit,package,source)
+     VALUES ('foreign-price','2','2026-10-19',3200,'VND','KKL','viên','Hộp','DAV_PUBLIC_DRUG_PRICE')""")
     cur.execute("""INSERT INTO dav_rxnorm_mapping
      (mapping_id,dav_row_id,selected_scd_rxcui,mapping_status,accepted_for_serving)
      VALUES ('legacy-mapping','1','103','VERIFIED_SCD',1)""")
@@ -161,12 +164,12 @@ class GoldIntegrationTest(unittest.TestCase):
      self.assertEqual(cur.fetchone()[0],3)
      cur.execute("SELECT drug_name FROM public.dav_product WHERE dav_row_id='1'")
      self.assertEqual(cur.fetchone()[0],"Paracetamol 500")
-     cur.execute("SELECT declaration_date::text,source_date_basis FROM public.price_record WHERE dav_row_id='2'")
+     cur.execute("SELECT declaration_date::text,source_date_basis FROM public.price_record WHERE dav_row_id='2' AND source='SILVER_DAV_PRICE'")
      self.assertEqual(cur.fetchone(),('2026-10-19','dav_filing_date'))
-     cur.execute("SELECT source_observed_at IS NOT NULL FROM public.price_record WHERE dav_row_id='2'")
+     cur.execute("SELECT source_observed_at IS NOT NULL FROM public.price_record WHERE dav_row_id='2' AND source='SILVER_DAV_PRICE'")
      self.assertTrue(cur.fetchone()[0])
      cur.execute("SELECT COUNT(*) FROM public.price_record")
-     self.assertEqual(cur.fetchone()[0],2) # prior identical price remains one + one genuinely new
+     self.assertEqual(cur.fetchone()[0],3) # keep foreign legacy row, insert verified current observation
      cur.execute("SELECT COUNT(*) FROM public.dav_rxnorm_mapping")
      self.assertEqual(cur.fetchone()[0],3)
      cur.execute("""SELECT selected_scd_rxcui,mapping_status,accepted_for_serving
