@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'ml_price/feature_*.py'
+      - 'ml_price/train.py'
+      - 'ml_price/train_catalog.py'
       - 'ml_price/upload_features.py'
       - 'ml_price/tests/test_feature_price.py'
       - '.github/workflows/train-feature-price.yml'
