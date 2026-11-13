@@ -138,7 +138,7 @@ WHERE EXISTS (SELECT 1 FROM public.dav_product d WHERE d.dav_row_id=s.dav_row_id
    SELECT 1 FROM public.price_record p
    WHERE p.dav_row_id=s.dav_row_id AND p.price_vnd=s.price_vnd
      AND COALESCE(p.source,'')<>'DAV_PUBLIC_DRUG_PRICE'
-     AND p.declaration_date IS NOT DISTINCT FROM s.declaration_date
+     AND (s.source_date_basis='UNKNOWN' OR p.declaration_date IS NOT DISTINCT FROM s.declaration_date)
      AND p.price_type IS NOT DISTINCT FROM s.price_type
      AND p.unit IS NOT DISTINCT FROM s.unit
      AND p.package IS NOT DISTINCT FROM s.package)

@@ -103,6 +103,7 @@ class GoldIntegrationTest(unittest.TestCase):
    fixtures={
     "dav":[{
      "dav_row_id":"1","dav_drug_name":"Paracetamol 500",
+     "silver_price_date":"","silver_price_date_basis":"UNKNOWN",
      "dav_registration_number":"VD001","dav_active_ingredient_raw":"acetaminophen",
      "dav_strength":"500 MG","dav_dosage_form":"Viên nén","dav_price_vnd":"5000.0",
      "dav_declaration_date":"2026-10-20T09:00:00+07:00","dav_price_type":"KKL",
