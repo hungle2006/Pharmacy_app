@@ -18,6 +18,7 @@ SELECT d.dav_row_id, d.registration_number,
        d.dosage_form_raw AS dosage_form, d.manufacturer, d.country,
        COALESCE(NULLIF(p.package,''),NULLIF(d.package,'')) AS package,
        d.source AS source_name, p.declaration_date, p.price_vnd,
+       COALESCE(to_jsonb(p)->>'source_date_basis','LEGACY_UNVERIFIED') AS source_date_basis,
        p.price_type, COALESCE(NULLIF(p.unit,''), NULLIF(d.unit,'')) AS unit
 FROM public.dav_product d
 JOIN public.price_record p ON p.dav_row_id = d.dav_row_id

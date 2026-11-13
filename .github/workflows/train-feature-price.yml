@@ -1,6 +1,16 @@
 name: Train Feature Price Estimator
 on:
   workflow_dispatch:
+    inputs:
+      force:
+        description: Retrain even if model inputs and recipe are unchanged
+        type: boolean
+        default: false
+  workflow_run:
+    workflows: ["Pharmacy Silver automatic R2"]
+    types: [completed]
+  schedule:
+    - cron: '30 7 * * *'
   push:
     branches: [main]
     paths:
@@ -8,32 +18,64 @@ on:
       - 'ml_price/train.py'
       - 'ml_price/train_catalog.py'
       - 'ml_price/upload_features.py'
+      - 'ml_price/refresh_features.py'
+      - 'ml_price/baseline.py'
+      - 'ml_price/constants.py'
+      - 'ml_price/requirements-train.txt'
       - 'ml_price/tests/test_feature_price.py'
       - '.github/workflows/train-feature-price.yml'
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: pharmacy-feature-price
   cancel-in-progress: false
 jobs:
   train:
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
+      - name: Verify upstream Gold really ran, not a dry run
+        id: upstream
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName !== 'workflow_run') {
+              core.setOutput('ready', 'true'); return;
+            }
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              ...context.repo, run_id: context.payload.workflow_run.id, per_page: 100
+            });
+            core.setOutput('ready', String(artifacts.some(a => a.name === 'gold-feature-training-ready' && !a.expired)));
       - uses: actions/checkout@v4
+        if: steps.upstream.outputs.ready == 'true'
+        with:
+          ref: main
       - uses: actions/setup-python@v5
+        if: steps.upstream.outputs.ready == 'true'
         with:
           python-version: '3.11'
           cache: pip
           cache-dependency-path: ml_price/requirements-train.txt
       - run: python -m pip install -r ml_price/requirements-train.txt
+        if: steps.upstream.outputs.ready == 'true'
       - name: Verify independent splits, calibration and inference
-        run: python -m unittest ml_price.tests.test_feature_price -v
-      - name: Train and test on actual Neon Gold
+        if: steps.upstream.outputs.ready == 'true'
+        run: python -m unittest discover -s ml_price/tests -p 'test_feature*.py' -v
+      - name: Snapshot latest Gold and train only changed inputs
+        id: refresh
+        if: steps.upstream.outputs.ready == 'true'
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.NEON_DATABASE_URL }}
-        run: python -m ml_price.feature_price
+          DATABASE_URL: ${{ secrets.GOLD_DATABASE_URL || secrets.DATABASE_URL || secrets.NEON_DATABASE_URL }}
+          FORCE_TRAIN: ${{ inputs.force || 'false' }}
+          ML_R2_ENDPOINT: ${{ secrets.ML_R2_ENDPOINT || secrets.R2_ENDPOINT }}
+          ML_R2_BUCKET: ${{ secrets.ML_R2_BUCKET || secrets.R2_BUCKET }}
+          ML_R2_ACCESS_KEY_ID: ${{ secrets.ML_R2_ACCESS_KEY_ID || secrets.R2_ACCESS_KEY_ID }}
+          ML_R2_SECRET_ACCESS_KEY: ${{ secrets.ML_R2_SECRET_ACCESS_KEY || secrets.R2_SECRET_ACCESS_KEY }}
+        run: python -m ml_price.refresh_features
       - name: Summarize held-out test results
+        if: steps.refresh.outputs.changed == 'true'
         run: |
           python - <<'PY'
           import os,json
@@ -41,19 +83,22 @@ jobs:
           r=json.loads(Path('models/features/report.json').read_text())
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
               f.write('## Feature price estimation: actual Gold holdout\n\n')
-              f.write('| Unit | Status | Unique products | Test | MAE VND | Baseline MAE | Gain % | 90% interval coverage % |\n|---|---|---:|---:|---:|---:|---:|---:|\n')
+              f.write('| Price type | Unit | Status | Unique products | Test | MAE VND | Baseline MAE | Gain % | 90% interval coverage % |\n|---|---|---|---:|---:|---:|---:|---:|---:|\n')
               for e in r['segments']:
                   if 'metrics' in e:
-                      f.write(f"|{e['unit']}|{e['status']}|{e['n_clean']}|{e['n_test']}|{e['metrics']['mae_vnd']}|{e['baseline_metrics']['mae_vnd']}|{e['test_gain_pct']}|{e['interval']['test_coverage_pct']}|\n")
+                      f.write(f"|{e['price_type']}|{e['unit']}|{e['status']}|{e['n_clean']}|{e['n_test']}|{e['metrics']['mae_vnd']}|{e['baseline_metrics']['mae_vnd']}|{e['test_gain_pct']}|{e['interval']['test_coverage_pct']}|\n")
           PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: feature-price-evaluation-${{ github.run_number }}
-          path: models/features/report.json
+          path: |
+            models/features/report.json
+            models/features/refresh.json
           retention-days: 30
           if-no-files-found: warn
       - name: Publish feature models and full evaluation to private R2
+        if: steps.refresh.outputs.changed == 'true'
         env:
           ML_R2_ENDPOINT: ${{ secrets.ML_R2_ENDPOINT || secrets.R2_ENDPOINT }}
           ML_R2_BUCKET: ${{ secrets.ML_R2_BUCKET || secrets.R2_BUCKET }}

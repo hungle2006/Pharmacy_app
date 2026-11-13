@@ -60,7 +60,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_rxnorm_report3.py' -v
           python -m compileall -q silver_auto silver_v3 silver_mapping
   sync:
-    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
+    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -184,3 +184,20 @@ jobs:
           else
             python -m gold_auto.sync
           fi
+
+      - name: Mark completed Gold update for downstream feature training
+        if: success()
+        env:
+          GOLD_DATABASE_URL: ${{ secrets.GOLD_DATABASE_URL }}
+          MANUAL_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ -n "$GOLD_DATABASE_URL" ] && ! { [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ] && [ "$MANUAL_DRY_RUN" = 'true' ]; }; then
+            mkdir -p gold-ready
+            echo "$GITHUB_SHA" > gold-ready/commit.txt
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gold-feature-training-ready
+          path: gold-ready/commit.txt
+          if-no-files-found: ignore
+          retention-days: 7
