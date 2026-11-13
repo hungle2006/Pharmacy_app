@@ -149,7 +149,7 @@
       '<h3 class="lookup-detail-title">'+esc(p.drug_name||raw.drug_name||'Thuốc chưa có tên')+'</h3>'+
       '<div class="lookup-badges">'+badge(label,kind)+badge('Dữ liệu '+(raw.product_source==='SILVER_R2'?'Silver':'Gold cũ'),'muted')+'</div>'+
       '<dl class="lookup-fields">'+field('Số đăng ký',p.registration_number)+field('Hoạt chất',p.active_ingredient_raw)+field('Hàm lượng',p.strength_raw)+field('Dạng bào chế',p.dosage_form_raw)+field('Nhà sản xuất',raw.manufacturer)+field('Giá quan sát gần nhất',raw.price_vnd===null?'Chưa có giá':price(raw.price_vnd))+
-      field('Loại giá / đơn vị',[raw.price_type,raw.unit].filter(Boolean).join(' · '))+field('Ngày quan sát',raw.snapshot_date)+'</dl>'+
+      field('Loại giá / đơn vị',[raw.price_type,raw.unit].filter(Boolean).join(' · '))+field(({dav_filing_date:'Ngày kê khai',dav_publication_date:'Ngày công bố'}[raw.source_date_basis]||'Ngày hồ sơ (chưa xác minh loại ngày)'),raw.snapshot_date)+'</dl>'+
       '<section class="lookup-mapping"><div class="eyebrow">LINKED EVIDENCE / RXNORM</div><h4>Đối chiếu RxNorm</h4>'+
       '<p class="lookup-mapping-note">'+esc(explanation)+'</p>'+
       (scd?'<div class="lookup-scd"><span>RxCUI · '+esc(scd)+'</span><strong>'+esc(scdName||'Chưa có tên SCD')+'</strong><small>'+esc(p.dose_form_name||'')+'</small></div>':

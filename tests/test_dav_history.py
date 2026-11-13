@@ -16,7 +16,7 @@ def record(**updates):
                 dav_active_ingredient_raw="A", dav_strength="500 mg", dav_dosage_form="Tablet",
                 dav_manufacturer="Maker", dav_country="VN", dav_package="Box 10 tablets",
                 dav_unit="tablet", dav_price_type="KK", dav_declaring_unit="Company",
-                dav_declaration_date="2025-01-01", dav_price_vnd="1000",
+                dav_declaration_date="2025-01-01", dav_filing_date="2025-01-01", dav_price_vnd="1000",
                 dav_retail_price_vnd="", **{}) | updates
 
 
@@ -39,21 +39,21 @@ class DavHistoryTests(unittest.TestCase):
         old = record()
         for price, label in [("1100", "new_declaration_price_changed"),
                              ("1000.00", "new_declaration_price_unchanged")]:
-            new = record(dav_row_id="2", dav_declaration_date="2025-04-01", dav_price_vnd=price)
+            new = record(dav_row_id="2", dav_declaration_date="2025-04-01", dav_filing_date="2025-04-01", dav_price_vnd=price)
             counts = classify_snapshot({"1": old}, {"1": old, "2": new})
             self.assertEqual(counts[label], 1)
 
     def test_pack_or_price_type_change_is_not_a_price_comparison(self):
         old = record()
         for field in ["dav_package", "dav_unit", "dav_price_type", "dav_manufacturer"]:
-            new = record(dav_row_id="2", dav_declaration_date="2025-04-01", **{field: "different"})
+            new = record(dav_row_id="2", dav_declaration_date="2025-04-01", dav_filing_date="2025-04-01", **{field: "different"})
             counts = classify_snapshot({"1": old}, {"2": new})
             self.assertEqual(counts["new_record_without_comparable_prior"], 1)
 
     def test_same_day_duplicate_and_missing_dates_not_new_temporal_change(self):
         old = record()
         for day in ["2025-01-01", "", "not-a-date"]:
-            new = record(dav_row_id="2", dav_declaration_date=day, dav_price_vnd="1100")
+            new = record(dav_row_id="2", dav_declaration_date=day, dav_filing_date=day, dav_price_vnd="1100")
             counts = classify_snapshot({"1": old}, {"2": new})
             self.assertNotIn("new_declaration_price_changed", counts)
 
@@ -69,7 +69,7 @@ class DavHistoryTests(unittest.TestCase):
             a = record()
             ingest([a])
             self.assertEqual(ingest([a])["new_events"], 0)
-            b = record(dav_row_id="2", dav_declaration_date="2025-04-01", dav_price_vnd="1100")
+            b = record(dav_row_id="2", dav_declaration_date="2025-04-01", dav_filing_date="2025-04-01", dav_price_vnd="1100")
             self.assertEqual(ingest([a, b])["dav_audit"]["new_declaration_price_changed"], 1)
             self.assertEqual(ingest([a, b | {"dav_price_vnd": "1200"}])["dav_audit"]["price_revision_review"], 1)
             history = list(csv.DictReader(io.StringIO(s3.items["bronze/dav.csv"][0].decode())))

@@ -42,7 +42,7 @@ HEADERS={
 }
 DEPENDENCIES={"mapping":"dav_rxnorm_mapping","evidence":"dav_rxnorm_component_evidence",
               "scd":"rxnorm_scd_components","medi":"medi_icd10_mapping"}
-SQL_SOURCES={"dav_product":"dav","price_record":"dav",
+SQL_SOURCES={"dav_product":"dav","price_record":"dav","price_date_provenance":"dav",
              "disease":"icd","rxnorm_concept":"rxnorm","rxnorm_scd":"scd",
              "rxnorm_scd_component":"scd","dav_rxnorm_mapping":"mapping",
              "dav_rxnorm_evidence":"evidence","medi_relation":"medi",
@@ -121,6 +121,11 @@ def stage_csv(cur,tablename,path):
     with cur.copy(cmd) as dest:
         with Path(path).open("rb") as source:
             for block in iter(lambda:source.read(2**20),b""):dest.write(block)
+    if tablename == "gold_stg_dav":
+        for optional in ("silver_price_date", "silver_price_date_basis"):
+            if optional not in columns:
+                cur.execute(sql.SQL("ALTER TABLE {} ADD COLUMN {} TEXT").format(
+                    sql.Identifier(tablename), sql.Identifier(optional)))
     cur.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(tablename)))
     count=cur.fetchone()[0]
     if count<1:raise ValueError("Cannot load empty Gold staging "+tablename)

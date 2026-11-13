@@ -30,6 +30,7 @@ FROM public.dav_product d
 JOIN public.price_record p ON p.dav_row_id=d.dav_row_id
 WHERE p.price_vnd > 0 AND p.currency='VND' AND p.declaration_date IS NOT NULL
   AND NOT (COALESCE(d.source,'')='SILVER_R2' AND COALESCE(p.source,'')='DAV_PUBLIC_DRUG_PRICE')
+  AND COALESCE(to_jsonb(p)->>'source_date_basis','LEGACY_UNVERIFIED') <> 'UNKNOWN'
 """
 
 def load_gold():

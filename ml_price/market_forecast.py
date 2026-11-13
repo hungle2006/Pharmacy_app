@@ -162,7 +162,7 @@ def make_market_report(raw, directory="models/market"):
         "labeled_pairs":int(len(examples)),
         "population":"Repeated DAV source filings with matching registration, specification, packaging, price type and unit; not all pharmaceuticals and not sales-weighted.",
         "input_policy": {
-            "source_date_semantics": "Legacy source-date column maps to source reception date where provided; not crawl time or a verified retail effective date.",
+            "source_date_semantics": "New source dates retain filing/publication provenance. Legacy dates may be reception dates and remain unverified. Neither is crawl time or proof of retail effective date.",
             "excluded": "Known cross-source ID collisions, revised filing IDs with multiple dates, conflicting same-day prices, and incomplete comparison specifications.",
         },
         "horizons":{},

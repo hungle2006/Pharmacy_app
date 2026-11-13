@@ -10,7 +10,7 @@ ALTERATIONS = {
         ("catalog_equivalent_to","TEXT"),
         ("catalog_duplicate_status","TEXT"),
     ],
-    "price_record": [("silver_source_sha","TEXT")],
+    "price_record": [("silver_source_sha","TEXT"), ("source_date_basis","TEXT"), ("source_observed_at","TIMESTAMPTZ")],
     "dav_rxnorm_mapping": [
         ("silver_mapping_status","TEXT"),
         ("candidate_scd_name","TEXT"),
@@ -114,33 +114,51 @@ WITH src AS (
  SELECT NULLIF(TRIM(dav_row_id),'') AS dav_row_id,
         CASE WHEN TRIM(dav_price_vnd) ~ '^[0-9]{1,15}(\\.0+)?$'
              THEN TRIM(dav_price_vnd)::numeric::bigint ELSE NULL END AS price_vnd,
-        CASE WHEN TRIM(dav_declaration_date) ~ '^\\d{4}-\\d{2}-\\d{2}'
-             THEN SUBSTRING(TRIM(dav_declaration_date) FROM 1 FOR 10)::date ELSE NULL END AS declaration_date,
+        CASE WHEN TRIM(CASE WHEN NULLIF(silver_price_date_basis,'') IS NULL THEN dav_declaration_date ELSE silver_price_date END) ~ '^\\d{4}-\\d{2}-\\d{2}'
+             THEN SUBSTRING(TRIM(CASE WHEN NULLIF(silver_price_date_basis,'') IS NULL THEN dav_declaration_date ELSE silver_price_date END) FROM 1 FOR 10)::date ELSE NULL END AS declaration_date,
+        COALESCE(NULLIF(silver_price_date_basis,''),'LEGACY_UNVERIFIED') AS source_date_basis,
         NULLIF(TRIM(dav_price_type),'') AS price_type,
         NULLIF(TRIM(dav_unit),'') AS unit,
         NULLIF(TRIM(dav_package),'') AS package
  FROM gold_stg_dav
 ), clean AS (
- SELECT DISTINCT dav_row_id,price_vnd,declaration_date,price_type,unit,package
+ SELECT DISTINCT dav_row_id,price_vnd,declaration_date,price_type,unit,package,source_date_basis
  FROM src WHERE dav_row_id IS NOT NULL AND price_vnd IS NOT NULL
 )
 INSERT INTO public.price_record
-(price_id,dav_row_id,declaration_date,price_vnd,currency,price_type,unit,package,source,silver_source_sha)
+(price_id,dav_row_id,declaration_date,price_vnd,currency,price_type,unit,package,source,silver_source_sha,source_date_basis,source_observed_at)
 SELECT 'slv:'||md5(concat_ws('|',s.dav_row_id,COALESCE(s.declaration_date::text,''),
                           s.price_vnd::text,COALESCE(s.price_type,''),
                           COALESCE(s.unit,''),COALESCE(s.package,''))),
        s.dav_row_id,s.declaration_date,s.price_vnd,'VND',s.price_type,s.unit,s.package,
-       'SILVER_DAV_PRICE', %(source_sha)s
+       'SILVER_DAV_PRICE', %(source_sha)s,s.source_date_basis,CURRENT_TIMESTAMP
 FROM clean s
 WHERE EXISTS (SELECT 1 FROM public.dav_product d WHERE d.dav_row_id=s.dav_row_id)
   AND NOT EXISTS (
    SELECT 1 FROM public.price_record p
    WHERE p.dav_row_id=s.dav_row_id AND p.price_vnd=s.price_vnd
-     AND p.declaration_date IS NOT DISTINCT FROM s.declaration_date
+     AND COALESCE(p.source,'')<>'DAV_PUBLIC_DRUG_PRICE'
+     AND (s.source_date_basis='UNKNOWN' OR p.declaration_date IS NOT DISTINCT FROM s.declaration_date)
      AND p.price_type IS NOT DISTINCT FROM s.price_type
      AND p.unit IS NOT DISTINCT FROM s.unit
      AND p.package IS NOT DISTINCT FROM s.package)
 ON CONFLICT (price_id) DO NOTHING
+"""),
+("price_date_provenance", """
+UPDATE public.price_record p
+SET source_date_basis=s.silver_price_date_basis
+FROM gold_stg_dav s
+WHERE p.source='SILVER_DAV_PRICE'
+  AND p.dav_row_id=s.dav_row_id
+  AND s.silver_price_date_basis IN ('dav_filing_date','dav_publication_date')
+  AND p.declaration_date::text=s.silver_price_date
+  AND s.dav_price_vnd ~ '^[0-9]{1,15}(\\.0+)?$'
+  AND p.price_vnd=CASE WHEN s.dav_price_vnd ~ '^[0-9]{1,15}(\\.0+)?$'
+       THEN s.dav_price_vnd::numeric ELSE NULL END
+  AND p.price_type IS NOT DISTINCT FROM NULLIF(TRIM(s.dav_price_type),'')
+  AND p.unit IS NOT DISTINCT FROM NULLIF(TRIM(s.dav_unit),'')
+  AND p.package IS NOT DISTINCT FROM NULLIF(TRIM(s.dav_package),'')
+  AND p.source_date_basis IS DISTINCT FROM s.silver_price_date_basis
 """),
 ("disease", """
 WITH candidates AS (

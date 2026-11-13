@@ -56,7 +56,7 @@ CREATE TABLE public.rxnorm_scd_component (
 
 def csv_file(folder,label,rows):
  from gold_auto.sync import HEADERS
- headers=sorted(HEADERS[label])
+ headers=sorted(HEADERS[label] | set().union(*(r.keys() for r in rows)))
  path=Path(folder)/(label+".csv")
  with path.open("w",newline="",encoding="utf-8") as output:
   writer=csv.DictWriter(output,fieldnames=headers)
@@ -83,6 +83,9 @@ class GoldIntegrationTest(unittest.TestCase):
     cur.execute("""INSERT INTO price_record
      (price_id,dav_row_id,declaration_date,price_vnd,currency,price_type,unit,package,source)
      VALUES ('legacy-price','1','2026-10-20',5000,'VND','KKL','viên','Hộp','DAV')""")
+    cur.execute("""INSERT INTO price_record
+     (price_id,dav_row_id,declaration_date,price_vnd,currency,price_type,unit,package,source)
+     VALUES ('foreign-price','2','2026-10-19',3200,'VND','KKL','viên','Hộp','DAV_PUBLIC_DRUG_PRICE')""")
     cur.execute("""INSERT INTO dav_rxnorm_mapping
      (mapping_id,dav_row_id,selected_scd_rxcui,mapping_status,accepted_for_serving)
      VALUES ('legacy-mapping','1','103','VERIFIED_SCD',1)""")
@@ -100,6 +103,7 @@ class GoldIntegrationTest(unittest.TestCase):
    fixtures={
     "dav":[{
      "dav_row_id":"1","dav_drug_name":"Paracetamol 500",
+     "silver_price_date":"","silver_price_date_basis":"UNKNOWN",
      "dav_registration_number":"VD001","dav_active_ingredient_raw":"acetaminophen",
      "dav_strength":"500 MG","dav_dosage_form":"Viên nén","dav_price_vnd":"5000.0",
      "dav_declaration_date":"2026-10-20T09:00:00+07:00","dav_price_type":"KKL",
@@ -107,6 +111,7 @@ class GoldIntegrationTest(unittest.TestCase):
      "dav_country":"Việt Nam","silver_qc_status":"ACCEPTED"
     },{
      "dav_row_id":"2","dav_drug_name":"Second drug","dav_registration_number":"VD002",
+     "silver_price_date":"2026-10-19","silver_price_date_basis":"dav_filing_date",
      "dav_active_ingredient_raw":"ibuprofen","dav_strength":"200 MG",
      "dav_dosage_form":"Viên nén","dav_price_vnd":"3200",
      "dav_declaration_date":"2026-10-20T10:00:00+07:00","dav_price_type":"KKL",
@@ -160,8 +165,12 @@ class GoldIntegrationTest(unittest.TestCase):
      self.assertEqual(cur.fetchone()[0],3)
      cur.execute("SELECT drug_name FROM public.dav_product WHERE dav_row_id='1'")
      self.assertEqual(cur.fetchone()[0],"Paracetamol 500")
+     cur.execute("SELECT declaration_date::text,source_date_basis FROM public.price_record WHERE dav_row_id='2' AND source='SILVER_DAV_PRICE'")
+     self.assertEqual(cur.fetchone(),('2026-10-19','dav_filing_date'))
+     cur.execute("SELECT source_observed_at IS NOT NULL FROM public.price_record WHERE dav_row_id='2' AND source='SILVER_DAV_PRICE'")
+     self.assertTrue(cur.fetchone()[0])
      cur.execute("SELECT COUNT(*) FROM public.price_record")
-     self.assertEqual(cur.fetchone()[0],2) # prior identical price remains one + one genuinely new
+     self.assertEqual(cur.fetchone()[0],3) # keep foreign legacy row, insert verified current observation
      cur.execute("SELECT COUNT(*) FROM public.dav_rxnorm_mapping")
      self.assertEqual(cur.fetchone()[0],3)
      cur.execute("""SELECT selected_scd_rxcui,mapping_status,accepted_for_serving

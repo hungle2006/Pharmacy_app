@@ -65,8 +65,26 @@ def evaluate(source, original):
     row = dict(original)
     flags = []
     if source == "dav":
-        ingredient = row.get("dav_active_ingredient_raw", "").strip()
-        strength = row.get("dav_strength","").strip()
+        row["silver_price_date"] = ""
+        row["silver_price_date_basis"] = "UNKNOWN"
+        for field in ("dav_filing_date", "dav_publication_date"):
+            value = str(row.get(field) or "").strip()
+            if value:
+                try:
+                    if not re.match(r"^\d{4}-\d{2}-\d{2}(?:$|[T ])", value):
+                        raise ValueError("Invalid date")
+                    day = datetime.fromisoformat(value.replace("Z", "+00:00")).date()
+                    if day > datetime.now(timezone.utc).date():
+                        raise ValueError("Future source date")
+                    row["silver_price_date"] = day.isoformat()
+                    row["silver_price_date_basis"] = field
+                    break
+                except ValueError:
+                    flags.append("INVALID_" + field.upper())
+        if not row["silver_price_date"]:
+            flags.append("PRICE_DATE_UNVERIFIED")
+        ingredient = (row.get("dav_active_ingredient_raw") or "").strip()
+        strength = (row.get("dav_strength") or "").strip()
         row["silver_drug_name_norm"] = text_norm(row.get("dav_drug_name"))
         row["silver_ingredient_search_norm"] = text_norm(ingredient)
         row["silver_form_search_norm"] = text_norm(row.get("dav_dosage_form"))
