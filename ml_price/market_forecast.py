@@ -48,6 +48,12 @@ def sample_stats(rows):
     return {
         "n_pairs": int(len(rows)),
         "n_products": int(len(latest)),
+        "observed_filing_events": int(latest.events_in_window.sum()) if "events_in_window" in latest else None,
+        "observed_price_moves": int(latest.price_moves_in_window.sum()) if "price_moves_in_window" in latest else None,
+        "median_filings_per_window": finite_number(latest.events_in_window.median())
+            if "events_in_window" in latest else None,
+        "median_gap_to_window_end_days": finite_number(latest.days_after_last_event.median())
+            if "days_after_last_event" in latest else None,
         "observed_from": str(times.min().date()),
         "observed_to": str(latest.target_date.max().date()),
         "historical_change_pct": finite_number(np.median(ratios)),
@@ -58,7 +64,7 @@ def sample_stats(rows):
         "share_decrease_pct": finite_number(np.mean(raw_log < -changed_threshold)*100),
         "share_stable_pct": finite_number(np.mean(np.abs(raw_log) <= changed_threshold)*100),
         "extreme_ratio_count": int((np.abs(raw_log)>math.log(MAX_RATIO)).sum()),
-        "method": "One most-recent historical pair per registration; relative change, winsorized for display at 4x",
+        "method": "Last observed filing INSIDE a complete calendar window; conditional on observed subsequent filing; one latest window per registration; intra-window path counted.",
     }
 
 def history_by_year(rows):
@@ -153,6 +159,7 @@ def make_market_report(raw, directory="models/market"):
     output.mkdir(parents=True,exist_ok=True)
     observations=clean_observations(raw)
     examples=make_examples(observations)
+    label_audit=examples.attrs.get("label_audit",{})
     report={
         "schema_version":1, "kind":"dav-market-price-trend",
         "version":datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
@@ -160,6 +167,10 @@ def make_market_report(raw, directory="models/market"):
         "source_records":int(len(raw)),
         "clean_observations":int(len(observations)),
         "labeled_pairs":int(len(examples)),
+        "label_policy_version":"irregular-filing-window-v1",
+        "label_definition":"Last actually recorded DAV price filing within a fully elapsed calendar 3/6/12-month window; conditional on a subsequent filing, not price exactly at month end.",
+        "label_audit":label_audit,
+        "censoring":"No subsequent DAV filing is UNOBSERVED, never imputed as zero price change; incomplete calendar windows are excluded.",
         "population":"Repeated DAV source filings with matching registration, specification, packaging, price type and unit; not all pharmaceuticals and not sales-weighted.",
         "input_policy": {
             "source_date_semantics": "New source dates retain filing/publication provenance. Legacy dates may be reception dates and remain unverified. Neither is crawl time or proof of retail effective date.",
@@ -168,8 +179,8 @@ def make_market_report(raw, directory="models/market"):
         "horizons":{},
         "approved_horizons":[],
         "historical_only":True,
-        "report_policy":"Experimental scenarios are not validated forecasts and must be labeled separately.",
-        "methodology":"Three candidate models, expanding walk-forward validation, unseen final chronological holdout, registration-cluster bootstrap.",
+        "report_policy":"Conditional filing-event diagnostics are NOT an unconditional future market forecast; full non-filer observation coverage is unverified.",
+        "methodology":"All irregular in-window events; completed calendar windows; embargo by window end; three candidates with walk-forward validation and chronological holdout; equal registration weighting and cluster bootstrap.",
     }
     if examples.empty:
         for h in HORIZONS:
@@ -195,7 +206,7 @@ def make_market_report(raw, directory="models/market"):
     report["historical_only"]=len(report["approved_horizons"])==0
     report["experimental_horizons"]=[int(h) for h,v in report["horizons"].items()
                                       if v.get("experimental_change_pct") is not None]
-    report["caution"]="Historical statistics are descriptive, not future forecasts. Forecasts apply only to repeatedly declared DAV prices, not every medicine, and are not sales-weighted. Bootstrap ranges represent sample uncertainty, not predictive intervals."
+    report["caution"]="History and conditional repeated-filing estimates are NOT validated unconditional market price forecasts. No new filing means unknown, not unchanged price. Repeatedly declared DAV prices do not represent every medicine, sales volume or retail prices. Bootstrap intervals measure sample uncertainty."
     (output/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     return report
 
