@@ -12,6 +12,9 @@ future dates and missing identities. A crawl timestamp never replaces a source
 date. Legacy dated rows remain explicitly labelled LEGACY_UNVERIFIED; their
 presence does not establish verified filing/publication chronology.
 
+For the same DAV filing ID, verified filing/publication dates supersede legacy
+reception-date rows even when the corrected date is earlier.
+
 For each registration within each price type/unit select its latest eligible
 source date. If that date has conflicting prices or six-feature specifications,
 exclude the product instead of picking a random row or reverting to an older
