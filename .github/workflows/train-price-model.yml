@@ -16,6 +16,7 @@ on:
     - cron: '0 3 * * 0' # 10:00 Sunday Vietnam
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: pharmacy-market-forecast
   cancel-in-progress: false
