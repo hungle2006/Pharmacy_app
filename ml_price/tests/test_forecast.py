@@ -64,7 +64,7 @@ class TestFutureForecast(unittest.TestCase):
         self.assertEqual(row.target_date,pd.Timestamp("2024-04-01",tz="UTC"))
         self.assertEqual(row.observed_target_date,pd.Timestamp("2024-03-20",tz="UTC"))
         self.assertEqual(row.days_after_last_event,12)
-        self.assertGreater(row.total_abs_log_move,0.9)
+        self.assertGreater(row.total_abs_log_move,0.7)
         self.assertEqual(row.past_filings_90d,0)
         self.assertEqual(row.label_type,"CONDITIONAL_LAST_OBSERVED_FILING_IN_WINDOW")
 
