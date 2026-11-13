@@ -1,7 +1,7 @@
-"""Leakage-aware forecasting of the next *declared* medicine price.
+"""DAV filing-event preprocessing and time-embargoed market labels.
 
-The target is a future declaration recorded close to the chosen horizon, NOT a
-daily retail spot price. Never reuse a current price as an evaluation label.
+The calendar-window target is conditional on a later filing. The obsolete
+individual-drug forecast is retired and never published.
 """
 import json
 import math
@@ -15,7 +15,7 @@ import pandas as pd
 from catboost import CatBoostRegressor
 from sklearn.metrics import mean_absolute_error
 
-from ml_price.forecast_schema import HORIZONS, TARGET_DAYS, TOLERANCES, CATEGORICAL, NUMERIC, FEATURES
+from ml_price.forecast_schema import HORIZONS, CATEGORICAL, NUMERIC, FEATURES
 MIN_TRAIN, MIN_VALIDATION, MIN_TEST = 100, 30, 30
 
 SQL = """
@@ -226,76 +226,30 @@ def forecast_values(model, frame, weights):
     return (1-w)*base + w*ml_price
 
 def fit_forecast(raw, output_dir="models/forecast"):
-    root = Path(output_dir);root.mkdir(parents=True,exist_ok=True)
-    obs = clean_observations(raw)
-    examples = make_examples(obs)
-    report = {"schema_version":1, "kind":"future-declared-price-forecast",
-              "version":datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
-              "source_records":int(len(raw)), "clean_observations":int(len(obs)),
-              "candidate_pairs":int(len(examples)), "horizons":{}, "status":"insufficient_history"}
-    splits = time_split(examples) if not examples.empty else None
-    if splits is None:
-        (root/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
-        return report
-    train,val,test=splits
-    report.update(n_train=len(train),n_validation=len(val),n_test=len(test),
-                  cutoff_validation=str(val.origin_date.min().date()),
-                  cutoff_test=str(test.origin_date.min().date()))
-    target = np.log(train.target_price.to_numpy()/train.last_price.to_numpy())
-    model=CatBoostRegressor(iterations=550,depth=5,learning_rate=0.04,
-                            loss_function="RMSE",l2_leaf_reg=7,random_seed=42,
-                            thread_count=2,verbose=False,allow_writing_files=False)
-    model.fit(train[FEATURES],target,cat_features=CATEGORICAL,
-              eval_set=(val[FEATURES],np.log(val.target_price.to_numpy()/val.last_price.to_numpy())),
-              early_stopping_rounds=55,use_best_model=True)
-    val_pred=val.last_price.to_numpy()*np.exp(np.clip(model.predict(val[FEATURES]),-4,4))
-    weights={}
-    calibration={}
-    for h in HORIZONS:
-        selected = val.horizon_months.eq(h).to_numpy()
-        if selected.sum() < 15:
-            weights[str(h)]=0.0
-            calibration[str(h)] = None
-            continue
-        y=val.target_price.to_numpy()[selected]
-        baseline=val.last_price.to_numpy()[selected]
-        predicted=val_pred[selected]
-        reference_mae=mean_absolute_error(y,baseline)
-        scores=sorted([(mean_absolute_error(y,(1-w)*baseline+w*predicted),w) for w in (0,.2,.4,.6,.8,1.0)])
-        best,w=scores[0]
-        weights[str(h)] = float(w) if best < reference_mae * .98 else 0.0
-        combined=(1-weights[str(h)])*baseline+weights[str(h)]*predicted
-        calibration[str(h)] = float(np.quantile(np.abs(np.log(y/np.maximum(combined,1))),.9))
-    test_pred=forecast_values(model,test,weights)
-    for h in HORIZONS:
-        mask=test.horizon_months.eq(h).to_numpy()
-        if mask.sum()<15:
-            report["horizons"][str(h)]={"status":"insufficient_test", "n_test":int(mask.sum())}
-            continue
-        y=test.target_price.to_numpy()[mask]
-        prev=test.last_price.to_numpy()[mask]
-        estimated=test_pred[mask]
-        mae=float(mean_absolute_error(y,estimated))
-        baseline=float(mean_absolute_error(y,prev))
-        gain=(baseline-mae)/max(1.,baseline)
-        wape=float(np.sum(np.abs(y-estimated))/max(1.,np.sum(np.abs(y))))
-        is_approved=(weights[str(h)]>0 and gain>=.01 and wape<=.5
-                     and calibration[str(h)] is not None and np.isfinite(mae))
-        report["horizons"][str(h)]={
-          "status":"approved" if is_approved else "rejected_quality_gate",
-          "n_train":int(train.horizon_months.eq(h).sum()),
-          "n_validation":int(val.horizon_months.eq(h).sum()),"n_test":int(mask.sum()),
-          "mae_vnd":round(mae,2),"baseline_mae_vnd":round(baseline,2),
-          "mae_gain_fraction":round(gain,6),"wape":round(wape,5),
-          "weight":weights[str(h)],"calibration_log_error_q90":calibration[str(h)]}
-    report["approved_horizons"]=[int(h) for h,p in report["horizons"].items() if p["status"]=="approved"]
-    report["status"]="approved" if report["approved_horizons"] else "rejected_quality_gate"
-    report["features"]=FEATURES
-    report["categorical_features"]=CATEGORICAL
-    report["limitations"]="Predicted future declaration close to target month, not a daily market quotation. May not reflect a declaration when none occurs."
-    if report["approved_horizons"]:
-        model.save_model(str(root/"forecast_model.cbm"))
-    (root/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
+    """Retired individual-drug trainer: fail closed rather than fake approval.
+
+    Active market estimates are evaluated in ml_price.market_forecast.
+    Non-filers lack an observed price-change label, so the new conditional
+    event-window data cannot be used for a point-in-time drug price model.
+    """
+    root = Path(output_dir)
+    root.mkdir(parents=True, exist_ok=True)
+    observations = clean_observations(raw)
+    examples = make_examples(observations)
+    report = {
+        "schema_version": 1,
+        "kind": "future-declared-price-forecast",
+        "status": "rejected_quality_gate",
+        "reason": "PER_PRODUCT_FORECAST_RETIRED_EVENT_WINDOWS_CENSORED",
+        "source_records": int(len(raw)),
+        "clean_observations": int(len(observations)),
+        "candidate_pairs": int(len(examples)),
+        "horizons": {str(h): {"status": "retired", "forecast_price": None}
+                     for h in HORIZONS},
+        "approved_horizons": [],
+        "limitations": "Event-window labels are conditional on observed new filings; missing events are unknown, not flat prices. No individual-drug prediction is approved.",
+    }
+    (root / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     return report
 
 if __name__=="__main__":
