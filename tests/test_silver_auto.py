@@ -26,7 +26,8 @@ class SilverAutoTest(unittest.TestCase):
   self.assertEqual(active[0]['dav_strength'],'250 MG')
   report=write_outputs('dav',self.root/'bronze.csv',self.root/'out','hash')
   self.assertEqual(report['active_rows'],1)
-  self.assertEqual(report['accepted'],1)
+  self.assertEqual(report['review'],1)
+  self.assertEqual(report['accepted'],0)
   self.assertEqual(len(list((self.root/'out').glob('*.csv'))),1)
   with (self.root/'out/silver.csv').open(encoding='utf8',newline='') as f:
    row=list(csv.DictReader(f))[0]

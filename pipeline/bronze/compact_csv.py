@@ -86,18 +86,28 @@ def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum
         prior = temp / "prior.csv"
         existing = {}
         previous_count = 0
+        previous_fields = fields
+        schema_extended = False
         head = exists(s3, remote)
         if head:
             s3.download_file(BUCKET, remote, str(prior))
             with prior.open(encoding="utf-8-sig", newline="") as f:
                 reader = csv.DictReader(f)
-                if reader.fieldnames != fields + META:
+                previous_fields = [k for k in (reader.fieldnames or []) if k not in META]
+                additions = [k for k in fields if k not in previous_fields]
+                schema_extended = (source == "dav" and bool(additions) and
+                    set(additions).issubset({"dav_filing_date", "dav_publication_date", "dav_reception_date"}) and
+                    [k for k in fields if k in previous_fields] == previous_fields)
+                if reader.fieldnames != previous_fields + META or (previous_fields != fields and not schema_extended):
                     raise ValueError(f"Bronze column schema changed for {source}: {reader.fieldnames} != {fields + META}")
                 for row in reader:
-                    if None in row or any(row.get(k) is None for k in fields + META):
+                    if None in row or any(row.get(k) is None for k in previous_fields + META):
                         raise ValueError("Malformed existing Bronze row")
-                    if row["__row_hash"] != digest(row, fields):
+                    if row["__row_hash"] != digest(row, previous_fields):
                         raise ValueError("Existing Bronze integrity mismatch; refusing overwrite")
+                    if schema_extended:
+                        row = {k: row.get(k, "") for k in fields + META}
+                        row["__row_hash"] = digest(row, fields)
                     previous_count += 1
                     existing[key_for(row, keys)] = (row["__row_hash"], row["__operation"], row)
         fresh = {}
@@ -139,7 +149,7 @@ def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum
                 if ident not in fresh and oldop != "REMOVE":
                     changes.append({**{k: oldrow[k] for k in fields}, "__operation": "REMOVE",
                                     "__ingested_utc": stamp, "__row_hash": oldhash})
-        if not changes:
+        if not changes and not schema_extended:
             print(json.dumps({"source": source, "result": "UNCHANGED", "rows_seen": len(fresh), "bronze": remote}))
             return {"source": source, "status": "unchanged", "new_events": 0,
                     "total_events": previous_count, **({"dav_audit": dav_audit} if dav_audit is not None else {})}
@@ -151,6 +161,9 @@ def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum
             if head:
                 with prior.open(encoding="utf-8-sig", newline="") as inputf:
                     for row in csv.DictReader(inputf):
+                        if schema_extended:
+                            row = {k: row.get(k, "") for k in fields + META}
+                            row["__row_hash"] = digest(row, fields)
                         writer.writerow(row)
             for change in sorted(changes, key=lambda r: key_for(r, keys)):
                 writer.writerow(change)
@@ -170,6 +183,8 @@ def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum
         result = {"source": source, "status": "updated", "new_events": len(changes),
                   "total_events": total_events, "active_snapshot_rows": len(fresh),
                   "bronze": remote, "sha256": digest_of_file}
+        if schema_extended:
+            result["schema_extension"] = {"previous_columns": previous_fields, "added_columns": additions, "old_rows_preserved": previous_count}
         if dav_audit is not None:
             result["dav_audit"] = dav_audit
         s3.put_object(Bucket=BUCKET, Key=f"_control/compact/{source}.json",

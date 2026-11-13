@@ -22,7 +22,7 @@ def normalized(value):
 
 
 def source_date(row):
-    value = str(row.get("dav_declaration_date") or "").strip()
+    value = str(row.get("dav_filing_date") or row.get("dav_publication_date") or "").strip()
     try:
         return date.fromisoformat(value[:10]) if re.match(r"^\d{4}-\d{2}-\d{2}(?:$|[T ])", value) else None
     except ValueError:
@@ -62,7 +62,8 @@ and an unambiguous prior wholesale price can establish a declaration comparison.
                 counts["unchanged"] += 1
                 continue
             identity_changed = any(normalized(old.get(k)) != normalized(row.get(k)) for k in IDENTITY)
-            date_changed = str(old.get("dav_declaration_date") or "") != str(row.get("dav_declaration_date") or "")
+            date_changed = any(str(old.get(k) or "") != str(row.get(k) or "")
+                               for k in ("dav_declaration_date", "dav_filing_date", "dav_publication_date"))
             price_changed = any(
                 (money(old.get(k)) != money(row.get(k))) or
                 (money(old.get(k)) is None and normalized(old.get(k)) != normalized(row.get(k)))

@@ -27,6 +27,7 @@ CSV_COLUMNS = [
     "dav_manufacturer", "dav_country", "dav_registration_number",
     "dav_declaration_date", "dav_price_vnd", "dav_retail_price_vnd",
     "dav_declaring_unit", "dav_price_type", "source_url",
+    "dav_filing_date", "dav_publication_date", "dav_reception_date",
 ]
 FIELD_MAP = {
     "dav_row_id": ["id", "Id"],
@@ -42,6 +43,9 @@ FIELD_MAP = {
     # This endpoint exposes ngayTiepNhan (reception date). Preserve that source
     # field; do not describe it as an effective retail-price date or crawl date.
     "dav_declaration_date": ["ngayTiepNhan", "NgayTiepNhan"],
+    "dav_filing_date": ["ngayKK_KKL", "NgayKK_KKL"],
+    "dav_publication_date": ["ngayCongBo", "NgayCongBo"],
+    "dav_reception_date": ["ngayTiepNhan", "NgayTiepNhan"],
     "dav_price_vnd": ["giaBanBuonDuKien", "GiaBanBuonDuKien"],
     "dav_retail_price_vnd": ["giaBanLeDuKien", "GiaBanLeDuKien"],
     "dav_declaring_unit": ["donViKeKhai", "DonViKeKhai"],

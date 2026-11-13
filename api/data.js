@@ -53,6 +53,7 @@ function buildQuery(query={}) {
     'NULL::text AS therapeutic_group,',
     'd.registration_number AS registration_no, d.source AS product_source,',
     'd.catalog_duplicate_status, d.catalog_equivalent_to, p.price_id,',
+    "COALESCE(to_jsonb(p)->>'source_date_basis','LEGACY_UNVERIFIED') AS source_date_basis,",
     "CASE WHEN p.price_vnd >= 0 AND (p.currency='VND' OR p.currency IS NULL OR p.currency='')",
     'THEN p.price_vnd ELSE NULL END AS price_vnd,',
     "NULLIF(p.price_type,'') AS price_type, TO_CHAR(p.declaration_date::date, 'YYYY-MM-DD') AS snapshot_date,",

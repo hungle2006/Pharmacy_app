@@ -36,3 +36,21 @@ The current classifier is conservative. A new filing at the same price is a new
 declaration observation; it is not a new price level. A price edit within an old
 source record is a revision observed at crawl time, not proof of when a market
 price changed. A missing filing is not evidence of unchanged retail prices.
+
+## Separate source dates
+
+New crawler rows additionally retain `dav_filing_date` (`ngayKK_KKL`),
+`dav_publication_date` (`ngayCongBo`, when actually supplied), and
+`dav_reception_date` (`ngayTiepNhan`). No date field is synthesized from crawl
+ time. The legacy `dav_declaration_date` remains unchanged for compatibility.
+
+Silver chooses a valid, nonfuture filing date, otherwise a valid publication
+ date, and records `silver_price_date_basis`. Reception alone yields UNKNOWN.
+Gold stores the selected date and its basis. Older rows are LEGACY_UNVERIFIED
+until matching source evidence is available; historical dates are never relabeled
+by guesswork. Model inputs reject newly classified UNKNOWN-date observations.
+
+The Bronze schema extension is limited to these three date fields. Existing
+rows are integrity-checked under their old header, preserved with blank new
+fields, then rehashed against the extended header. The checkpoint records the
+extension and preserved row count. Arbitrary schema drift still fails closed.

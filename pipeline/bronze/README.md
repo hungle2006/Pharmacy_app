@@ -40,7 +40,7 @@ An UPDATE is **not automatically a price movement**. The DAV audit in
 | New ID, later source date, exact comparable attributes and unambiguous prior price | Compare declared prices; distinguish changed and unchanged |
 | A record disappears | Retain history; absence is unverified, not a recall or price decrease |
 
-Comparison requires registration, ingredient, strength, form, manufacturer,
+Comparison dates come only from valid filing/publication fields, never reception or crawl time. Comparison requires registration, ingredient, strength, form, manufacturer,
 country, packaging, unit, price type, and declaring company. Missing fields or
 conflicting prior prices prevent an automatic change classification. Initial
 collection does not infer a change solely because a record is new to the app.
