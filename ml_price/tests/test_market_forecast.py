@@ -39,10 +39,12 @@ class TestMarketTrends(unittest.TestCase):
             report=make_market_report(sample,root)
             self.assertEqual(report["kind"],"dav-market-price-trend")
             self.assertEqual(set(report["horizons"]),{"3","6","12"})
+            self.assertEqual(report["label_policy_version"],"irregular-filing-window-v1")
+            self.assertEqual(set(report["label_audit"]),{"3","6","12"})
             self.assertGreater(report["labeled_pairs"],0)
             for item in report["horizons"].values():
                 self.assertGreater(item["n_pairs"],0)
-                self.assertIn(item["status"],("approved","insufficient_history","rejected_quality_gate"))
+                self.assertIn(item["status"],("approved","insufficient_history","rejected_quality_gate","experimental_conditional"))
                 if item["status"]!="approved":
                     self.assertIsNone(item["forecast_change_pct"])
                 else:

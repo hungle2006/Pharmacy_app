@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from ml_price.market_models import rolling_folds, fit_predict, evaluate_market_horizon, exploratory_scenario
+from ml_price.market_models import rolling_folds, fit_predict, evaluate_market_horizon, exploratory_scenario, _group_mae
 
 
 def fixture(n=180, horizon=6, signal=True):
@@ -47,11 +47,14 @@ class MarketModelsTests(unittest.TestCase):
                     ingredient='A' if i%2 else 'B',strength='10mg',
                     dosage_form='tablet',manufacturer='maker',country='VN',package='box'))
         result=evaluate_market_horizon(fixture(),6,pd.DataFrame(observations))
-        self.assertEqual(result['status'],'approved')
+        self.assertEqual(result['status'],'experimental_conditional')
+        self.assertIsNone(result['forecast_change_pct'])
+        self.assertTrue(result['conditional_test_passed'])
+        self.assertIsInstance(result['conditional_change_pct'],float)
         self.assertEqual(result['selected_model'],'hierarchical')
         self.assertGreater(result['test_gain_fraction'],.01)
         self.assertEqual(len(result['test_gain_ci95_pct_points']),2)
-        self.assertEqual(len(result['forecast_sample_ci90_pct']),2)
+        self.assertEqual(len(result['conditional_sample_ci90_pct']),2)
 
     def test_experimental_scenario_is_separate_from_quality_approval(self):
         frame=fixture(signal=True)
@@ -73,6 +76,12 @@ class MarketModelsTests(unittest.TestCase):
         self.assertNotIn('forecast_change_pct',scenario)
         self.assertIsNone(exploratory_scenario(frame,6))
         self.assertIsNone(exploratory_scenario(frame.iloc[:8],6,reference))
+
+    def test_equal_registration_weighting(self):
+        errors=np.array([0.,0.,100.])
+        groups=np.array(['a','a','b'])
+        self.assertAlmostEqual(_group_mae(errors,groups),50.)
+        self.assertNotAlmostEqual(_group_mae(errors,groups),float(errors.mean()))
 
     def test_constant_prices_cannot_approve(self):
         result=evaluate_market_horizon(fixture(signal=False),6)

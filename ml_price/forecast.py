@@ -1,11 +1,12 @@
-"""Leakage-aware forecasting of the next *declared* medicine price.
+"""DAV filing-event preprocessing and time-embargoed market labels.
 
-The target is a future declaration recorded close to the chosen horizon, NOT a
-daily retail spot price. Never reuse a current price as an evaluation label.
+The calendar-window target is conditional on a later filing. The obsolete
+individual-drug forecast is retired and never published.
 """
 import json
 import math
 import os
+from bisect import bisect_right
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,7 +15,7 @@ import pandas as pd
 from catboost import CatBoostRegressor
 from sklearn.metrics import mean_absolute_error
 
-from ml_price.forecast_schema import HORIZONS, TARGET_DAYS, TOLERANCES, CATEGORICAL, NUMERIC, FEATURES
+from ml_price.forecast_schema import HORIZONS, CATEGORICAL, NUMERIC, FEATURES
 MIN_TRAIN, MIN_VALIDATION, MIN_TEST = 100, 30, 30
 
 SQL = """
@@ -25,6 +26,7 @@ SELECT d.dav_row_id, d.registration_number,
        COALESCE(NULLIF(p.package,''), NULLIF(d.package,'')) AS package,
        d.source AS source_name, p.source AS price_source,
        p.declaration_date, p.price_vnd, p.price_type,
+       COALESCE(to_jsonb(p)->>'source_date_basis','LEGACY_UNVERIFIED') AS source_date_basis,
        COALESCE(NULLIF(p.unit,''), NULLIF(d.unit,'')) AS unit
 FROM public.dav_product d
 JOIN public.price_record p ON p.dav_row_id=d.dav_row_id
@@ -74,13 +76,21 @@ def clean_observations(raw):
     for k in CATEGORICAL:
         df[k] = df[k].replace("", "UNKNOWN")
     df["date"] = df["declaration_date"].dt.normalize()
-    # Repeated entries at the same declared date do not create time observations.
-    # Where same-day prices strongly disagree, do not invent a median price.
-    # A revision of ONE DAV source ID is not a second independent declaration.
-    # Without version lineage, multiple dates for that ID require review.
+    # Repeated crawls are not new price declarations. Prefer verified DAV
+    # filing/publication dates over unverified reception dates for the same ID.
+    if "source_date_basis" not in df:
+        df["source_date_basis"] = "LEGACY_UNVERIFIED"
+    df["source_date_basis"] = df["source_date_basis"].fillna("LEGACY_UNVERIFIED")
     id_keys = ["dav_row_id", "price_type", "unit"]
+    verified = df.source_date_basis.isin(["dav_filing_date", "dav_publication_date"])
+    has_verified = verified.groupby([df[k] for k in id_keys]).transform("any")
+    df = df[verified | ~has_verified].copy()
+    verified = df.source_date_basis.isin(["dav_filing_date", "dav_publication_date"])
     multiple_dates = df.groupby(id_keys)["date"].transform("nunique").gt(1)
-    df = df[~multiple_dates].copy()
+    fully_verified = verified.groupby([df[k] for k in id_keys]).transform("all")
+    # Multiple legacy dates for one source ID are ambiguous revisions. Keep
+    # multiple DISTINCT verified DAV filing dates, if they are not in conflict.
+    df = df[~multiple_dates | fully_verified].copy()
     if df.empty:
         return df.assign(comparison_key=pd.Series(dtype=str))
     # Missing specifications cannot establish exact comparable-price history.
@@ -99,40 +109,97 @@ def clean_observations(raw):
     df = df.sort_values(["date", "dav_row_id"]).drop_duplicates(keys, keep="last")
     return df.sort_values(keys).reset_index(drop=True)
 
-def make_feature(observation, previous, horizon):
+def make_feature(observation, previous, horizon, history=None):
+    """Build model inputs exclusively from declarations known at the origin."""
     last = float(observation.price_vnd)
     prev = float(previous.price_vnd) if previous is not None else last
     gap = int((observation.date - previous.date).days) if previous is not None else 0
-    out = {k: str(getattr(observation,k) or "UNKNOWN") for k in CATEGORICAL}
-    out.update(log_last_price=math.log(last), previous_change=float(np.clip(math.log(last/prev),-4,4)),
-               days_since_previous=float(min(3650,max(0,gap))),
+    out = {k: str(getattr(observation, k) or "UNKNOWN") for k in CATEGORICAL}
+    out.update(log_last_price=math.log(last),
+               previous_change=float(np.clip(math.log(last / prev), -4, 4)),
+               days_since_previous=float(min(3650, max(0, gap))),
                origin_year=float(observation.date.year),
                origin_month=float(observation.date.month),
                horizon_months=float(horizon))
+    # Counts and volatility may use past source events only; NEVER future
+    # window statistics, which belong to labels and descriptive diagnostics.
+    earlier = list(history) if history is not None else []
+    def age_days(event):
+        return (observation.date - event.date).days
+    out["past_filings_90d"] = float(sum(0 < age_days(e) <= 90 for e in earlier))
+    out["past_filings_365d"] = float(sum(0 < age_days(e) <= 365 for e in earlier))
+    absolute_moves = [
+        abs(math.log(float(earlier[j].price_vnd) / float(earlier[j - 1].price_vnd)))
+        for j in range(1, len(earlier))
+        if 0 < age_days(earlier[j]) <= 365
+    ]
+    out["past_abs_log_move_365d"] = float(sum(absolute_moves))
     return out
 
-def make_examples(observations):
+
+def make_examples(observations, as_of=None):
+    """Use ALL observed filings within complete calendar 3/6/12-month windows.
+
+    Labels are CONDITIONAL on at least one new filing. A missing filing is
+    *unknown*, not evidence of a flat price. The last observed filing in each
+    completed window defines the observed-window endpoint (NOT a daily spot
+    price). The entire window must end before the label can join a train fold.
+    """
+    cutoff = pd.Timestamp(as_of) if as_of is not None else pd.Timestamp.now(tz="UTC")
+    cutoff = cutoff.tz_localize("UTC") if cutoff.tzinfo is None else cutoff.tz_convert("UTC")
+    cutoff = cutoff.normalize()
     rows = []
+    audit = {str(h): {"origins": 0, "unfinished_windows": 0,
+                      "no_observed_filing": 0, "labeled_windows": 0}
+             for h in HORIZONS}
+    if observations.empty:
+        result = pd.DataFrame()
+        result.attrs["label_audit"] = audit
+        return result
     gcols = ["registration_number", "comparison_key"]
-    for (reg, signature), grp in observations.groupby(gcols, sort=False):
-        grp = grp.sort_values("date")
-        if len(grp) < 2:
-            continue
-        data = list(grp.itertuples(index=False))
-        for i, current in enumerate(data[:-1]):
-            previous = data[i-1] if i else None
+    for (registration, _signature), group in observations.groupby(gcols, sort=False):
+        data = list(group.sort_values("date").itertuples(index=False))
+        dates = [event.date for event in data]
+        for i, origin in enumerate(data):
+            previous = data[i - 1] if i else None
+            history = data[:i]  # NO observations after the prediction origin
             for horizon in HORIZONS:
-                days = TARGET_DAYS[horizon]
-                tolerance = TOLERANCES[horizon]
-                subsequent = [v for v in data[i+1:] if abs((v.date-current.date).days-days) <= tolerance]
-                if not subsequent:
+                diagnostic = audit[str(horizon)]
+                diagnostic["origins"] += 1
+                window_end = origin.date + pd.DateOffset(months=int(horizon))
+                if window_end > cutoff:
+                    diagnostic["unfinished_windows"] += 1
                     continue
-                target = min(subsequent, key=lambda x:(abs((x.date-current.date).days-days),x.date))
-                row = make_feature(current, previous, horizon)
-                row.update(registration_number=reg, origin_date=current.date, target_date=target.date,
-                           last_price=float(current.price_vnd), target_price=float(target.price_vnd))
-                rows.append(row)
-    return pd.DataFrame(rows)
+                last_index = bisect_right(dates, window_end)
+                subsequent = data[i + 1:last_index]
+                if not subsequent:
+                    diagnostic["no_observed_filing"] += 1
+                    continue
+                path = [origin] + subsequent
+                moves = [math.log(float(b.price_vnd) / float(a.price_vnd))
+                         for a, b in zip(path[:-1], path[1:])]
+                target = subsequent[-1]
+                features = make_feature(origin, previous, horizon, history=history)
+                features.update(
+                    registration_number=registration,
+                    origin_date=origin.date,
+                    target_date=window_end,  # label known only after window closes
+                    observed_target_date=target.date,
+                    last_price=float(origin.price_vnd),
+                    target_price=float(target.price_vnd),
+                    events_in_window=len(subsequent),
+                    price_moves_in_window=sum(abs(x) > 1e-12 for x in moves),
+                    total_abs_log_move=float(sum(abs(x) for x in moves)),
+                    max_observed_price_vnd=float(max(e.price_vnd for e in path)),
+                    min_observed_price_vnd=float(min(e.price_vnd for e in path)),
+                    days_after_last_event=int((window_end - target.date).days),
+                    label_type="CONDITIONAL_LAST_OBSERVED_FILING_IN_WINDOW",
+                )
+                rows.append(features)
+                diagnostic["labeled_windows"] += 1
+    result = pd.DataFrame(rows)
+    result.attrs["label_audit"] = audit
+    return result
 
 def time_split(examples):
     if len(examples) < MIN_TRAIN+MIN_VALIDATION+MIN_TEST:
@@ -159,76 +226,30 @@ def forecast_values(model, frame, weights):
     return (1-w)*base + w*ml_price
 
 def fit_forecast(raw, output_dir="models/forecast"):
-    root = Path(output_dir);root.mkdir(parents=True,exist_ok=True)
-    obs = clean_observations(raw)
-    examples = make_examples(obs)
-    report = {"schema_version":1, "kind":"future-declared-price-forecast",
-              "version":datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
-              "source_records":int(len(raw)), "clean_observations":int(len(obs)),
-              "candidate_pairs":int(len(examples)), "horizons":{}, "status":"insufficient_history"}
-    splits = time_split(examples) if not examples.empty else None
-    if splits is None:
-        (root/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
-        return report
-    train,val,test=splits
-    report.update(n_train=len(train),n_validation=len(val),n_test=len(test),
-                  cutoff_validation=str(val.origin_date.min().date()),
-                  cutoff_test=str(test.origin_date.min().date()))
-    target = np.log(train.target_price.to_numpy()/train.last_price.to_numpy())
-    model=CatBoostRegressor(iterations=550,depth=5,learning_rate=0.04,
-                            loss_function="RMSE",l2_leaf_reg=7,random_seed=42,
-                            thread_count=2,verbose=False,allow_writing_files=False)
-    model.fit(train[FEATURES],target,cat_features=CATEGORICAL,
-              eval_set=(val[FEATURES],np.log(val.target_price.to_numpy()/val.last_price.to_numpy())),
-              early_stopping_rounds=55,use_best_model=True)
-    val_pred=val.last_price.to_numpy()*np.exp(np.clip(model.predict(val[FEATURES]),-4,4))
-    weights={}
-    calibration={}
-    for h in HORIZONS:
-        selected = val.horizon_months.eq(h).to_numpy()
-        if selected.sum() < 15:
-            weights[str(h)]=0.0
-            calibration[str(h)] = None
-            continue
-        y=val.target_price.to_numpy()[selected]
-        baseline=val.last_price.to_numpy()[selected]
-        predicted=val_pred[selected]
-        reference_mae=mean_absolute_error(y,baseline)
-        scores=sorted([(mean_absolute_error(y,(1-w)*baseline+w*predicted),w) for w in (0,.2,.4,.6,.8,1.0)])
-        best,w=scores[0]
-        weights[str(h)] = float(w) if best < reference_mae * .98 else 0.0
-        combined=(1-weights[str(h)])*baseline+weights[str(h)]*predicted
-        calibration[str(h)] = float(np.quantile(np.abs(np.log(y/np.maximum(combined,1))),.9))
-    test_pred=forecast_values(model,test,weights)
-    for h in HORIZONS:
-        mask=test.horizon_months.eq(h).to_numpy()
-        if mask.sum()<15:
-            report["horizons"][str(h)]={"status":"insufficient_test", "n_test":int(mask.sum())}
-            continue
-        y=test.target_price.to_numpy()[mask]
-        prev=test.last_price.to_numpy()[mask]
-        estimated=test_pred[mask]
-        mae=float(mean_absolute_error(y,estimated))
-        baseline=float(mean_absolute_error(y,prev))
-        gain=(baseline-mae)/max(1.,baseline)
-        wape=float(np.sum(np.abs(y-estimated))/max(1.,np.sum(np.abs(y))))
-        is_approved=(weights[str(h)]>0 and gain>=.01 and wape<=.5
-                     and calibration[str(h)] is not None and np.isfinite(mae))
-        report["horizons"][str(h)]={
-          "status":"approved" if is_approved else "rejected_quality_gate",
-          "n_train":int(train.horizon_months.eq(h).sum()),
-          "n_validation":int(val.horizon_months.eq(h).sum()),"n_test":int(mask.sum()),
-          "mae_vnd":round(mae,2),"baseline_mae_vnd":round(baseline,2),
-          "mae_gain_fraction":round(gain,6),"wape":round(wape,5),
-          "weight":weights[str(h)],"calibration_log_error_q90":calibration[str(h)]}
-    report["approved_horizons"]=[int(h) for h,p in report["horizons"].items() if p["status"]=="approved"]
-    report["status"]="approved" if report["approved_horizons"] else "rejected_quality_gate"
-    report["features"]=FEATURES
-    report["categorical_features"]=CATEGORICAL
-    report["limitations"]="Predicted future declaration close to target month, not a daily market quotation. May not reflect a declaration when none occurs."
-    if report["approved_horizons"]:
-        model.save_model(str(root/"forecast_model.cbm"))
-    (root/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
+    """Retired individual-drug trainer: fail closed rather than fake approval.
+
+    Active market estimates are evaluated in ml_price.market_forecast.
+    Non-filers lack an observed price-change label, so the new conditional
+    event-window data cannot be used for a point-in-time drug price model.
+    """
+    root = Path(output_dir)
+    root.mkdir(parents=True, exist_ok=True)
+    observations = clean_observations(raw)
+    examples = make_examples(observations)
+    report = {
+        "schema_version": 1,
+        "kind": "future-declared-price-forecast",
+        "status": "rejected_quality_gate",
+        "reason": "PER_PRODUCT_FORECAST_RETIRED_EVENT_WINDOWS_CENSORED",
+        "source_records": int(len(raw)),
+        "clean_observations": int(len(observations)),
+        "candidate_pairs": int(len(examples)),
+        "horizons": {str(h): {"status": "retired", "forecast_price": None}
+                     for h in HORIZONS},
+        "approved_horizons": [],
+        "limitations": "Event-window labels are conditional on observed new filings; missing events are unknown, not flat prices. No individual-drug prediction is approved.",
+    }
+    (root / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     return report
 
 if __name__=="__main__":

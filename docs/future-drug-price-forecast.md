@@ -1,5 +1,15 @@
 # PharmaBiz — dự báo giá thuốc tương lai
 
+> **Cập nhật 13/11/2026:** Những phần bên dưới mô tả thử nghiệm
+> dự báo từng thuốc cũ và cách ghép giá gần ngày mốc, đã ngừng sử dụng.
+> Quy trình đang chạy sử dụng tất cả hồ sơ kê khai hợp lệ trong cửa sổ
+> 3/6/12 tháng theo lịch; không coi không có hồ sơ mới là giá giữ nguyên.
+> Không sử dụng kết quả kiểm định hoặc ngưỡng cũ để kết luận cho model mới.
+>
+> Xem [logic thị trường hiện tại](market-irregular-filing-training.md).
+>
+> ---
+
 ## Mục tiêu và phạm vi
 
 Tính năng cũ **ước lượng lại giá DAV hiện tại** không còn được gọi bởi website hay Render.

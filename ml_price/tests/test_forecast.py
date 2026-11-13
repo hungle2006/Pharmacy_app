@@ -47,6 +47,62 @@ class TestFutureForecast(unittest.TestCase):
         self.assertLess(train.target_date.max(),val.origin_date.min())
         self.assertLess(val.target_date.max(),test.origin_date.min())
 
+    def test_irregular_in_window_events_all_counted_not_nearest_day(self):
+        raw=self.sample().iloc[:4].copy()
+        raw["registration_number"]="VN-EVENT"
+        raw["dav_row_id"]=["event-0","event-1","event-2","event-3"]
+        raw["declaration_date"]=pd.to_datetime(
+            ["2024-01-01","2024-01-11","2024-02-10","2024-03-20"],utc=True)
+        raw["price_vnd"]=[1000,1300,1100,1500]
+        events=clean_observations(raw)
+        ex=make_examples(events,as_of="2024-07-01")
+        row=ex[(ex.origin_date.eq(pd.Timestamp("2024-01-01",tz="UTC")))
+               & ex.horizon_months.eq(3)].iloc[0]
+        self.assertEqual(row.events_in_window,3)
+        self.assertEqual(row.price_moves_in_window,3)
+        self.assertEqual(row.target_price,1500)
+        self.assertEqual(row.target_date,pd.Timestamp("2024-04-01",tz="UTC"))
+        self.assertEqual(row.observed_target_date,pd.Timestamp("2024-03-20",tz="UTC"))
+        self.assertEqual(row.days_after_last_event,12)
+        self.assertGreater(row.total_abs_log_move,0.7)
+        self.assertEqual(row.past_filings_90d,0)
+        self.assertEqual(row.label_type,"CONDITIONAL_LAST_OBSERVED_FILING_IN_WINDOW")
+
+    def test_no_new_filing_is_censored_not_flat_and_unfinished_is_excluded(self):
+        raw=self.sample().iloc[:1].copy()
+        events=clean_observations(raw)
+        elapsed=make_examples(events,as_of="2026-11-13")
+        self.assertTrue(elapsed.empty)
+        self.assertEqual(elapsed.attrs["label_audit"]["3"]["no_observed_filing"],1)
+        early=make_examples(events,as_of="2017-02-01")
+        self.assertTrue(early.empty)
+        self.assertEqual(early.attrs["label_audit"]["3"]["unfinished_windows"],1)
+
+    def test_verified_repeated_filing_date_preserved_same_source_id(self):
+        raw=self.sample().iloc[:2].copy()
+        raw["dav_row_id"]="verified-filing"
+        raw["source_date_basis"]="dav_filing_date"
+        events=clean_observations(raw)
+        self.assertEqual(len(events),2)
+        self.assertGreater(len(make_examples(events,as_of="2026-11-13")),0)
+
+    def test_history_features_cannot_see_future_events(self):
+        raw=self.sample().iloc[:3].copy()
+        raw["declaration_date"]=pd.to_datetime(
+            ["2024-01-01","2024-02-01","2024-03-01"],utc=True)
+        two=clean_observations(raw.iloc[:2])
+        three=clean_observations(raw)
+        a=make_examples(two,as_of="2024-12-01")
+        b=make_examples(three,as_of="2024-12-01")
+        origin=pd.Timestamp("2024-01-01",tz="UTC")
+        a=a[a.origin_date.eq(origin)&a.horizon_months.eq(3)].iloc[0]
+        b=b[b.origin_date.eq(origin)&b.horizon_months.eq(3)].iloc[0]
+        for feature in ["past_filings_90d","past_filings_365d","past_abs_log_move_365d",
+                        "previous_change","days_since_previous"]:
+            self.assertEqual(a[feature],b[feature])
+        self.assertEqual(a.events_in_window,1)
+        self.assertEqual(b.events_in_window,2)
+
     def test_duplicates_and_mismatched_price_units(self):
         raw=self.sample()
         problem=raw.iloc[[0]].copy()

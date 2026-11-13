@@ -16,10 +16,11 @@
     return status==='approved'
       ?'<span class="market-chip market-chip-ok">Đã vượt kiểm định</span>'
       :experimental
-        ?'<span class="market-chip market-chip-neutral">Thử nghiệm · Chưa vượt kiểm định</span>'
+        ?'<span class="market-chip market-chip-neutral">Thử nghiệm · Chỉ trên hồ sơ có kê khai mới</span>'
         :'<span class="market-chip market-chip-neutral">Chỉ có dữ liệu lịch sử</span>';
   }
   const qualityReason=item=>item.status==='approved'?'Dự báo đã vượt kiểm định trên tập test độc lập theo thời gian.':({
+    UNVERIFIED_FULL_HORIZON_COVERAGE:'Kiểm định chỉ áp dụng cho thuốc có hồ sơ kê khai tiếp theo. Chưa có bằng chứng đầy đủ về các thuốc không kê khai mới, nên không thể coi đây là dự báo giá thị trường toàn kỳ.',
     NO_DIRECTIONAL_SIGNAL:'Mô hình chưa tìm được tín hiệu tăng/giảm tốt hơn giả định giá giữ nguyên trên tập xác thực.',
     VALIDATION_NOT_BETTER_THAN_BASELINE:'Tập xác thực chưa cải thiện ít nhất 1% so với giả định giá không đổi.',
     INSUFFICIENT_DISTINCT_TEST_DRUGS:'Tập kiểm định chưa có đủ số đăng ký thuốc phân biệt.',
@@ -67,12 +68,12 @@
     if(!active)return;
     if(!report){return;}
     $('market-source').textContent='Neon Gold · '+integer(report.source_records)+' bản ghi giá nguồn · '+
-      integer(report.labeled_pairs)+' cặp lịch sử theo thời gian';
+      integer(report.labeled_pairs)+' cửa sổ có kê khai giá mới';
     $('market-updated').textContent='Phiên bản dữ liệu: '+esc(report.version||'—');
     const approved=report.approved_horizons||[];
     const indicative=[3,6,12].filter(h=>hasNumber(report.horizons?.[String(h)]?.experimental_change_pct));
     $('market-summary').innerHTML='<article class="market-stat"><span>Khung thời gian phân tích</span><strong>3 · 6 · 12 tháng</strong><small>So sánh cùng thuốc, loại giá và đơn vị</small></article>'+
-      '<article class="market-stat"><span>Cặp giá lịch sử</span><strong>'+integer(report.labeled_pairs)+'</strong><small>Chỉ gồm các lần kê khai có thật</small></article>'+
+      '<article class="market-stat"><span>Cửa sổ giá có kê khai mới</span><strong>'+integer(report.labeled_pairs)+'</strong><small>3/6/12 tháng lịch; không yêu cầu kê khai đúng ngày mốc</small></article>'+
       '<article class="market-stat"><span>Chất lượng mô hình</span><strong>'+approved.length+'/3 đạt chuẩn</strong><small>'+indicative.length+' thời hạn có ước tính thử nghiệm chưa kiểm định đạt</small></article>';
     $('market-horizons').innerHTML=[3,6,12].map(h=>{
       const item=report.horizons?.[String(h)]||{};
@@ -105,9 +106,9 @@
     $('market-forecast-note').innerHTML=valid
       ?'<strong>Đã vượt ngưỡng kiểm định:</strong> mức cải thiện log-MAE so với giá không đổi là '+pct(n(item.test_gain_fraction)*100)+'. Không phải giá bán lẻ.'
       :experimental
-        ?'<strong>⚠ CHƯA VƯỢT KIỂM ĐỊNH — KHÔNG DÙNG ĐỂ QUYẾT ĐỊNH:</strong> Đây là ước tính thử nghiệm, không phải dự báo tương lai đã được chứng minh. '+esc(qualityReason(item))+' Trung vị thay đổi lịch sử của cùng kỳ: <strong>'+pct(item.historical_change_pct)+'</strong>.'
+        ?'<strong>⚠ CHƯA CÓ DỰ BÁO THỊ TRƯỜNG ĐƯỢC DUYỆT:</strong> Ước tính chỉ dựa trên hồ sơ có lần kê khai tiếp theo, không thể kết luận giá của thuốc không kê khai là giữ nguyên. '+esc(qualityReason(item))+' Trung vị thay đổi lịch sử của cùng kỳ: <strong>'+pct(item.historical_change_pct)+'</strong>.'
         :'<strong>⚠ Chưa có ước tính dự báo đủ điều kiện:</strong> '+esc(qualityReason(item))+' Số đang hiển thị là trung vị biến động lịch sử, không phải dự báo.';
-    $('market-coverage').textContent=integer(item.n_products)+' mã thuốc · '+integer(item.n_pairs)+' cặp giá đã ghi nhận';
+    $('market-coverage').textContent=integer(item.n_products)+' mã thuốc · '+integer(item.n_pairs)+' cửa sổ có kê khai mới · '+integer(item.observed_filing_events)+' lượt kê khai · '+integer(item.observed_price_moves)+' lượt đổi giá';
     $('market-dates').textContent=(item.observed_from||'—')+' → '+(item.observed_to||'—');
     $('market-band').textContent=pct(item.p10_pct)+' đến '+pct(item.p90_pct);
     const parts=[
@@ -139,8 +140,10 @@
       }).join('')
       :'<p class="market-muted">Chưa đủ số cặp kê khai theo từng năm để hiển thị xu hướng dài hạn.</p>';
     $('market-validation').innerHTML=validationPanel(item);
-    $('market-method').textContent='Mỗi cặp so sánh cùng số đăng ký, loại giá và đơn vị. '+
-      'Các thuốc không có nhiều lần kê khai không được đưa vào chỉ số thay đổi. Mỗi số đăng ký có trọng số ngang nhau trong thống kê hiện tại. '+
+    const audit=report.label_audit?.[String(horizon)]||{};
+    $('market-method').textContent='Theo dữ liệu nguồn, '+integer(audit.no_observed_filing)+' cửa sổ không có kê khai mới và '+integer(audit.unfinished_windows)+' cửa sổ chưa kết thúc: không tự gán biến động bằng 0%. '+
+      'Các mốc 3/6/12 tháng là cửa sổ lịch, không phải ngày kê khai cố định. Mỗi cửa sổ sử dụng TẤT CẢ lần kê khai có thật, với giá quan sát cuối cùng trong cửa sổ. '+
+      'Thuốc không có bản ghi kê khai mới được đánh dấu chưa quan sát, KHÔNG tự coi là không đổi giá. Mỗi mã đăng ký được tính ngang nhau khi thống kê. '+
       'Khoảng P10–P90 mô tả phân phối thay đổi lịch sử; không phải khoảng tin cậy của dự báo. '+
       'Không phản ánh doanh số, giá bán lẻ hay chỉ số lạm phát chung.';
   }
