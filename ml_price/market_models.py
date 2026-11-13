@@ -29,13 +29,25 @@ def _features(frame):
     dates = pd.to_datetime(frame.origin_date, utc=True)
     year = (dates - pd.Timestamp('2020-01-01', tz='UTC')).dt.total_seconds().to_numpy() / (86400 * 365.25)
     month = dates.dt.month.to_numpy(dtype=float)
-    previous = (pd.to_numeric(frame['previous_change'], errors='coerce').fillna(0).to_numpy(dtype=float)
-                if 'previous_change' in frame else np.zeros(len(frame)))
-    gap = (pd.to_numeric(frame['days_since_previous'], errors='coerce').fillna(0).to_numpy(dtype=float)
-           if 'days_since_previous' in frame else np.zeros(len(frame)))
+    def numeric(name):
+        if name not in frame:
+            return np.zeros(len(frame))
+        return pd.to_numeric(frame[name], errors='coerce').fillna(0).to_numpy(dtype=float)
+    previous = numeric('previous_change')
+    gap = numeric('days_since_previous')
+    # All three event-history features are computed strictly BEFORE origin;
+    # within-window event counts/movement are targets, never model inputs.
+    recent_90 = numeric('past_filings_90d')
+    recent_365 = numeric('past_filings_365d')
+    recent_moves = numeric('past_abs_log_move_365d')
     return np.column_stack([np.ones(len(frame)), np.clip(year, -15, 20),
-                            np.sin(2 * np.pi * month / 12), np.cos(2 * np.pi * month / 12),
-                            np.clip(previous, -1, 1), np.clip(gap, 0, 1460) / 365.25])
+                            np.sin(2 * np.pi * month / 12),
+                            np.cos(2 * np.pi * month / 12),
+                            np.clip(previous, -1, 1),
+                            np.clip(gap, 0, 1460) / 365.25,
+                            np.clip(recent_90, 0, 30) / 10,
+                            np.clip(recent_365, 0, 60) / 20,
+                            np.clip(recent_moves, 0, 5)])
 
 
 def fit_predict(train, targets, candidate):
@@ -72,7 +84,7 @@ def fit_predict(train, targets, candidate):
         X = _features(train)
         T = _features(targets)
         # Heavy regularization for sparse and irregular yearly/monthly series.
-        penalties = np.diag([2., 30., 20., 20., 35., 25.])
+        penalties = np.diag([2., 30., 20., 20., 35., 25., 20., 20., 25.])
         weighted = X * w[:, None]
         coefficients = np.linalg.solve(X.T @ weighted + penalties,
                                        X.T @ (w * y))
@@ -98,17 +110,26 @@ def rolling_folds(examples, horizon):
     return folds
 
 
+def _registration_errors(errors, groups):
+    """Equal-weight per registration, not per filing or overlapping window."""
+    frame = pd.DataFrame({'registration': np.asarray(groups).astype(str),
+                          'error': np.asarray(errors, dtype=float)})
+    return frame.groupby('registration', sort=False).error.mean()
+
+
+def _group_mae(errors, groups):
+    return float(_registration_errors(errors, groups).mean())
+
+
 def _bootstrap_gain(errors_model, errors_base, groups, repeats=300):
-    """95% CI for out-of-sample MAE gain, resampling registration clusters."""
-    group = np.asarray(groups).astype(str)
-    unique, inv = np.unique(group, return_inverse=True)
-    sums_model = np.bincount(inv, weights=errors_model, minlength=len(unique))
-    sums_base = np.bincount(inv, weights=errors_base, minlength=len(unique))
+    """95% bootstrap over registration means, preserving within-drug dependence."""
+    model = _registration_errors(errors_model, groups)
+    base = _registration_errors(errors_base, groups).reindex(model.index)
     rng = np.random.default_rng(20261022)
-    samples = rng.integers(0, len(unique), size=(repeats, len(unique)))
-    model = sums_model[samples].sum(axis=1)
-    base = sums_base[samples].sum(axis=1)
-    gains = (base - model) / np.maximum(base, 1e-10)
+    samples = rng.integers(0, len(model), size=(repeats, len(model)))
+    model_means = model.to_numpy()[samples].mean(axis=1)
+    base_means = base.to_numpy()[samples].mean(axis=1)
+    gains = (base_means - model_means) / np.maximum(base_means, 1e-10)
     return [round(float(x * 100), 2) for x in np.quantile(gains, [.025, .975])]
 
 
@@ -120,8 +141,10 @@ def _market_references(observations, horizon):
     rows = []
     newest = pd.to_datetime(observations.date, utc=True).max()
     earliest = newest - pd.Timedelta(days=730)
-    for (registration, kind, unit), group in observations.groupby(
-            ['registration_number', 'price_type', 'unit'], sort=False):
+    # Do not mix packaging/specification variants in the price history.
+    keys = ['registration_number', 'comparison_key'] if 'comparison_key' in observations else [
+        'registration_number', 'price_type', 'unit']
+    for identity, group in observations.groupby(keys, sort=False):
         ordered = group.sort_values('date')
         if len(ordered) < 2:
             continue
@@ -129,8 +152,9 @@ def _market_references(observations, horizon):
         if pd.Timestamp(last.date) < earliest:
             continue
         previous = ordered.iloc[-2]
-        features = make_feature(last, previous, horizon)
-        features.update(registration_number=registration, origin_date=last.date)
+        history = list(ordered.iloc[:-1].itertuples(index=False))
+        features = make_feature(last, previous, horizon, history=history)
+        features.update(registration_number=str(last.registration_number), origin_date=last.date)
         rows.append(features)
     return pd.DataFrame(rows)
 
@@ -168,12 +192,13 @@ def evaluate_market_horizon(examples, horizon, observations=None):
         return result
     measured = {}
     for model in ('baseline',) + MODEL_NAMES:
-        errors = []
+        errors, groups = [], []
         for training, validation, _, _ in folds:
             truth = _log_change(validation)
             predictions = np.zeros(len(validation)) if model == 'baseline' else fit_predict(training, validation, model)
             errors.extend(np.abs(truth - predictions).tolist())
-        measured[model] = float(np.mean(errors))
+            groups.extend(validation.registration_number.astype(str).tolist())
+        measured[model] = _group_mae(errors, groups)
     baseline = measured['baseline']
     comparison = sorted([(name, (baseline - score) / max(baseline, 1e-10), score)
                          for name, score in measured.items() if name != 'baseline'], key=lambda x: (-x[1], x[0]))
@@ -190,8 +215,8 @@ def evaluate_market_horizon(examples, horizon, observations=None):
     truth = _log_change(holdout)
     model_errors = np.abs(truth - prediction)
     baseline_errors = np.abs(truth)
-    baseline_test = float(np.mean(baseline_errors))
-    model_test = float(np.mean(model_errors))
+    baseline_test = _group_mae(baseline_errors, holdout.registration_number)
+    model_test = _group_mae(model_errors, holdout.registration_number)
     gain = (baseline_test - model_test) / max(baseline_test, 1e-10)
     ci = _bootstrap_gain(model_errors, baseline_errors, holdout.registration_number)
     result.update(selected_model=winner, test_gain_fraction=round(gain, 6),
@@ -199,24 +224,34 @@ def evaluate_market_horizon(examples, horizon, observations=None):
                   test_log_mae=round(model_test, 6),
                   test_baseline_log_mae=round(baseline_test, 6),
                   test_n_products=int(holdout.registration_number.nunique()))
-    if gain < .01:
+    if gain < .01 or ci[0] <= 0:
         result.update(status='rejected_quality_gate', reason='TEST_NOT_BETTER_THAN_BASELINE')
         return result
     reference = _market_references(observations, horizon)
     if reference.empty or reference.registration_number.nunique() < 15:
         result['reason'] = 'INSUFFICIENT_CURRENT_REFERENCE'
         return result
-    # After frozen holdout evaluation, retrain with now-known labeled history.
+    # This evaluation is CONDITIONAL on a subsequent DAV filing, because
+    # zero-filings have no label or verified complete observation coverage.
+    # A good held-out score CANNOT approve an unconditional 3/6/12-month
+    # market forecast. Publish only a labelled research estimate.
     final_preds = fit_predict(frame, reference, winner)
-    mean_prediction = float(np.mean(final_preds))
+    by_registration = pd.DataFrame({
+        'registration': reference.registration_number.astype(str),
+        'change': final_preds,
+    }).groupby('registration').change.mean()
+    mean_prediction = float(by_registration.mean())
     rng = np.random.default_rng(20261022 + horizon)
-    draws = rng.integers(0, len(final_preds), size=(300, len(final_preds)))
-    agg = 100 * np.expm1(np.mean(final_preds[draws], axis=1))
-    result.update(status='approved', reason='approved',
-                  forecast_change_pct=round(float(100 * np.expm1(mean_prediction)), 2),
-                  forecast_sample_ci90_pct=[round(float(v), 2) for v in np.quantile(agg, [.05, .95])],
+    draws = rng.integers(0, len(by_registration), size=(300, len(by_registration)))
+    agg = 100 * np.expm1(by_registration.to_numpy()[draws].mean(axis=1))
+    result.update(status='experimental_conditional',
+                  reason='UNVERIFIED_FULL_HORIZON_COVERAGE',
+                  forecast_change_pct=None,
+                  conditional_change_pct=round(float(100 * np.expm1(mean_prediction)), 2),
+                  conditional_sample_ci90_pct=[round(float(v), 2) for v in np.quantile(agg, [.05, .95])],
                   reference_products=int(reference.registration_number.nunique()),
-                  forecast_asof=str(pd.to_datetime(reference.origin_date, utc=True).max().date()))
+                  forecast_asof=str(pd.to_datetime(reference.origin_date, utc=True).max().date()),
+                  conditional_test_passed=True)
     return result
 
 
