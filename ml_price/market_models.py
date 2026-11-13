@@ -284,3 +284,38 @@ def exploratory_scenario(examples, horizon, observations=None, preferred_model=N
             'experimental_label': 'UNVALIDATED_EXPLORATORY_SCENARIO',
             'experimental_warning': ('Model estimate for research only. Has NOT passed '
                                      'the out-of-sample quality gate; not a validated price forecast.') }
+
+
+def exploratory_candidate_comparison(examples, horizon, observations=None):
+    """Unvalidated conditional scenario for EACH candidate, for comparison only.
+
+    Fit only from completed, actually observed repeated-filing windows and use
+    past-origin features of observed reference registrations. No method is
+    selected or "approved" from these in-sample scenario projections.
+    They are neither holdout metrics nor market-wide future outcomes.
+    """
+    frame = examples[examples.horizon_months.eq(horizon)].copy()
+    if len(frame) < 20 or frame.registration_number.nunique() < 15:
+        return []
+    reference = _market_references(observations, horizon)
+    if reference.empty or reference.registration_number.nunique() < 15:
+        return []
+    outputs = []
+    for name in MODEL_NAMES:
+        predicted_logs = np.clip(fit_predict(frame, reference, name),
+                                 -math.log(1.5), math.log(1.5))
+        group = pd.DataFrame({
+            'registration': reference.registration_number.astype(str),
+            'log_change': predicted_logs,
+        }).groupby('registration').log_change.mean()
+        value = float(100 * np.expm1(group.mean()))
+        if not math.isfinite(value):
+            continue
+        outputs.append({
+            'name': name,
+            'conditional_change_pct': round(value, 2),
+            'reference_products': int(len(group)),
+            'status': 'unvalidated_exploratory_scenario',
+            'metric': 'equal-registration-mean-predicted-log-change',
+        })
+    return outputs
