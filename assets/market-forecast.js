@@ -108,7 +108,7 @@
       :experimental
         ?'<strong>⚠ CHƯA CÓ DỰ BÁO THỊ TRƯỜNG ĐƯỢC DUYỆT:</strong> Ước tính chỉ dựa trên hồ sơ có lần kê khai tiếp theo, không thể kết luận giá của thuốc không kê khai là giữ nguyên. '+esc(qualityReason(item))+' Trung vị thay đổi lịch sử của cùng kỳ: <strong>'+pct(item.historical_change_pct)+'</strong>.'
         :'<strong>⚠ Chưa có ước tính dự báo đủ điều kiện:</strong> '+esc(qualityReason(item))+' Số đang hiển thị là trung vị biến động lịch sử, không phải dự báo.';
-    $('market-coverage').textContent=integer(item.n_products)+' mã thuốc · '+integer(item.n_pairs)+' cửa sổ giá có hồ sơ mới';
+    $('market-coverage').textContent=integer(item.n_products)+' mã thuốc · '+integer(item.n_pairs)+' cửa sổ có kê khai mới · '+integer(item.observed_filing_events)+' lượt kê khai · '+integer(item.observed_price_moves)+' lượt đổi giá';
     $('market-dates').textContent=(item.observed_from||'—')+' → '+(item.observed_to||'—');
     $('market-band').textContent=pct(item.p10_pct)+' đến '+pct(item.p90_pct);
     const parts=[
@@ -140,7 +140,9 @@
       }).join('')
       :'<p class="market-muted">Chưa đủ số cặp kê khai theo từng năm để hiển thị xu hướng dài hạn.</p>';
     $('market-validation').innerHTML=validationPanel(item);
-    $('market-method').textContent='Các mốc 3/6/12 tháng là cửa sổ lịch, không phải ngày kê khai cố định. Mỗi cửa sổ sử dụng TẤT CẢ lần kê khai có thật, với giá quan sát cuối cùng trong cửa sổ. '+
+    const audit=report.label_audit?.[String(horizon)]||{};
+    $('market-method').textContent='Theo dữ liệu nguồn, '+integer(audit.no_observed_filing)+' cửa sổ không có kê khai mới và '+integer(audit.unfinished_windows)+' cửa sổ chưa kết thúc: không tự gán biến động bằng 0%. '+
+      'Các mốc 3/6/12 tháng là cửa sổ lịch, không phải ngày kê khai cố định. Mỗi cửa sổ sử dụng TẤT CẢ lần kê khai có thật, với giá quan sát cuối cùng trong cửa sổ. '+
       'Thuốc không có bản ghi kê khai mới được đánh dấu chưa quan sát, KHÔNG tự coi là không đổi giá. Mỗi mã đăng ký được tính ngang nhau khi thống kê. '+
       'Khoảng P10–P90 mô tả phân phối thay đổi lịch sử; không phải khoảng tin cậy của dự báo. '+
       'Không phản ánh doanh số, giá bán lẻ hay chỉ số lạm phát chung.';
