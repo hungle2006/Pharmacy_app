@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from ml_price.market_models import rolling_folds, fit_predict, evaluate_market_horizon, exploratory_scenario, _group_mae
+from ml_price.market_models import rolling_folds, fit_predict, evaluate_market_horizon, exploratory_scenario, exploratory_candidate_comparison, _group_mae
 
 
 def fixture(n=180, horizon=6, signal=True):
@@ -82,6 +82,28 @@ class MarketModelsTests(unittest.TestCase):
         groups=np.array(['a','a','b'])
         self.assertAlmostEqual(_group_mae(errors,groups),50.)
         self.assertNotAlmostEqual(_group_mae(errors,groups),float(errors.mean()))
+
+    def test_three_unvalidated_scenario_methods_are_separate(self):
+        examples=fixture(signal=True)
+        observations=[]
+        for i in range(38):
+            for year in (2022,2023):
+                observations.append(dict(
+                    registration_number=f'reg{i}',price_type='kind',unit='viên',
+                    date=pd.Timestamp(f'{year}-01-01',tz='UTC'),
+                    price_vnd=1000. if year==2022 else 1090.,
+                    ingredient='A' if i%2 else 'B',strength='10mg',
+                    dosage_form='tablet',manufacturer='maker',country='VN',
+                    package='box',comparison_key='same'))
+        comparison=exploratory_candidate_comparison(
+            examples,6,pd.DataFrame(observations))
+        self.assertEqual([x['name'] for x in comparison],
+                         ['time_weighted','hierarchical','temporal_ridge'])
+        for model in comparison:
+            self.assertTrue(np.isfinite(model['conditional_change_pct']))
+            self.assertEqual(model['reference_products'],38)
+            self.assertEqual(model['status'],'unvalidated_exploratory_scenario')
+            self.assertNotIn('forecast_change_pct',model)
 
     def test_constant_prices_cannot_approve(self):
         result=evaluate_market_horizon(fixture(signal=False),6)
