@@ -163,6 +163,8 @@ class GoldIntegrationTest(unittest.TestCase):
      self.assertEqual(cur.fetchone()[0],"Paracetamol 500")
      cur.execute("SELECT declaration_date::text,source_date_basis FROM public.price_record WHERE dav_row_id='2'")
      self.assertEqual(cur.fetchone(),('2026-10-19','dav_filing_date'))
+     cur.execute("SELECT source_observed_at IS NOT NULL FROM public.price_record WHERE dav_row_id='2'")
+     self.assertTrue(cur.fetchone()[0])
      cur.execute("SELECT COUNT(*) FROM public.price_record")
      self.assertEqual(cur.fetchone()[0],2) # prior identical price remains one + one genuinely new
      cur.execute("SELECT COUNT(*) FROM public.dav_rxnorm_mapping")

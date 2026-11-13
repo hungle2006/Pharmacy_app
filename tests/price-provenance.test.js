@@ -30,5 +30,12 @@ test('known numeric-ID collisions keep raw history but never serve a foreign leg
     assert.equal(Number(result.summary.priced),1);
     assert.equal(Number(result.summary.median),1000);
     assert.equal(Number((await db.query('SELECT COUNT(*) AS n FROM price_record')).rows[0].n),2);
+    await db.exec(`ALTER TABLE price_record ADD COLUMN source_observed_at timestamptz;
+      INSERT INTO price_record(price_id,dav_row_id,price_vnd,currency,price_type,unit,source,source_observed_at)
+      VALUES ('revised','1',1200,'VND','KK','tablet','SILVER_DAV_PRICE','2026-11-13T00:00:00Z');`);
+    const revised=(await db.query(query.rowsSql,query.params)).rows.find(r=>r.id==='1');
+    assert.equal(Number(revised.price_vnd),1200);
+    assert.equal(revised.snapshot_date,null); // Never invent a filing date from observation time.
+
   } finally {await db.close();}
 });

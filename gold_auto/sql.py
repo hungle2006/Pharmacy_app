@@ -10,7 +10,7 @@ ALTERATIONS = {
         ("catalog_equivalent_to","TEXT"),
         ("catalog_duplicate_status","TEXT"),
     ],
-    "price_record": [("silver_source_sha","TEXT"), ("source_date_basis","TEXT")],
+    "price_record": [("silver_source_sha","TEXT"), ("source_date_basis","TEXT"), ("source_observed_at","TIMESTAMPTZ")],
     "dav_rxnorm_mapping": [
         ("silver_mapping_status","TEXT"),
         ("candidate_scd_name","TEXT"),
@@ -126,12 +126,12 @@ WITH src AS (
  FROM src WHERE dav_row_id IS NOT NULL AND price_vnd IS NOT NULL
 )
 INSERT INTO public.price_record
-(price_id,dav_row_id,declaration_date,price_vnd,currency,price_type,unit,package,source,silver_source_sha,source_date_basis)
+(price_id,dav_row_id,declaration_date,price_vnd,currency,price_type,unit,package,source,silver_source_sha,source_date_basis,source_observed_at)
 SELECT 'slv:'||md5(concat_ws('|',s.dav_row_id,COALESCE(s.declaration_date::text,''),
                           s.price_vnd::text,COALESCE(s.price_type,''),
                           COALESCE(s.unit,''),COALESCE(s.package,''))),
        s.dav_row_id,s.declaration_date,s.price_vnd,'VND',s.price_type,s.unit,s.package,
-       'SILVER_DAV_PRICE', %(source_sha)s,s.source_date_basis
+       'SILVER_DAV_PRICE', %(source_sha)s,s.source_date_basis,CURRENT_TIMESTAMP
 FROM clean s
 WHERE EXISTS (SELECT 1 FROM public.dav_product d WHERE d.dav_row_id=s.dav_row_id)
   AND NOT EXISTS (

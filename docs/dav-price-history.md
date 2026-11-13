@@ -54,3 +54,8 @@ The Bronze schema extension is limited to these three date fields. Existing
 rows are integrity-checked under their old header, preserved with blank new
 fields, then rehashed against the extended header. The checkpoint records the
 extension and preserved row count. Arbitrary schema drift still fails closed.
+
+Gold additionally stores `source_observed_at` for newly inserted observations.
+Lookup can show a newly recorded revision even when its filing date is unknown.
+That timestamp is never substituted for declaration dates in model labels; older
+rows retain a null observation timestamp instead of an invented historical one.

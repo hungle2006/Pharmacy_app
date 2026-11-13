@@ -86,7 +86,7 @@ function buildDavReverseQuery({rxcui,kind='scd',review='all',page=1,pageSize=10}
       "LEFT JOIN LATERAL (",
       "SELECT pr.price_vnd,pr.price_type,pr.declaration_date,pr.unit",
       "FROM public.price_record pr WHERE pr.dav_row_id=d.dav_row_id AND "+compatiblePriceSource('d','pr'),
-      "ORDER BY pr.declaration_date DESC NULLS LAST,pr.price_id DESC LIMIT 1",
+      "ORDER BY NULLIF(to_jsonb(pr)->>'source_observed_at','')::timestamptz DESC NULLS LAST,pr.declaration_date DESC NULLS LAST,pr.price_id DESC LIMIT 1",
       ") p ON true",
       "ORDER BY CASE f.match_type WHEN 'ACCEPTED_SCD' THEN 0",
       "WHEN 'CANDIDATE_SCD' THEN 1 ELSE 2 END, d.drug_name NULLS LAST, d.dav_row_id",

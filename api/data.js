@@ -60,7 +60,7 @@ function buildQuery(query={}) {
     "COALESCE(NULLIF(p.unit,''),NULLIF(d.unit,'')) AS unit,",
     "COALESCE(NULLIF(p.package,''),NULLIF(d.package,'')) AS package",
     from,
-    'ORDER BY d.dav_row_id ASC, p.declaration_date DESC NULLS LAST, p.price_id ASC NULLS LAST',
+    "ORDER BY d.dav_row_id ASC, NULLIF(to_jsonb(p)->>'source_observed_at','')::timestamptz DESC NULLS LAST, p.declaration_date DESC NULLS LAST, p.price_id ASC NULLS LAST",
     'LIMIT '+limit+' OFFSET '+offset
   ].join(' ');
   return {page,pageSize,productMode,countSql,countParams,rowsSql,params,offset:(page-1)*pageSize};
