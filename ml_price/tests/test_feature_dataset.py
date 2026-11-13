@@ -34,6 +34,15 @@ class LatestDatasetTests(unittest.TestCase):
         updated=raw.copy();updated.loc[updated.index[0],'price_vnd']+=1
         self.assertNotEqual(snapshot_fingerprint(raw),snapshot_fingerprint(updated))
 
+    def test_corrected_filing_date_supersedes_later_legacy_reception(self):
+        raw=self.sample().iloc[[0]].copy()
+        raw['declaration_date']='2025-06-10'
+        fixed=raw.copy();fixed['declaration_date']='2025-06-01'
+        fixed['source_date_basis']='dav_filing_date';fixed['price_vnd']=777
+        result,a=latest_snapshot(pd.concat([raw,fixed],ignore_index=True))
+        self.assertEqual(result.price_vnd.iloc[0],777)
+        self.assertEqual(a['excluded_superseded_legacy_rows'],1)
+
     def test_empty_or_all_invalid_snapshot_is_safe(self):
         raw=self.sample();raw['price_vnd']=0
         result,a=latest_snapshot(raw)

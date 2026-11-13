@@ -41,6 +41,12 @@ def latest_snapshot(raw, as_of=None):
     audit['excluded_missing_identity'] = int((~identifiable).sum())
     df = df[identifiable].copy()
     df['product_group'] = np.where(df.registration_number.ne(''), 'REG:'+df.registration_number, 'DAV:'+df.dav_row_id)
+    # A corrected filing date can be earlier than the old reception date for
+    # the SAME DAV filing. Do not let that legacy date override verified input.
+    verified_ids = set(df.loc[df.source_date_basis.isin(['dav_filing_date','dav_publication_date']) & df.dav_row_id.ne(''), 'dav_row_id'])
+    superseded = df.dav_row_id.isin(verified_ids) & ~df.source_date_basis.isin(['dav_filing_date','dav_publication_date'])
+    audit['excluded_superseded_legacy_rows'] = int(superseded.sum())
+    df = df[~superseded].copy()
     # Select date first, before completeness: a bad latest row must not revive old prices.
     newest = df.groupby('product_group').declaration_date.transform('max')
     latest = df[df.declaration_date.eq(newest)].copy()
