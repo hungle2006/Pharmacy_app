@@ -1,5 +1,6 @@
 'use strict';
 const { neon } = require('@neondatabase/serverless');
+const { compatiblePriceSource } = require('../lib/price-provenance');
 
 // Bounded page size, never a global truncation of the Gold data.
 const pageNumber = value => {
@@ -36,7 +37,7 @@ function buildQuery(query={}) {
   const productMode=query.mode==='products';
   const from=[
     'FROM public.dav_product d',
-    'LEFT JOIN public.price_record p ON p.dav_row_id=d.dav_row_id',
+    'LEFT JOIN public.price_record p ON p.dav_row_id=d.dav_row_id AND '+compatiblePriceSource(),
     clauses.length?'WHERE '+clauses.join(' AND '):''
   ].join(' ');
   const countSql=(productMode?'SELECT COUNT(DISTINCT d.dav_row_id)::bigint AS total_rows ':'SELECT COUNT(*)::bigint AS total_rows ')+from;

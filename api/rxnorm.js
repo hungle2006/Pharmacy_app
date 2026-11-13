@@ -1,5 +1,6 @@
 'use strict';
 const { neon } = require('@neondatabase/serverless');
+const { compatiblePriceSource } = require('../lib/price-provenance');
 
 const pageNumber=value=>{
   const n=Number(value);
@@ -84,7 +85,7 @@ function buildDavReverseQuery({rxcui,kind='scd',review='all',page=1,pageSize=10}
       "FROM filtered f JOIN public.dav_product d ON d.dav_row_id=f.dav_row_id",
       "LEFT JOIN LATERAL (",
       "SELECT pr.price_vnd,pr.price_type,pr.declaration_date,pr.unit",
-      "FROM public.price_record pr WHERE pr.dav_row_id=d.dav_row_id",
+      "FROM public.price_record pr WHERE pr.dav_row_id=d.dav_row_id AND "+compatiblePriceSource('d','pr'),
       "ORDER BY pr.declaration_date DESC NULLS LAST,pr.price_id DESC LIMIT 1",
       ") p ON true",
       "ORDER BY CASE f.match_type WHEN 'ACCEPTED_SCD' THEN 0",

@@ -70,7 +70,7 @@ def digest(row, fields):
     data = json.dumps([row[field] for field in fields], ensure_ascii=False, separators=(",", ":"))
     return hashlib.sha256(data.encode("utf-8")).hexdigest()
 
-def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum=1):
+def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum=1, expected_count=None):
     """CSV is a complete source snapshot (not a delta). Never commit partial crawls."""
     if source not in CANONICAL:
         raise ValueError(f"Unknown source {source}")
@@ -94,12 +94,18 @@ def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum
                 if reader.fieldnames != fields + META:
                     raise ValueError(f"Bronze column schema changed for {source}: {reader.fieldnames} != {fields + META}")
                 for row in reader:
+                    if None in row or any(row.get(k) is None for k in fields + META):
+                        raise ValueError("Malformed existing Bronze row")
+                    if row["__row_hash"] != digest(row, fields):
+                        raise ValueError("Existing Bronze integrity mismatch; refusing overwrite")
                     previous_count += 1
                     existing[key_for(row, keys)] = (row["__row_hash"], row["__operation"], row)
         fresh = {}
         with incoming.open(encoding="utf-8-sig", newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
+                if None in row or any(row.get(k) is None for k in fields):
+                    raise ValueError("Malformed source CSV row")
                 ident = key_for(row, keys)
                 if ident in fresh:
                     # Duplicate natural keys are unsafe for version comparison.
@@ -109,6 +115,15 @@ def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum
                 fresh[ident] = (digest(row, fields), row)
         if len(fresh) < minimum:
             raise ValueError(f"Source {source} has only {len(fresh)} valid rows; expected >= {minimum}")
+        if expected_count is not None and len(fresh) != expected_count:
+            raise ValueError(f"{source}: {len(fresh)} distinct keys, expected {expected_count}")
+        dav_audit = None
+        if source == "dav":
+            from dav_history import classify_snapshot
+            dav_audit = classify_snapshot(
+                {k: {f: value[2][f] for f in fields} for k, value in existing.items() if value[1] != "REMOVE"},
+                {k: value[1] for k, value in fresh.items()},
+            )
         changes = []
         for ident, (newhash, row) in fresh.items():
             old = existing.get(ident)
@@ -126,7 +141,8 @@ def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum
                                     "__ingested_utc": stamp, "__row_hash": oldhash})
         if not changes:
             print(json.dumps({"source": source, "result": "UNCHANGED", "rows_seen": len(fresh), "bronze": remote}))
-            return {"source": source, "status": "unchanged", "new_events": 0, "total_events": previous_count}
+            return {"source": source, "status": "unchanged", "new_events": 0,
+                    "total_events": previous_count, **({"dav_audit": dav_audit} if dav_audit is not None else {})}
         staged = temp / "replacement.csv"
         # Existing history is copied as-is, then new events appended in deterministic ID order.
         with staged.open("w", encoding="utf-8", newline="") as output:
@@ -140,6 +156,12 @@ def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum
                 writer.writerow(change)
         total_events = previous_count + len(changes)
         digest_of_file = sha256_file(staged)
+        # Refuse to overwrite a version changed by another writer during this run.
+        current_head = exists(s3, remote)
+        fingerprint = lambda h: None if h is None else (
+            h.get("ETag"), h.get("ContentLength"), h.get("Metadata", {}).get("sha256"))
+        if fingerprint(current_head) != fingerprint(head):
+            raise RuntimeError("Bronze changed during merge; retry from the new history")
         s3.upload_file(str(staged), BUCKET, remote,
                        ExtraArgs={"ContentType": "text/csv; charset=utf-8", "Metadata": {"sha256": digest_of_file}})
         after = s3.head_object(Bucket=BUCKET, Key=remote)
@@ -148,6 +170,8 @@ def merge_snapshot(s3, source, incoming, keys=None, allow_removes=False, minimum
         result = {"source": source, "status": "updated", "new_events": len(changes),
                   "total_events": total_events, "active_snapshot_rows": len(fresh),
                   "bronze": remote, "sha256": digest_of_file}
+        if dav_audit is not None:
+            result["dav_audit"] = dav_audit
         s3.put_object(Bucket=BUCKET, Key=f"_control/compact/{source}.json",
                       Body=json.dumps(result, ensure_ascii=False).encode(), ContentType="application/json")
         print(json.dumps(result, ensure_ascii=False), flush=True)

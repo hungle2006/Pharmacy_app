@@ -9,6 +9,7 @@ test('PostgreSQL aggregation handles multiple prices, missing prices, filters an
   CREATE TABLE price_record(price_id text,dav_row_id text,price_vnd bigint,currency text,price_type text,declaration_date date,unit text,package text);
   INSERT INTO dav_product VALUES ('d1','r1','Drug A','Ingredient A','500mg','Tablet','Maker A','Việt Nam','Tablet','10 tablets'),('d2','r2','Drug B','Ingredient A','500mg','Tablet','Maker B','Việt Nam','Tablet','10 tablets'),('d3','r3','Drug C','Ingredient C',NULL,NULL,'Maker C','France',NULL,NULL);
   INSERT INTO price_record VALUES ('p1','d1',1000,'VND','declared','2026-01-02','Tablet','10 tablets'),('p2','d1',2000,'VND','declared','2026-02-02','Tablet','10 tablets'),('p3','d2',3000,'VND','declared','2026-02-05','Tablet','10 tablets'),('p4','d2',99,'USD','declared','2026-03-05','Tablet','10 tablets');`);
+  await db.exec("ALTER TABLE dav_product ADD COLUMN source text; ALTER TABLE price_record ADD COLUMN source text;");
   let q=buildQuery({});let r=(await db.query(q.text,q.params)).rows[0];
   assert.equal(Number(r.summary.products),3);assert.equal(Number(r.summary.observations),5);assert.equal(Number(r.summary.priced),3);assert.equal(Number(r.summary.median),2000);
   assert.equal(Number(r.countries.find(x=>x.name==='Việt Nam').value),2);assert.equal(r.comparable.length,1);assert.equal(Number(r.comparable[0].products),2);assert.equal(Number(r.comparable[0].observations),3);

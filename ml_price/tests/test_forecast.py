@@ -59,6 +59,26 @@ class TestFutureForecast(unittest.TestCase):
         self.assertEqual(len(cleaned),len(raw))
         self.assertFalse(cleaned.registration_number.eq("vd-21799-14").any())
 
+    def test_packaging_changes_do_not_form_temporal_pairs(self):
+        raw = self.sample().iloc[:2].copy()
+        raw.loc[raw.index[1], "package"] = "Box 100 tablets"
+        self.assertTrue(make_examples(clean_observations(raw)).empty)
+
+    def test_revised_id_and_conflicting_same_day_prices_require_review(self):
+        raw = self.sample().iloc[:2].copy()
+        raw["dav_row_id"] = "one-source-filing"
+        self.assertTrue(clean_observations(raw).empty)
+        raw = self.sample().iloc[:2].copy()
+        raw["declaration_date"] = raw.iloc[0].declaration_date
+        # Even a small disagreement must not be resolved by arbitrary ID order.
+        self.assertTrue(clean_observations(raw).empty)
+
+    def test_cross_source_numeric_id_collision_is_excluded(self):
+        raw = self.sample().iloc[:2].copy()
+        raw["source_name"] = "SILVER_R2"
+        raw["price_source"] = "DAV_PUBLIC_DRUG_PRICE"
+        self.assertTrue(clean_observations(raw).empty)
+
     def test_quality_gate_and_no_synthetic_forecast_if_rejected(self):
         with tempfile.TemporaryDirectory() as path:
             result=fit_forecast(self.sample(),path)

@@ -120,12 +120,20 @@ def execute(source, s3):
         folder = wd / "crawled"
         folder.mkdir()
         incoming = wd / "snapshot.csv"
+        expected_count = None
         if source == "dav":
             subprocess.run([sys.executable, str(HERE/"crawl_dav.py"), "--output-dir", str(folder)], check=True)
             files = list(folder.glob("dav_gia_ban_buon_20*.csv"))
             if len(files) != 1:
                 raise RuntimeError(f"DAV failed to produce exactly one complete snapshot: {files}")
             incoming = files[0]
+            manifests = list(folder.glob("dav_crawl_manifest_*.json"))
+            if len(manifests) != 1:
+                raise RuntimeError("DAV crawl completion manifest missing")
+            manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
+            if not manifest.get("snapshot_complete") or manifest.get("csv_file") != incoming.name:
+                raise RuntimeError("Partial DAV crawl cannot update Bronze")
+            expected_count = manifest["records_written"]
         elif source == "icd10":
             subprocess.run([sys.executable, str(HERE/"crawl_icd10.py"), "--output-dir", str(folder)], check=True)
             incoming = folder / "ICD10_Vietnam_TT06_2026_FULL.csv"
@@ -152,7 +160,8 @@ def execute(source, s3):
         else:
             raise ValueError(source)
         minimum = {"dav": 1000, "icd10": 1000, "rxnorm": 1000}[source]
-        result = merge_snapshot(s3, source, incoming, minimum=minimum, allow_removes=(source == "rxnorm"))
+        result = merge_snapshot(s3, source, incoming, minimum=minimum,
+                                allow_removes=(source == "rxnorm"), expected_count=expected_count)
         if source == "rxnorm":
             result["release"] = release
             s3.put_object(Bucket=BUCKET, Key="_control/compact/rxnorm.json", Body=json.dumps(result).encode(), ContentType="application/json")

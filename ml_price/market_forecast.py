@@ -160,7 +160,11 @@ def make_market_report(raw, directory="models/market"):
         "source_records":int(len(raw)),
         "clean_observations":int(len(observations)),
         "labeled_pairs":int(len(examples)),
-        "population":"Repeated DAV declarations for the same registration, price type and unit; not all pharmaceuticals and not sales-weighted.",
+        "population":"Repeated DAV source filings with matching registration, specification, packaging, price type and unit; not all pharmaceuticals and not sales-weighted.",
+        "input_policy": {
+            "source_date_semantics": "Legacy source-date column maps to source reception date where provided; not crawl time or a verified retail effective date.",
+            "excluded": "Known cross-source ID collisions, revised filing IDs with multiple dates, conflicting same-day prices, and incomplete comparison specifications.",
+        },
         "horizons":{},
         "approved_horizons":[],
         "historical_only":True,

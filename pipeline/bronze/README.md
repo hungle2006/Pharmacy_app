@@ -19,4 +19,43 @@ Weekly GitHub Actions workflow: `.github/workflows/pharmacy-data-lake.yml`, Tues
 
 **Scripts:** `pipeline/bronze/compact_csv.py` (versioned merges), `pipeline/bronze/run_compact.py` (orchestrator), `pipeline/bronze/crawl_dav.py`, `crawl_icd10.py`, `rxnorm_pipeline.py`, `medi_watch.py`.
 
+## DAV: record versions and actual declaration comparisons
+
+`bronze/dav.csv` is the cumulative history. A changed source record appends a
+new row with the same `dav_row_id`, `__operation=UPDATE`, the new raw values,
+`__row_hash`, and `__ingested_utc`. The old row remains. Identical repeat crawls
+append nothing. `silver/dav.csv` and the crawler's local `MASTER.csv` are
+current-state catalogs, not substitutes for the Bronze version history.
+
+An UPDATE is **not automatically a price movement**. The DAV audit in
+`_control/compact/dav.json` distinguishes:
+
+| Source observation | Storage / interpretation |
+| --- | --- |
+| Same ID, identical contents | No appended event |
+| New ID | Append INSERT; not automatically a price change |
+| Same ID, different price | Append UPDATE; source price revision requiring review |
+| Same ID, changed date or product identity | Append UPDATE; date/identity revision requiring review |
+| Same ID, metadata only | Append UPDATE; not a price movement |
+| New ID, later source date, exact comparable attributes and unambiguous prior price | Compare declared prices; distinguish changed and unchanged |
+| A record disappears | Retain history; absence is unverified, not a recall or price decrease |
+
+Comparison requires registration, ingredient, strength, form, manufacturer,
+country, packaging, unit, price type, and declaring company. Missing fields or
+conflicting prior prices prevent an automatic change classification. Initial
+collection does not infer a change solely because a record is new to the app.
+
+The source field currently mapped to `dav_declaration_date` is **`ngayTiepNhan`
+(source reception date)**. This legacy column name is retained for schema
+compatibility. It is not the crawl date, a verified effective-price date, or a
+daily retail quote. `__ingested_utc` records when the app observed the version.
+
+The crawler emits a completion manifest. Full ingestion rejects missing IDs,
+conflicting repeated IDs, incomplete row counts, and a changing `totalCount`.
+`--max-rows` is a partial sample and cannot update canonical Bronze through
+`run_compact.py`. This detects observed paging problems; it does not prove that
+the provider's full historical archive is exposed by this active-record endpoint.
+
+See [the audit and model implications](../../docs/dav-price-history.md).
+
 **R2 secrets:** `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`; never commit actual secret values.
