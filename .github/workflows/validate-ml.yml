@@ -8,6 +8,7 @@ on:
       - 'assets/market-forecast.js'
       - 'assets/drug-lookup.js'
       - '.github/workflows/train-price-model.yml'
+      - '.github/workflows/train-feature-price.yml'
       - '.github/workflows/validate-ml.yml'
       - 'render.yaml'
   push:
@@ -18,6 +19,7 @@ on:
       - 'assets/market-forecast.js'
       - 'assets/drug-lookup.js'
       - '.github/workflows/train-price-model.yml'
+      - '.github/workflows/train-feature-price.yml'
       - '.github/workflows/validate-ml.yml'
       - 'render.yaml'
 permissions:

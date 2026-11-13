@@ -25,15 +25,8 @@ MIN_PRODUCTS = 500
 
 
 def prepare(raw):
-    df = raw.copy()
-    df['price_vnd'] = pd.to_numeric(df.price_vnd, errors='coerce')
-    df['declaration_date'] = pd.to_datetime(df.declaration_date, errors='coerce', utc=True)
-    df = df[np.isfinite(df.price_vnd) & df.price_vnd.gt(0) &
-            df.declaration_date.notna() & df.declaration_date.le(pd.Timestamp.now(tz='UTC'))].copy()
-    for col in FEATURES:
-        df[col] = df[col].map(normalize)
-    df = df[df.ingredient.ne('UNKNOWN')].copy()
-    return clean_data(df)
+    from ml_price.feature_dataset import latest_snapshot
+    return latest_snapshot(raw)[0]
 
 
 def split_dates(df):
@@ -66,7 +59,8 @@ def metrics(y,p):
 
 
 def fit_segment(raw,folder,version,iterations=650):
-    df = prepare(raw)
+    from ml_price.feature_dataset import latest_snapshot
+    df, snapshot_audit = latest_snapshot(raw)
     train,val,cal,test = split_dates(df)
     priors = build_priors(train)
     base_val,_ = predict_with_priors(val[FEATURES],priors)
@@ -116,7 +110,7 @@ def fit_segment(raw,folder,version,iterations=650):
         'n_calibration':len(cal),'n_test':len(test),'split_method':'registration_disjoint_strict_dates_60_15_10_15',
         'split_dates':{k:[str(p.declaration_date.min().date()),str(p.declaration_date.max().date())]
                        for k,p in zip(('train','validation','calibration','test'),(train,val,cal,test))},
-        'features':FEATURES,'selected_model':name,'catboost_weight':alpha,'validation_mae_vnd':round(val_mae,2),
+        'snapshot_audit':snapshot_audit,'features':FEATURES,'selected_model':name,'catboost_weight':alpha,'validation_mae_vnd':round(val_mae,2),
         'validation_candidates':[{'model':nm,'best_weight':w,'mae_vnd':round(mae,2)}
              for nm in ('catboost_log_rmse','catboost_log_mae','catboost_vnd_mae')
              for mae,_,w,_,_ in [min((x for x in candidates if x[1]==nm),key=lambda x:(x[0],x[2]))]],
@@ -164,7 +158,7 @@ def train_all(raw,directory='models/features'):
             'target':'Positive observed declared VND price per source unit; not future or retail price',
             'excluded_features':['drug_name','dav_row_id','registration_number','price_vnd','selected_scd_rxcui'],
             'method':'Latest positive dated price per registration within each price type and unit. Strictly separate dates and registrations across train, validation, calibration and test. Validation selects the candidate/blend, calibration fits 90% log-residual intervals, test is untouched. No refit after testing.',
-            'limitations':['Historical declared prices are heterogeneous and may be outdated.',
+            'limitations':['Historical declared prices are heterogeneous and may be outdated. Legacy dates remain unverified; crawl time is never used as price date.',
               'Unknown ingredients are refused; other unseen categories trigger an explicit warning.',
               'Conformal intervals are calibrated on earlier data; time drift can reduce test coverage below 90%.',
               'Feature importance describes the CatBoost component, not causality; zero CatBoost weight means the group-median baseline is used.',
