@@ -40,6 +40,14 @@ class TestMarketTrends(unittest.TestCase):
             self.assertEqual(report["kind"],"dav-market-price-trend")
             self.assertEqual(set(report["horizons"]),{"3","6","12"})
             self.assertEqual(report["label_policy_version"],"irregular-filing-window-v1")
+            for horizon in ("3","6","12"):
+                entries=report["horizons"][horizon]["candidate_scenarios"]
+                self.assertEqual({x["name"] for x in entries},
+                                 {"time_weighted","hierarchical","temporal_ridge"})
+                self.assertTrue(all(x["status"]=="unvalidated_exploratory_scenario"
+                                    for x in entries))
+                self.assertTrue(all(np.isfinite(x["conditional_change_pct"]) for x in entries))
+
             self.assertEqual(set(report["label_audit"]),{"3","6","12"})
             self.assertGreater(report["labeled_pairs"],0)
             for item in report["horizons"].values():
