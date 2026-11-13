@@ -1,4 +1,5 @@
 const { neon } = require('@neondatabase/serverless');
+const { compatiblePriceSource } = require('../lib/price-provenance');
 const number = v => Number.isFinite(Number(v)) ? Math.max(1, Math.min(100000, Math.floor(Number(v) || 1))) : 1;
 function buildQuery(query = {}) {
   const params = [], clauses = [];
@@ -19,7 +20,7 @@ function buildQuery(query = {}) {
       CASE WHEN p.price_vnd >= 0 AND (p.currency = 'VND' OR p.currency IS NULL OR p.currency = '') THEN p.price_vnd ELSE NULL END AS price_vnd,
       NULLIF(p.price_type,'') AS price_type, p.declaration_date AS snapshot_date,
       COALESCE(NULLIF(p.unit,''),NULLIF(d.unit,'')) AS unit, COALESCE(NULLIF(p.package,''),NULLIF(d.package,'')) AS package
-    FROM public.dav_product d LEFT JOIN public.price_record p ON p.dav_row_id = d.dav_row_id
+    FROM public.dav_product d LEFT JOIN public.price_record p ON p.dav_row_id = d.dav_row_id AND ${compatiblePriceSource()}
     ${clauses.length ? 'WHERE ' + clauses.join(' AND ') : ''}
   ), unique_products AS (SELECT DISTINCT ON (id) * FROM base ORDER BY id, snapshot_date DESC NULLS LAST, price_id),
   summary AS (SELECT COUNT(*) AS observations, COUNT(DISTINCT id) AS products,

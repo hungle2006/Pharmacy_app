@@ -10,7 +10,7 @@ import random
 import re
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
@@ -39,6 +39,8 @@ FIELD_MAP = {
     "dav_manufacturer": ["doanhNghiepSanXuat", "DoanhNghiepSanXuat"],
     "dav_country": ["nuocSanXuat", "NuocSanXuat"],
     "dav_registration_number": ["soDangKy", "SoDangKy"],
+    # This endpoint exposes ngayTiepNhan (reception date). Preserve that source
+    # field; do not describe it as an effective retail-price date or crawl date.
     "dav_declaration_date": ["ngayTiepNhan", "NgayTiepNhan"],
     "dav_price_vnd": ["giaBanBuonDuKien", "GiaBanBuonDuKien"],
     "dav_retail_price_vnd": ["giaBanLeDuKien", "GiaBanLeDuKien"],
@@ -259,19 +261,33 @@ def crawl(
     existing_snapshots = sorted(output_dir.glob("dav_gia_ban_buon_20*.csv"))
     previous_csv = existing_snapshots[-1] if existing_snapshots else None
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    started_at = datetime.now(timezone.utc)
+    timestamp = started_at.strftime("%Y%m%d_%H%M%S")
     csv_path = output_dir / f"dav_gia_ban_buon_{timestamp}.csv"
     jsonl_path = output_dir / f"dav_gia_thuoc_raw_{timestamp}.jsonl"
 
     session, landing_url = prepare_session(base_url)
+    crawl_successful = False
     try:
         first = get_page(session, base_url, 0, page_size, sorting=sorting)
         total_value = first.get("totalCount")
-        last_total = int(total_value) if total_value is not None else None
+        try:
+            last_total = int(total_value) if total_value is not None else None
+        except (TypeError, ValueError) as exc:
+            raise DAVError(f"API totalCount khong hop le: {total_value!r}") from exc
+        if last_total is not None and last_total < 0:
+            raise DAVError(f"API totalCount am: {last_total}")
+        if last_total is None and max_rows is None:
+            raise DAVError(
+                "API khong tra totalCount; tu choi danh dau lan crawl day du la hoan tat"
+            )
+        initial_total = last_total
         print(f"[DAV] Bat dau crawl snapshot {timestamp} | totalCount={last_total}, max_rows={max_rows}")
 
-        seen_ids: set[str] = set()
+        seen_ids: dict[str, dict[str, Any]] = {}
         written_count = 0
+        pages_fetched = 0
+        total_count_changed = False
         skip = 0
 
         with csv_path.open("w", encoding="utf-8-sig", newline="") as fcsv, \
@@ -283,41 +299,40 @@ def crawl(
             while True:
                 page = first if skip == 0 else get_page(session, base_url, skip, page_size, sorting=sorting)
                 items = page.get("items", [])
+                pages_fetched += 1
+                try:
+                    curr_total = int(page["totalCount"])
+                except (KeyError, TypeError, ValueError) as exc:
+                    raise DAVError("Missing/invalid totalCount while paging") from exc
+                if curr_total < 0:
+                    raise DAVError("Negative totalCount while paging")
+                if curr_total != initial_total:
+                    total_count_changed = True
+                    last_total = curr_total
+                    if max_rows is None:
+                        raise DAVError("DAV totalCount changed during crawl; retry a stable snapshot")
                 if not items:
                     break
-
-                # Kiểm tra nếu DAV cập nhật thêm/bớt dữ liệu ngay trong lúc đang crawl
-                curr_total_val = page.get("totalCount")
-                curr_total = int(curr_total_val) if curr_total_val is not None else None
-                if last_total is not None and curr_total is not None and curr_total != last_total:
-                    drift = abs(curr_total - last_total)
-                    print(
-                        f"[DAV] Phat hien DAV cap nhat du lieu khi dang crawl! "
-                        f"totalCount thay doi tu {last_total:,} -> {curr_total:,} (lech {drift} ban ghi)."
-                    )
-                    last_total = curr_total
-                    # Nếu tổng số dòng giảm (có bản ghi bị rút), lùi skipCount lại để không nhảy cóc bản ghi ở ranh giới
-                    backtrack = min(skip, drift + 10)
-                    if backtrack > 0:
-                        skip = max(0, skip - backtrack)
-                        print(f"[DAV] Tu dong lui skipCount ve {skip:,} de chong sot ban ghi.")
-                        page = get_page(session, base_url, skip, page_size, sorting=sorting)
-                        items = page.get("items", [])
 
                 for record in items:
                     if max_rows is not None and written_count >= max_rows:
                         break
 
                     rec_id = pick(record, FIELD_MAP["dav_row_id"])
-                    rec_id_str = str(rec_id) if rec_id is not None else f"no_id_{skip}_{written_count}"
+                    if rec_id is None or not str(rec_id).strip():
+                        raise DAVError("Source record has no DAV ID; cannot reconcile versions safely")
+                    rec_id_str = str(rec_id).strip()
+                    converted = convert(record, landing_url)
 
                     # Lọc bỏ nếu bản ghi bị lặp lại do lùi skipCount hoặc do DAV chèn thêm bản ghi ở trang đầu
                     if rec_id_str in seen_ids:
+                        if seen_ids[rec_id_str] != converted:
+                            raise DAVError("Same DAV ID changed during pagination; retry a stable crawl")
                         continue
 
-                    seen_ids.add(rec_id_str)
+                    seen_ids[rec_id_str] = converted
                     fjson.write(json.dumps(record, ensure_ascii=False) + "\n")
-                    writer.writerow(convert(record, landing_url))
+                    writer.writerow(converted)
                     written_count += 1
 
                 fcsv.flush()
@@ -337,6 +352,47 @@ def crawl(
         print(f"[DAV] Hoan tat Snapshot! CSV: {csv_path.resolve()}")
         print(f"[DAV] Hoan tat Snapshot! RAW: {jsonl_path.resolve()}")
 
+        expected_rows = (
+            min(max_rows, last_total) if max_rows is not None and last_total is not None
+            else max_rows if max_rows is not None
+            else last_total
+        )
+        if expected_rows is not None and written_count != expected_rows:
+            raise DAVError(
+                f"Snapshot khong day du: da ghi {written_count:,}, "
+                f"API/yeu cau {expected_rows:,} ban ghi; khong duoc nap vao Bronze"
+            )
+        if max_rows is None and total_count_changed:
+            raise DAVError(
+                f"DAV thay doi totalCount trong luc crawl "
+                f"({initial_total:,} -> {last_total:,}); chay lai de lay snapshot on dinh"
+            )
+
+        manifest_path = output_dir / f"dav_crawl_manifest_{timestamp}.json"
+        manifest = {
+            "source": "DAV public drug-price API",
+            "landing_url": landing_url,
+            "started_at_utc": started_at.isoformat(),
+            "finished_at_utc": datetime.now(timezone.utc).isoformat(),
+            "initial_total_count": initial_total,
+            "final_total_count": last_total,
+            "page_size": page_size,
+            "pages_fetched": pages_fetched,
+            "max_rows": max_rows,
+            "expected_rows": expected_rows,
+            "records_written": written_count,
+            "snapshot_complete": max_rows is None and expected_rows == written_count,
+            "source_date_field": "ngayTiepNhan",
+            "date_semantics": "source reception date; not crawl time or retail effective date",
+            "csv_file": csv_path.name,
+            "jsonl_file": jsonl_path.name,
+        }
+        manifest_path.write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        crawl_successful = True
+        print(f"[DAV] Manifest crawl: {manifest_path.resolve()}")
+
         # Tự động đối chiếu với file của lần crawl trước nếu có
         if previous_csv is not None:
             reconcile_snapshots(previous_csv, csv_path, output_dir, timestamp)
@@ -349,6 +405,9 @@ def crawl(
         return csv_path
     finally:
         session.close()
+        if not crawl_successful:
+            csv_path.unlink(missing_ok=True)
+            jsonl_path.unlink(missing_ok=True)
 
 
 def main() -> None:
@@ -358,7 +417,7 @@ def main() -> None:
     parser.add_argument("--page-size", type=int, default=DEFAULT_PAGE_SIZE)
     parser.add_argument("--max-rows", type=int)
     parser.add_argument("--delay", type=float, default=1.0)
-    parser.add_argument("--sorting", default=None, help="Truong sap xep API (VD: 'id ASC' hoac 'ngayTiepNhan DESC')")
+    parser.add_argument("--sorting", default="id ASC", help="Truong sap xep API (VD: 'id ASC' hoac 'ngayTiepNhan DESC')")
     args = parser.parse_args()
     try:
         crawl(Path(args.output_dir), args.base_url, args.page_size, args.max_rows, args.delay, args.sorting)

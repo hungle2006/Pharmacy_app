@@ -23,11 +23,13 @@ SELECT d.dav_row_id, d.registration_number,
        d.dosage_form_raw AS dosage_form, d.manufacturer, d.country,
        d.package AS product_package,
        COALESCE(NULLIF(p.package,''), NULLIF(d.package,'')) AS package,
+       d.source AS source_name, p.source AS price_source,
        p.declaration_date, p.price_vnd, p.price_type,
        COALESCE(NULLIF(p.unit,''), NULLIF(d.unit,'')) AS unit
 FROM public.dav_product d
 JOIN public.price_record p ON p.dav_row_id=d.dav_row_id
 WHERE p.price_vnd > 0 AND p.currency='VND' AND p.declaration_date IS NOT NULL
+  AND NOT (COALESCE(d.source,'')='SILVER_R2' AND COALESCE(p.source,'')='DAV_PUBLIC_DRUG_PRICE')
 """
 
 def load_gold():
@@ -45,6 +47,8 @@ def load_gold():
 def clean_observations(raw):
     from ml_price.segments import canonical
     df = raw.copy()
+    if {"source_name", "price_source"}.issubset(df.columns):
+        df = df[~(df.source_name.eq("SILVER_R2") & df.price_source.eq("DAV_PUBLIC_DRUG_PRICE"))].copy()
     for k in CATEGORICAL + ["registration_number", "product_package"]:
         if k not in df:
             df[k] = ""
@@ -71,9 +75,25 @@ def clean_observations(raw):
     df["date"] = df["declaration_date"].dt.normalize()
     # Repeated entries at the same declared date do not create time observations.
     # Where same-day prices strongly disagree, do not invent a median price.
-    keys = ["registration_number", "price_type", "unit", "date"]
+    # A revision of ONE DAV source ID is not a second independent declaration.
+    # Without version lineage, multiple dates for that ID require review.
+    id_keys = ["dav_row_id", "price_type", "unit"]
+    multiple_dates = df.groupby(id_keys)["date"].transform("nunique").gt(1)
+    df = df[~multiple_dates].copy()
+    if df.empty:
+        return df.assign(comparison_key=pd.Series(dtype=str))
+    # Missing specifications cannot establish exact comparable-price history.
+    complete = df[CATEGORICAL].apply(lambda col: col.map(canonical)).apply(
+        lambda col: ~col.isin(["", "unknown", "n/a", "#n/a", "null", "-"])).all(axis=1)
+    df = df[complete].copy()
+    if df.empty:
+        return df.assign(comparison_key=pd.Series(dtype=str))
+    # Compare the same specification and packaging, not just a registration.
+    df["comparison_key"] = df.apply(lambda row: json.dumps(
+        [canonical(row[k]) for k in CATEGORICAL], ensure_ascii=False), axis=1)
+    keys = ["registration_number", "comparison_key", "date"]
     prices = df.groupby(keys, sort=False).price_vnd.agg(["min", "max"])
-    safe = prices[(prices["max"] <= 3 * prices["min"])].index
+    safe = prices[prices["max"].eq(prices["min"])].index
     df = df.set_index(keys).loc[safe].reset_index()
     df = df.sort_values(["date", "dav_row_id"]).drop_duplicates(keys, keep="last")
     return df.sort_values(keys).reset_index(drop=True)
@@ -92,8 +112,8 @@ def make_feature(observation, previous, horizon):
 
 def make_examples(observations):
     rows = []
-    gcols = ["registration_number", "price_type", "unit"]
-    for (reg,typ,unit), grp in observations.groupby(gcols, sort=False):
+    gcols = ["registration_number", "comparison_key"]
+    for (reg, signature), grp in observations.groupby(gcols, sort=False):
         grp = grp.sort_values("date")
         if len(grp) < 2:
             continue
