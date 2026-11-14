@@ -127,6 +127,15 @@
       // Close menus on other chapter toolbars before opening this one.
       document.dispatchEvent(new CustomEvent('pharmabiz:focus-menu-open',{detail:{source:menu}}));
       menuSearch.value='';drawMenu();menu.hidden=false;
+      // Keep the list inside the visual viewport even if the toolbar is near its bottom.
+      const box=trigger.getBoundingClientRect();
+      const bottomSafe=matchMedia('(max-width:760px)').matches?82:18;
+      const below=Math.max(0,innerHeight-bottomSafe-box.bottom-7);
+      const above=Math.max(0,box.top-18);
+      const openUp=below<Math.min(300,menu.scrollHeight)&&above>below;
+      menu.classList.toggle('focus-menu-up',openUp);
+      const room=openUp?above:below;
+      menu.style.maxHeight=Math.max(118,Math.min(440,room-8))+'px';
       trigger.setAttribute('aria-expanded','true');
       menuSearch.focus({preventScroll:true});
     }
