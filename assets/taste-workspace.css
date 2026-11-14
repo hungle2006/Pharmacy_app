@@ -185,6 +185,7 @@
  text-shadow:0 1px 0 #ffffff55;
 }
 .workspace-page #app .taste-mosaic-piece:last-child{border-right:0}
+.workspace-page #app .taste-mosaic-piece span,.workspace-page #app .taste-mosaic-piece b{max-width:100%;background:#102b2ce6;color:#fff;padding:4px 7px;border-radius:6px;text-shadow:none}
 .workspace-page #app .taste-mosaic-piece span{font-size:12px;line-height:1.35;font-weight:700;overflow-wrap:anywhere}
 .workspace-page #app .taste-mosaic-piece b{font-size:clamp(18px,2vw,27px);line-height:1.12;font-weight:720}
 .workspace-page #app .taste-mosaic-piece:focus-visible{outline:3px solid var(--ink);outline-offset:-4px}
