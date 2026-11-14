@@ -31,7 +31,7 @@ test('searchable ingredient dropdown has bounded options, accessible keyboard an
  assert.match(ui,/role="listbox"/);
  assert.match(ui,/aria-expanded/);
  assert.match(ui,/ArrowDown/);
- assert.match(ui,/pharmabiz:lookup-filters/); // In integration across files below
+ assert.match(ui,/native\.dispatchEvent\(new Event\('change',\{bubbles:true\}\)\)/);
  const presentation=read('assets/presentation.js');
  const lookup=read('assets/drug-lookup.js');
  assert.match(presentation,/pharmabiz:lookup-filters/);
