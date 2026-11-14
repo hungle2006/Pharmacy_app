@@ -38,3 +38,24 @@ Ngày rà soát: 15/11/2026. Scope: Start, workspace header, chapter selector, s
 ## Evidence status
 - Previously confirmed in Chromium: custom chapter menu at 1440/1024/768/375/320px, 65/65 existing tests, zero horizontal page overflow; detected and fixed 7px popup clipping on 320/375px.
 - New Start and responsive changes require fresh browser runs; treat as **pending verification** until results are recorded.
+
+
+## Additional measured findings (Chromium)
+
+| ID | Evidence | Remediation / status |
+| --- | --- | --- |
+| UI-15 | Desktop quick-search submit button measured 20×30px; target should be ≥44px | Set an actual 44×44px hit area, not just a larger icon; pending final recheck |
+| UI-16 | Mobile lookup filter toggle measured 78px tall at 375px and 115px tall at 320px despite collapsed state | Shorten the accompanying description and standardize a 46px-wide full-row toggle; full source criteria remain expandable |
+| UI-17 | Mobile lookup "Cách đọc kết quả" explanation measured 71px collapsed due to overly verbose summary | Shorten collapsed caption to "Cách đọc kết quả", preserve full explanation inside the details |
+| UI-18 | Lookup retry button measured 77×40px | Increase minimum hit height to 44px |
+| UI-19 | After filter height fix, filter toggle initially occupied only half of a 300px row due to upstream two-column grid precedence | Explicit one-column collapsed layout with full-width action |
+
+### Latest browser measurements before final review
+- Start 320×568: CTA rectangle y=467–516, 49px high; footer 525–568; width=320px with no horizontal overflow.
+- Start 375×812: CTA y=618–675, 57px high; preserved 3D stage; no horizontal overflow.
+- Across 320,375,390,768,1024,1440px: Start click succeeded, dashboard shown, button state restored, no JS errors during the tested flow.
+- Primary workspace views (research, pricing, lookup, disease and market forecast) at 1440/768/375/320px: no overall horizontal page overflow.
+- Lookup mobile collapsed filters before fix: results panel began at ~649px (375px screen) / ~687px (320px screen). After compact label + toggle sizing, result panel began ~584px in both; no removed data fields.
+- Focus popup previously measured inside viewport at 320/375, after fixing initial 7px upward clipping.
+
+These checks verify Chromium layout, not native Safari/iPhone or every individual API state.
