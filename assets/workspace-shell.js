@@ -41,11 +41,9 @@
   sourceAction.className='ws-action ws-source-action';
   sourceAction.innerHTML=icon('document')+'<span>Bản ghi</span>';
   sourceAction.title='Mở bản ghi và số liệu nguồn';sourceAction.setAttribute('aria-label','Mở danh sách bản ghi nguồn');
-  const taskAction=document.createElement('button');taskAction.type='button';
-  taskAction.className='ws-action ws-task-action';
-  taskAction.innerHTML=icon('layers')+'<span>Chọn tác vụ</span><kbd>Ctrl K</kbd>';
-  taskAction.setAttribute('aria-label','Tìm và chuyển tác vụ');
-  actions.append(sourceAction,taskAction);
+  // Task navigation stays in the desktop sidebar and mobile bottom bar.
+  // The redundant "Chọn tác vụ" header button is deliberately removed.
+  actions.append(sourceAction);
   if(exportButton)actions.append(exportButton);
   head.append(actions);
 
@@ -122,7 +120,7 @@
     if(restoreFocus&&paletteTrigger?.isConnected)paletteTrigger.focus({preventScroll:true});
     lock();
   }
-  function openPalette(trigger=taskAction){
+  function openPalette(trigger=$('menu')||$('page-title')){
     closeSheet(false);
     paletteTrigger=trigger;
     palette.hidden=false;input.value='';paletteIndex=0;paintPalette();lock();
@@ -146,14 +144,13 @@
       paletteIndex=(paletteIndex+(e.key==='ArrowDown'?1:-1)+paletteItems.length)%paletteItems.length;paintPalette();
     }else if(e.key==='Enter'){e.preventDefault();if(paletteItems[paletteIndex])choosePalette(paletteItems[paletteIndex].id);}
   });
-  taskAction.addEventListener('click',()=>openPalette(taskAction));
   sourceAction.addEventListener('click',()=>{
     const panel=$('records-panel');
     if(panel&&!panel.hidden)openSheet(panel,'Bản ghi dữ liệu nguồn',sourceAction,'records');
   });
   document.addEventListener('keydown',e=>{
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&!e.altKey){
-      if(app.hidden)return;e.preventDefault();palette.hidden?openPalette(taskAction):closePalette();
+      if(app.hidden)return;e.preventDefault();palette.hidden?openPalette(document.activeElement&&app.contains(document.activeElement)?document.activeElement:($('menu')||$('page-title'))):closePalette();
     }
     if(e.key==='Escape'){
       if(!palette.hidden){e.preventDefault();closePalette();}
