@@ -117,16 +117,16 @@ test('Start motion has synchronized 440ms exit, app reveal and optional reduced 
  assert.match(presentation,/matches\?0:440/);
  assert.match(motion,/function reveal\(\)/);
  assert.match(css, /animation:pb-start-exit 440ms/);
- assert.match(css, /\\.start-btn:active:not\\(:disabled\\)/);
- assert.match(css, /@media\\(prefers-reduced-motion:reduce\\)/);
+ assert.ok(css.includes('.start-btn:active:not(:disabled)'));
+ assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'));
 });
 test('responsive element spacing covers compact phone heights without replacing Blender scene',()=>{
  const css=read('assets/responsive-polish.css');
  const html=read('index.html');
- assert.match(css,/@media\\(max-width:760px\\) and \\(max-height:690px\\)/);
+ assert.ok(css.includes('@media(max-width:760px) and (max-height:690px)'));
  assert.match(css,/height:100dvh/);
  assert.match(css,/min-height:48px/);
- assert.match(css,/@media\\(max-width:370px\\)/);
+ assert.ok(css.includes('@media(max-width:370px)'));
  assert.match(css,/#mobile-taskbar button/);
  assert.ok(html.indexOf('assets/responsive-polish.css')>html.indexOf('assets/workspace-shell.css'));
  assert.match(html,/<canvas id="scene"/);
