@@ -459,3 +459,20 @@ body.ws-detail-active{overflow:hidden}
 @media print{
  .workspace-page #app #records-disclosure{display:block!important}
 }
+
+
+/* Keep everyday actions on one mobile row: details, task switch and CSV export. */
+.workspace-page #app .ws-head-actions #export{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ font-weight:650;
+}
+@media(max-width:760px){
+ .workspace-page #app .ws-head-actions:has(.ws-source-action:not([hidden])):has(#export:not([hidden])){
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px;
+ }
+ .workspace-page #app .ws-head-actions #export:not([hidden]){
+  grid-column:auto;width:44px;min-width:44px;max-width:44px;
+  min-height:44px;padding:0!important;display:grid;place-items:center;
+ }
+ .workspace-page #app .ws-head-actions #export .ws-export-label{display:none}
+}
