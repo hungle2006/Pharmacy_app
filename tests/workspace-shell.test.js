@@ -59,3 +59,17 @@ test('button motion remains subtle and cannot conflict with old whole-app WAAPI 
  assert.match(css,/transform:scale\(\.978\)/);
  assert.match(css,/transition-duration:90ms/);
 });
+
+
+test('direct lookup URL reattaches its filter row after deferred UI initializes',()=>{
+ const premium=read('assets/premium-ui.js');
+ assert.match(premium,/requestAnimationFrame\(\(\)=>\{if\(document\.body\.dataset\.activeView==='lookup'\)/);
+ assert.match(premium,/pharmabiz:lookup-view/);
+ assert.match(premium,/form\.after\(filters\)/);
+});
+test('record detail sheet does not get wrapped inside a new collapsed details container',()=>{
+ const focus=read('assets/focus-workspace.js');
+ const css=read('assets/workspace-shell.css');
+ assert.match(focus,/records\?\.closest\('\.ws-sheet-body'\)\?null:fold\(records/);
+ assert.match(css,/#records-disclosure:not\(\.ws-in-sheet\)\{display:none!important\}/);
+});
