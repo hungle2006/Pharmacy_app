@@ -472,3 +472,6 @@
  .workspace-page #app .filters #reset{order:0;grid-column:1/-1;grid-row:auto}
  .workspace-page #app #filter-toggle[aria-expanded=true]>svg{transform:rotate(180deg)}
 }
+
+/* Final appendix pass: keep report tabs readable inside the fixed mobile header. */
+@media(max-width:850px){.report-page{--top:132px}.report-page .report-switch{height:44px;min-height:44px;max-width:100%;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;margin-top:0;scrollbar-width:none}.report-page .report-switch button{flex:0 0 auto;min-height:36px;padding:7px 10px;white-space:nowrap;font-size:11px;line-height:1.3}.report-page .report-switch::-webkit-scrollbar{display:none}}
