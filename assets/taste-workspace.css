@@ -295,3 +295,11 @@
 @media(prefers-reduced-motion:reduce){
  .workspace-page #app .market-horizon-grid button,.workspace-page #app .lookup-item{transition:none!important;transform:none!important}
 }
+
+/* Long VND prices stay inside the mobile result panel. */
+@media(max-width:760px){
+ .workspace-page #app .taste-price-interval-labels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 10px}
+ .workspace-page #app .taste-price-interval-labels strong{grid-column:1/-1;grid-row:1;font-size:12px;overflow-wrap:anywhere}
+ .workspace-page #app .taste-price-interval-labels span{font-size:11px;overflow-wrap:anywhere;min-width:0}
+ .workspace-page #app .taste-price-interval-labels span:last-child{text-align:right}
+}
