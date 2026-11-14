@@ -185,4 +185,7 @@
   buttons[n].click();buttons[n].focus();
  });
  document.addEventListener('pharmabiz:lookup-detail-render',e=>decorateDetail(e.detail?.mode==='rx'?'rx':'dav'));
+ // A direct ?view=lookup deep link may activate before this deferred module binds listeners.
+ // Reapply layout only after all deferred scripts initialize, keeping navigation paths identical.
+ requestAnimationFrame(()=>{if(document.body.dataset.activeView==='lookup')document.dispatchEvent(new CustomEvent('pharmabiz:lookup-view',{detail:{active:true}}));});
 })();

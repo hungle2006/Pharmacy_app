@@ -287,7 +287,7 @@
       state.selection=null;resetDetails();renderItems();
     };
     if(matchMedia('(max-width: 980px)').matches)
-      details.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth',block:'start'});
+      document.dispatchEvent(new CustomEvent('pharmabiz:lookup-detail-open'));
     details.focus({preventScroll:true});
   }
   async function selectItem(index,auto=false){
