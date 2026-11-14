@@ -444,3 +444,18 @@ body.ws-detail-active{overflow:hidden}
  .workspace-page #app #records-panel:not(.ws-in-sheet){display:block!important}
  .workspace-page #app .focus-page{max-height:none;overflow:visible}
 }
+
+
+/* A one-tap source sheet replaces the old long inline records accordion. */
+.workspace-page #app #records-disclosure:not(.ws-in-sheet){display:none!important}
+@media(max-width:760px){
+ .workspace-page #app .ws-head-actions:not(:has(.ws-source-action:not([hidden]))){
+   grid-template-columns:minmax(0,1fr);
+ }
+ .workspace-page #app .ws-head-actions:not(:has(.ws-source-action:not([hidden]))) .ws-task-action{
+   grid-column:1/-1;
+ }
+}
+@media print{
+ .workspace-page #app #records-disclosure{display:block!important}
+}
