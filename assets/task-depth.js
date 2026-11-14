@@ -8,7 +8,12 @@ function monthIndex(name){return /^\d{4}-\d{2}$/.test(name)?Number(name.slice(0,
 function recent(rows,range){const a=(rows||[]).filter(r=>monthIndex(r.name)!==null).sort((a,b)=>a.name.localeCompare(b.name));if(!a.length||range==='all')return a;const end=monthIndex(a.at(-1).name);return a.filter(r=>monthIndex(r.name)>end-Number(range));}
 function spreads(rows){return (rows||[]).filter(r=>finite(r.median)&&Number(r.median)>0&&finite(r.p10)&&finite(r.p90)).map(r=>({...r,low:Number(r.p10)/Number(r.median)*100,high:Number(r.p90)/Number(r.median)*100}));}
 function completeness(q){return Object.entries({drug_name:'Tên thuốc',ingredient:'Hoạt chất',strength:'Hàm lượng',dosage_form:'Dạng bào chế',manufacturer:'Nhà sản xuất',country:'Quốc gia',unit:'Đơn vị giá'}).map(([key,name])=>({key,name,value:Math.max(0,n(q?.[key])),missing:Math.max(0,n(q?.total)-n(q?.[key]))})).sort((a,b)=>b.missing-a.missing);}
-const exports={groupOther,monthIndex,recent,spreads,completeness};
+const priceBandSeries=bins=>{
+ const names=['Dưới 1.000','1.000–<5.000','5.000–<10.000','10.000–<50.000','50.000–<100.000','Từ 100.000'];
+ const counts=new Map((bins||[]).filter(r=>Number.isInteger(Number(r.bucket))&&Number(r.bucket)>=0&&Number(r.bucket)<6).map(r=>[Number(r.bucket),Math.max(0,n(r.value))]));
+ return names.map((name,i)=>({name:name+' ₫',value:counts.get(i)||0}));
+};
+const exports={groupOther,monthIndex,recent,spreads,completeness,priceBandSeries};
 if(typeof module!=='undefined'&&module.exports)module.exports=exports;
 if(typeof window==='undefined')return;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -20,7 +25,7 @@ let active=null;
 const tip=(a,b)=>'tabindex="0" data-tip="'+esc(a)+'" data-value="'+esc(b)+'"';
 const note=t=>'<p class="depth-reading">'+esc(t)+'</p>';
 const grid=(a,b)=>'<div class="depth-grid">'+a+b+'</div>';
-const panel=(id,title,sub,body,read='')=>'<section class="panel depth-panel" id="chart-'+id+'"><div class="panel-head"><div><h2>'+esc(title)+'</h2><p>'+esc(sub)+'</p></div></div>'+body+(read?note(read):'')+'</section>';
+const panel=(id,title,sub,body,read='')=>'<section class="panel depth-panel" data-viz="'+esc(({ 'overview-time':'time','overview-country':'ring','overview-ingredient':'rank','pricing-bands':'lollipop','pricing-ranges':'range','pricing-comparable':'table','pricing-time':'time','competition-scatter':'scatter','competition-rank':'rank','competition-coverage':'rank','portfolio-mix':'mosaic','portfolio-forms':'rank','portfolio-countries':'rank','portfolio-ingredients':'table','quality-fields':'quality','quality-status':'rank','quality-flags':'quality','quality-actions':'table','forecast-history':'range' }[id]||'data'))+'" id="chart-'+id+'"><div class="panel-head"><div><h2>'+esc(title)+'</h2><p>'+esc(sub)+'</p></div></div>'+body+(read?note(read):'')+'</section>';
 const table=(headers,rows)=>'<div class="table-scroll"><table><thead><tr>'+headers.map(t=>'<th scope="col">'+esc(t)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(t=>'<td>'+esc(t)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 const source=(headers,rows,scope)=>'<details class="depth-source"><summary>Số liệu và cách tính</summary><p>'+esc(scope)+'</p>'+table(headers,rows)+'</details>';
 const controls=(key,items,value)=>'<div class="depth-controls" role="group" aria-label="'+esc(key)+'">'+items.map(([v,l])=>'<button data-depth-key="'+key+'" data-depth-value="'+v+'" aria-pressed="'+(String(value)===String(v))+'">'+esc(l)+'</button>').join('')+'</div>';
@@ -33,9 +38,16 @@ function ranking(rows,{unit='sản phẩm',total=null,filter=null,limit=state.li
  const max=share?100:Math.max(1,...a.map(r=>r.value));
  return '<div class="depth-axis"><span>'+esc(share?'Tỷ lệ trên mẫu số đã ghi':'Số '+unit)+'</span><span>0 → '+num(max)+(share?'%':'')+'</span></div>'+a.map((r,i)=>{const v=share?r.value/n(total)*100:r.value;return '<div class="depth-rank"><span class="depth-order">'+(i+1)+'</span>'+(filter&&!r.other?'<button class="depth-name" data-key="'+filter+'" data-filter="'+esc(r.name)+'">'+esc(r.name)+'</button>':'<span class="depth-name">'+esc(r.name)+'</span>')+'<div class="depth-bar-track" '+tip(r.name,num(r.value)+' '+unit+(n(total)?' · '+pct(r.value,total):''))+'><i style="width:'+Math.min(100,Math.max(0,v/max*100))+'%;'+(r.other?'background:var(--chart-other)':'')+'"></i></div><strong>'+num(r.value)+(n(total)?'<small>'+pct(r.value,total)+'</small>':'')+'</strong></div>';}).join('')+source(['Nhóm',unit,'Tỷ lệ'],a.map(r=>[r.name,num(r.value),total===null?'Không áp dụng':pct(r.value,total)]),'Thang bắt đầu từ 0. '+(total===null?'Tập xếp hạng, không phải toàn bộ tổng thể.':'Mẫu số: '+num(total)+' '+unit+'.'));
 }
+
 function mix(rows,total){
- const a=groupOther(rows,6),sum=a.reduce((s,r)=>s+r.value,0);if(!sum)return note('Không có dữ liệu để tính cơ cấu.');
- return '<div class="depth-stack" role="img" aria-label="Cơ cấu cộng thành 100%">'+a.map((r,i)=>'<div style="width:'+r.value/sum*100+'%;background:'+(r.other?'var(--chart-other)':C.color(r.name,i))+'" '+tip(r.name,num(r.value)+' / '+num(total??sum)+' · '+pct(r.value,total??sum))+'></div>').join('')+'</div><div class="depth-legend">'+a.map((r,i)=>'<span><i style="background:'+(r.other?'var(--chart-other)':C.color(r.name,i))+'"></i>'+esc(r.name)+' <b>'+pct(r.value,total??sum)+'</b></span>').join('')+'</div>'+source(['Nhóm','Số dòng','Tỷ lệ'],a.map(r=>[r.name,num(r.value),pct(r.value,total??sum)]),'Nhóm loại trừ nhau; nhóm khác là tổng các nhóm nhỏ. Tổng '+num(sum)+' trên mẫu số '+num(total??sum)+'.');
+ const a=groupOther(rows,6),sum=a.reduce((s,r)=>s+r.value,0);
+ if(!sum)return note('Không có dữ liệu để tính cơ cấu.');
+ const pieces=a.map((r,i)=>{
+  const share=r.value/sum*100;
+  const color=r.other?'var(--chart-other)':C.color(r.name,i);
+  return '<div class="taste-mosaic-piece" style="flex-basis:'+share+'%;background:'+color+'" '+tip(r.name,num(r.value)+' / '+num(total??sum)+' · '+pct(r.value,total??sum))+' aria-label="'+esc(r.name+': '+pct(r.value,total??sum))+'">'+(share>=17?'<span>'+esc(r.name)+'</span><b>'+num(share,1)+'%</b>':'')+'</div>';
+ }).join('');
+ return '<div class="taste-mosaic" role="group" aria-label="Cơ cấu tỷ trọng dạng bào chế; kích thước mỗi ô theo tỷ lệ sản phẩm">'+pieces+'</div><div class="depth-legend taste-mosaic-legend">'+a.map((r,i)=>'<span><i style="background:'+(r.other?'var(--chart-other)':C.color(r.name,i))+'"></i>'+esc(r.name)+' <b>'+pct(r.value,total??sum)+'</b></span>').join('')+'</div>'+source(['Nhóm','Số sản phẩm','Tỷ lệ'],a.map(r=>[r.name,num(r.value),pct(r.value,total??sum)]),'Nhóm loại trừ nhau; kích thước ô tính trên tổng các nhóm đã hiển thị. Nhóm khác cộng các nhãn còn lại. Tổng '+num(sum)+' trên mẫu số '+num(total??sum)+'.');
 }
 function timeChart(d){
  const mode=state.mode,a=recent(d.timeline,state.range).filter(r=>finite(mode==='median'?r.median:r.value));
@@ -45,13 +57,18 @@ function timeChart(d){
  const left=86,right=850,top=25,bottom=247,x=r=>lo===hi?(left+right)/2:left+(monthIndex(r.name)-lo)/span*(right-left),y=v=>bottom-v/max*(bottom-top);
  let marks='';for(let t=0;t<=4;t++){const v=max*t/4,yy=y(v);marks+='<line x1="'+left+'" x2="'+right+'" y1="'+yy+'" y2="'+yy+'" class="depth-gridline"/><text x="'+(left-12)+'" y="'+(yy+5)+'" text-anchor="end">'+esc(C.compact(v))+'</text>';}
  const width=Math.max(1,Math.min(28,(right-left)/(span+1)*.65));
- a.forEach((r,i)=>{const xx=x(r),yy=y(get(r)),text=num(get(r))+(mode==='median'?' ₫':' quan sát')+' · '+num(r.value)+' quan sát tháng';if(mode==='count')marks+='<rect x="'+(xx-width/2)+'" y="'+yy+'" width="'+width+'" height="'+(bottom-yy)+'" class="depth-mark" '+tip(r.name,text)+'/>';else{if(i&&monthIndex(r.name)-monthIndex(a[i-1].name)===1)marks+='<line x1="'+x(a[i-1])+'" x2="'+xx+'" y1="'+y(get(a[i-1]))+'" y2="'+yy+'" class="depth-line"/>';marks+='<circle cx="'+xx+'" cy="'+yy+'" r="4" class="depth-dot" '+tip(r.name,text)+'/>';}});
+ a.forEach((r,i)=>{const xx=x(r),yy=y(get(r)),text=num(get(r))+(mode==='median'?' ₫':' quan sát')+' · '+num(r.value)+' quan sát tháng';if(mode==='count')marks+='<rect x="'+(xx-width/2)+'" y="'+yy+'" width="'+width+'" height="'+(bottom-yy)+'" class="depth-mark" '+tip(r.name,text)+'/>';else{marks+='<line x1="'+xx+'" x2="'+xx+'" y1="'+yy+'" y2="'+bottom+'" class="taste-time-stem"/>';marks+='<circle cx="'+xx+'" cy="'+yy+'" r="5" class="depth-dot" '+tip(r.name,text)+'/>';}});
  const indexes=[0,Math.floor((a.length-1)/2),a.length-1].filter((v,i,b)=>b.indexOf(v)===i);indexes.forEach((i,j)=>{const r=a[i];marks+='<text x="'+x(r)+'" y="278" text-anchor="'+(j===0?'start':j===indexes.length-1?'end':'middle')+'">'+esc(r.name)+'</text>';});
- return buttons+'<div class="depth-axis"><span>'+esc(mode==='median'?'Trung vị · VND / đơn vị nguồn':'Số quan sát giá VND')+'</span><span>'+a[0].name+' → '+a.at(-1).name+'</span></div><div class="depth-svg-scroll"><svg viewBox="0 0 920 300" class="depth-svg" role="img" aria-label="'+esc(mode==='median'?'Trung vị giá theo tháng':'Số quan sát theo tháng')+'">'+marks+'</svg></div>'+source(['Tháng','Quan sát','Trung vị (VND)'],a.map(r=>[r.name,num(r.value),num(r.median)]),'Ngày từ declaration_date. Khoảng trống đúng thời gian thực; chỉ nối tháng liên tiếp. Tháng gần nhất có thể chưa kết thúc.');
+ return buttons+'<div class="depth-axis"><span>'+esc(mode==='median'?'Trung vị · VND / đơn vị nguồn':'Số quan sát giá VND')+'</span><span>'+a[0].name+' → '+a.at(-1).name+'</span></div><div class="depth-svg-scroll"><svg viewBox="0 0 920 300" class="depth-svg" role="img" aria-label="'+esc(mode==='median'?'Trung vị giá theo tháng':'Số quan sát theo tháng')+'">'+marks+'</svg></div>'+source(['Tháng','Quan sát','Trung vị (VND)'],a.map(r=>[r.name,num(r.value),num(r.median)]),'Ngày từ declaration_date. Số quan sát là cột; trung vị từng tháng là chấm có chân, không nối thành chuỗi giá của cùng một thuốc. Tháng thiếu được giữ trống và tháng cuối có thể chưa kết thúc.');
 }
+
 function priceBands(d){
- const labels=['Dưới 1.000','1.000–<5.000','5.000–<10.000','10.000–<50.000','50.000–<100.000','Từ 100.000'],map=new Map((d.bins||[]).map(r=>[Number(r.bucket),n(r.value)]));
- return ranking(labels.map((name,i)=>({name:name+' ₫',value:map.get(i)||0})),{unit:'quan sát',total:d.summary.priced,limit:6,share:false,ordered:true});
+ const rows=priceBandSeries(d.bins);
+ const max=Math.max(1,...rows.map(r=>r.value)),sum=rows.reduce((acc,r)=>acc+r.value,0);
+ return '<div class="taste-lollipop-head"><span>Khoảng giá theo VND</span><span>0 → '+num(max)+' quan sát</span></div><div class="taste-lollipop-set">'+rows.map((r,i)=>{
+  const amount=Math.min(100,Math.max(0,r.value/max*100));
+  return '<div class="taste-lollipop-row"><span class="taste-lollipop-name">'+esc(r.name)+'</span><div class="taste-lollipop-line" '+tip(r.name,num(r.value)+' quan sát · '+pct(r.value,sum))+' role="img" aria-label="'+esc(r.name+': '+num(r.value)+' quan sát')+'"><span style="width:'+amount+'%"></span><i style="left:'+amount+'%"></i></div><strong>'+num(r.value)+'</strong></div>';
+ }).join('')+'</div>'+source(['Khoảng giá','Số quan sát','Tỷ lệ trên 6 nhóm'],rows.map(r=>[r.name,num(r.value),pct(r.value,sum)]),'Bề rộng các khoảng giá khác nhau; mỗi dấu chấm thể hiện tần suất của khoảng, KHÔNG phải mật độ histogram. Mẫu số: '+num(sum)+' quan sát giá trong sáu nhóm.');
 }
 function relativeRanges(rows){
  const a=spreads(rows).slice(0,8);if(!a.length)return note('Không có nhóm so sánh với trung vị dương và đủ phân vị.');
@@ -98,7 +115,7 @@ function pricing(d){
  const s=d.summary,range=n(s.p10)>0?n(s.p90)/n(s.p10):null;
  return findings([['VỊ TRÍ GIỮA',num(s.median)+' ₫','Trung vị trên '+num(s.priced)+' quan sát VND; cần giữ ngữ cảnh đơn vị.'],['KHOẢNG P10–P90',num(s.p10)+' → '+num(s.p90)+' ₫','80% vị trí phân phối; không phải khoảng tin cậy.'],['ĐỘ RỘNG TỔNG HỢP',range===null?'—':num(range,1)+' lần','P90/P10 đang gộp cấu hình; không dùng xếp thuốc đắt/rẻ.']])+
  step('01','Nhìn phân bố trước khi đọc giá đại diện','Đọc tần suất theo khoảng cùng trung vị. Không so trực tiếp viên, hộp, ống hoặc các loại giá khác nhau.')+
- panel('pricing-bands','Số quan sát trong các khoảng giá','Tần suất theo khoảng VND · bề rộng khoảng không đều',priceBands(d),'Thanh ngang thể hiện số quan sát trong nhóm, không phải mật độ histogram. Lọc đơn vị và loại giá trước khi diễn giải.')+
+ panel('pricing-bands','Số quan sát trong các khoảng giá','Biểu đồ dấu chấm · các khoảng giá có độ rộng khác nhau',priceBands(d),'Dấu chấm thể hiện số quan sát từng khoảng, không phải mật độ histogram. Lọc đơn vị và loại giá trước khi diễn giải.')+
  step('02','Đưa các nhóm về cùng mốc trung vị','Giữ chung hoạt chất, hàm lượng, dạng, đơn vị và loại giá. Mốc 100 giúp so độ rộng tương đối.')+
  panel('pricing-ranges','Khoảng giá tương đối trong nhóm thuốc tương đồng','P10–P90 và trung vị chuẩn hóa = 100',relativeRanges(d.comparable),'Chưa chuẩn hóa đường dùng, quy cách và thời điểm. Đối chiếu hồ sơ trước khi dùng để mua sắm.')+
  panel('pricing-comparable','Đối chiếu mức tiền và cỡ mẫu từng nhóm','Tối đa 15 nhóm nhiều quan sát nhất · ít nhất 2 sản phẩm',table(['Hoạt chất / Hàm lượng','Dạng · Đơn vị · Loại giá','Sản phẩm / Quan sát','Nhà SX','P10 (₫)','Trung vị (₫)','P90 (₫)'],(d.comparable||[]).map(r=>[r.ingredient+' / '+r.strength,r.dosage_form+' · '+r.unit+' · '+(r.price_type==='EXPECTED_WHOLESALE_PRICE_VAT'?'Bán buôn dự kiến VAT':r.price_type),num(r.products)+' / '+num(r.observations),num(r.makers),num(r.p10),num(r.median),num(r.p90)])))+
