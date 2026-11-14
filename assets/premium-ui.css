@@ -1,0 +1,237 @@
+/* Reference-aligned PharmaBiz. Applies ONLY to #app; Start 3D scene is untouched. */
+.workspace-page #app{
+ --premium-edge:color-mix(in srgb,var(--ink) 9%,transparent);
+ --premium-soft:color-mix(in srgb,var(--accent) 8%,var(--surface));
+ --premium-shadow:0 12px 34px color-mix(in srgb,var(--ink) 6%,transparent);
+}
+.workspace-page #app .sidebar{background:linear-gradient(160deg,#0b4243,#073537 74%,#08635b);border-right:1px solid #ffffff12}
+.workspace-page #app .nav-button{min-height:48px;font-size:14px;border-radius:12px;margin:5px 0}
+.workspace-page #app .nav-button.active{background:linear-gradient(110deg,#168a7e,#08635e);color:#fff}
+.workspace-page #app .nav-button.active .nav-icon{color:#fff}
+.workspace-page #app .nav-button:focus-visible{outline-color:#b9f0df}
+.workspace-page #app .topbar{height:68px;border-color:var(--border);box-shadow:none}
+.workspace-page #app .content{max-width:1690px;padding:clamp(16px,2vw,30px)}
+.workspace-page #app .page-head{padding:clamp(20px,2.6vw,36px)!important;margin-bottom:18px!important}
+.workspace-page #app .page-head h1{font-size:clamp(27px,3vw,37px);letter-spacing:-.035em}
+.workspace-page #app .page-head p{font-size:14px;max-width:73ch}
+.workspace-page #app .page-head:after{opacity:.3}
+.workspace-page #app .panel,.workspace-page #app .depth-panel,.workspace-page #app .explore-panel{box-shadow:none!important}
+.workspace-page #app .focus-toolbar{box-shadow:none;border-color:var(--border);border-radius:13px}
+.workspace-page #app .depth-panel .panel-head{min-height:55px}
+.workspace-page #app .depth-panel .panel-head h2{font-size:19px!important}
+.workspace-page #app .depth-svg-scroll{padding:13px 18px 9px;background:var(--surface-soft);border-radius:14px}
+.workspace-page #app .depth-svg text{font-size:14px;fill:var(--muted)}
+.workspace-page #app .depth-svg .depth-gridline{stroke:var(--border);stroke-width:1}
+.workspace-page #app .depth-svg .depth-mark{fill:var(--chart-primary);rx:5px}
+.workspace-page #app .depth-svg .depth-mark.is-partial{opacity:.36;stroke:var(--chart-primary);stroke-dasharray:4 4;stroke-width:2}
+.workspace-page #app .depth-svg .depth-dot{fill:var(--chart-primary)}
+.workspace-page #app .depth-axis{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.workspace-page #app .depth-reading{margin-top:14px;font-size:12px}
+.workspace-page #app #filters{border:0;box-shadow:none;background:transparent;padding:0;overflow:visible;position:relative;z-index:30;display:grid;grid-template-columns:minmax(190px,1.55fr) repeat(4,minmax(116px,1fr)) 86px;gap:10px;align-items:stretch;margin-bottom:17px}
+.workspace-page #app #filters[hidden]{display:none!important}
+.workspace-page #app #filters .search-field{min-width:0;background:var(--surface);border-radius:11px;border:1px solid var(--border);display:flex;align-items:center}
+.workspace-page #app #filters .search-field input{height:52px;padding:12px 12px 12px 34px;background:transparent;font-size:14px;min-height:52px}
+.workspace-page #app #filters .search-field>span{top:10px;font-size:23px}
+.workspace-page #app #filter-options{display:contents}
+.workspace-page #app #filters .ph-native-select{position:absolute!important;width:1px!important;height:1px!important;min-height:1px!important;opacity:0!important;pointer-events:none!important;clip-path:inset(50%)!important;overflow:hidden!important}
+.workspace-page #app .ph-filter{position:relative;min-width:0;isolation:isolate}
+.workspace-page #app .ph-filter:has(.ph-filter-menu:not([hidden])){z-index:75}
+.workspace-page #app .ph-filter-trigger{
+ position:relative;width:100%;height:52px;min-height:52px;display:flex;align-items:flex-start;justify-content:center;flex-direction:column;gap:4px;
+ padding:7px 32px 7px 13px;min-width:0;border-radius:11px;border:1px solid var(--border);
+ background:var(--surface);color:var(--ink);text-align:left;cursor:pointer;box-shadow:0 1px 1px color-mix(in srgb,var(--ink) 3%,transparent);
+}
+.workspace-page #app .ph-filter-trigger:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--border))}
+.workspace-page #app .ph-filter-trigger[aria-expanded=true]{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent)}
+.workspace-page #app .ph-filter-label{font-size:11px;font-weight:600;color:var(--muted);line-height:1.2}
+.workspace-page #app .ph-filter-value{display:block;font-size:13px;font-weight:600;line-height:1.3;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.workspace-page #app .ph-filter-chevron{position:absolute;right:13px;top:17px;font-size:18px;color:var(--muted);line-height:1}
+.workspace-page #app .ph-filter-menu{
+ position:absolute;z-index:80;top:calc(100% + 8px);left:0;width:min(340px,calc(100vw - 38px));
+ padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:15px;
+ box-shadow:0 16px 45px color-mix(in srgb,var(--ink) 15%,transparent);
+}
+.workspace-page #app .ph-filter-menu[hidden]{display:none!important}
+.workspace-page #app .ph-filter-search-label{position:relative;display:block}
+.workspace-page #app .ph-filter-search-label>span{position:absolute;top:10px;left:12px;color:var(--accent);font-size:21px;line-height:1}
+.workspace-page #app .ph-filter-search-label input{width:100%;min-height:44px;padding:10px 13px 10px 36px;background:var(--surface-soft);border:1px solid var(--border);border-radius:9px;color:var(--ink);font-size:14px}
+.workspace-page #app .ph-filter-selected{margin:11px 1px 9px;padding:0 3px;font-size:12px;color:var(--muted);line-height:1.5}
+.workspace-page #app .ph-filter-selected strong{font-weight:650;color:var(--accent);overflow-wrap:anywhere}
+.workspace-page #app .ph-filter-options{max-height:245px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:4px;display:grid;gap:2px}
+.workspace-page #app .ph-filter-option{
+ display:grid;grid-template-columns:21px minmax(0,1fr);align-items:center;gap:10px;width:100%;min-height:43px;
+ text-align:left;border:0;padding:9px 10px;background:none;color:var(--ink);border-radius:8px;font-size:13px;cursor:pointer;
+}
+.workspace-page #app .ph-filter-option>span:last-child{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-page #app .ph-filter-option[aria-selected=true],.workspace-page #app .ph-filter-option:hover{background:var(--selection)}
+.workspace-page #app .ph-filter-check{display:flex;align-items:center;justify-content:center;height:18px;width:18px;border:1px solid var(--border);border-radius:5px;color:#fff;font-size:13px}
+.workspace-page #app .ph-filter-option[aria-selected=true] .ph-filter-check{background:var(--accent);border-color:var(--accent)}
+.workspace-page #app .ph-filter-foot{border-top:1px solid var(--border);font-size:11px;color:var(--muted);margin:9px 0 0;padding:10px 3px 0;line-height:1.5}
+.workspace-page #app .ph-filter-empty{font-size:13px;color:var(--muted);padding:15px 9px}
+.workspace-page #app #reset{display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--surface);border-radius:11px;min-width:0;width:100%;min-height:52px;font-size:0}
+.workspace-page #app #reset:before{content:'↻';font-size:22px;color:var(--accent);line-height:1}
+.workspace-page #app #reset:after{content:'Đặt lại';font-size:12px;margin-left:4px;color:var(--ink)}
+.workspace-page #app #reset:hover{border-color:var(--accent)}
+.workspace-page[data-active-view="lookup"] #app .workspace-search{display:none}
+.workspace-page[data-active-view="lookup"] #app .page-head{
+ border:0!important;padding:8px 4px 14px!important;margin:0 0 5px!important;background:none!important;
+}
+.workspace-page[data-active-view="lookup"] #app .page-head:after{display:none}
+.workspace-page[data-active-view="lookup"] #app .page-head h1{font-size:clamp(27px,3vw,35px);margin:0 0 7px}
+.workspace-page[data-active-view="lookup"] #app .page-head p{font-size:14px}
+.workspace-page[data-active-view="lookup"] #app #filters{grid-template-columns:repeat(4,minmax(0,1fr)) 88px;margin:0 0 16px}
+.workspace-page[data-active-view="lookup"] #app #filters .search-field{display:none!important}
+.workspace-page[data-active-view="lookup"][data-lookup-mode="rx"] #app #filters{display:none!important}
+.workspace-page #app #lookup-panel{margin:0 0 24px;min-width:0}
+.workspace-page #app .lookup-search-form{display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:12px;margin:0 0 14px}
+.workspace-page #app .lookup-search-box{min-height:54px;border-radius:11px;padding:0 17px;background:var(--surface);border-color:var(--border)}
+.workspace-page #app .lookup-search-box:focus-within{outline:0;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent);border-color:var(--accent)}
+.workspace-page #app .lookup-search-box>span{font-size:27px}
+.workspace-page #app .lookup-search-box input{font-size:15px}
+.workspace-page #app .lookup-search-box kbd{display:none}
+.workspace-page #app .lookup-submit{min-height:54px;justify-content:center;border-radius:11px;font-weight:700;font-size:14px;gap:9px;padding:0 16px}
+.workspace-page #app .lookup-submit:focus-visible{outline-color:var(--accent)}
+.workspace-page #app #lookup-task-story{margin:0 0 14px}
+.workspace-page #app .lookup-guide{background:var(--premium-soft);border:1px solid color-mix(in srgb,var(--accent) 14%,var(--border));border-radius:12px;overflow:hidden}
+.workspace-page #app .lookup-guide>summary{list-style:none;min-height:48px;padding:13px 18px;cursor:pointer;font-size:13px;font-weight:650;color:var(--accent);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.workspace-page #app .lookup-guide>summary::-webkit-details-marker{display:none}
+.workspace-page #app .lookup-guide>summary:before{content:'▸';margin-right:3px}
+.workspace-page #app .lookup-guide[open]>summary:before{content:'▾'}
+.workspace-page #app .lookup-guide-content{padding:3px 16px 16px;max-height:min(65svh,640px);overflow:auto}
+.workspace-page #app .lookup-guide-content :is(.task-story,.focus-fold,.panel){margin:10px 0}
+.workspace-page #app .lookup-toolbar{justify-content:flex-end;gap:11px;margin:0 0 6px;align-items:center}
+.workspace-page #app .lookup-toolbar .lookup-current-toggle{min-height:42px}
+.workspace-page #app .lookup-eda-link{font-size:12px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);color:var(--accent)!important;box-shadow:none;min-height:42px;border-radius:10px}
+.workspace-page #app .lookup-eda-link:hover{transform:none;box-shadow:none;border-color:var(--accent)}
+.workspace-page #app .lookup-message{font-size:12px;min-height:22px;margin:10px 2px 14px}
+.workspace-page #app .lookup-layout{grid-template-columns:minmax(320px,.83fr) minmax(0,1.27fr);gap:16px;align-items:start}
+.workspace-page #app .lookup-results-column,.workspace-page #app .lookup-detail-panel{
+ background:var(--surface);border:1px solid var(--border);border-radius:16px;min-width:0;overflow:hidden;box-shadow:0 3px 12px color-mix(in srgb,var(--ink) 3%,transparent)
+}
+.workspace-page #app .lookup-results-heading{display:flex;align-items:center;gap:10px;padding:19px 18px 16px;border-bottom:1px solid var(--border)}
+.workspace-page #app .lookup-results-heading>div{min-width:0;flex:1}
+.workspace-page #app .lookup-results-heading h3{margin:0 0 5px;font-size:17px;font-weight:700}
+.workspace-page #app .lookup-results-heading p{font-size:12px;line-height:1.5;white-space:normal}
+.workspace-page #app .lookup-count{font-size:14px;font-variant-numeric:tabular-nums;background:var(--selection);border:0;padding:8px 11px;border-radius:9px}
+.workspace-page #app .lookup-results-column>.lookup-tabs{display:flex;gap:10px;margin:0;padding:4px 15px 0;border:0;border-radius:0;background:var(--surface);border-bottom:1px solid var(--border)}
+.workspace-page #app .lookup-tabs button{min-width:0;border-radius:0;padding:13px 10px;font-size:13px;font-weight:680;min-height:48px;background:transparent!important;box-shadow:none!important;border-bottom:3px solid transparent}
+.workspace-page #app .lookup-tabs button[aria-pressed=true]{color:var(--accent);border-bottom-color:var(--accent)}
+.workspace-page #app .lookup-results{min-height:240px;max-height:min(54svh,570px);overflow-y:auto;padding:12px;scrollbar-width:thin}
+.workspace-page #app .lookup-item{
+ min-height:91px;padding:13px 15px;margin:0 0 8px;gap:5px;
+ border:1px solid var(--border);border-radius:11px;background:var(--surface);box-shadow:none;transition:background .15s,border-color .15s;
+}
+.workspace-page #app .lookup-item:last-child{margin-bottom:0;border:1px solid var(--border)}
+.workspace-page #app .lookup-item:hover{transform:none!important;background:var(--surface-soft);border-color:color-mix(in srgb,var(--accent) 35%,var(--border))}
+.workspace-page #app .lookup-item.is-selected{background:var(--selection);border-color:var(--accent);box-shadow:none}
+.workspace-page #app .lookup-item-header{gap:8px;min-width:0}
+.workspace-page #app .lookup-item-header>small{font-size:11px;max-width:56%}
+.workspace-page #app .lookup-item-name{font-size:15px;font-weight:740;line-height:1.35}
+.workspace-page #app .lookup-item-sub{font-size:13px;color:var(--muted);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.workspace-page #app .lookup-item-bottom{font-size:11px;gap:8px}
+.workspace-page #app .lookup-item-bottom span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-page #app .lookup-item-bottom>b{font-size:11px;flex:0 0 auto;max-width:44%;overflow:hidden;text-overflow:ellipsis}
+.workspace-page #app .lookup-pagination{padding:13px 16px;min-height:64px;gap:10px;font-size:12px}
+.workspace-page #app .lookup-pagination button{min-height:42px;min-width:72px;padding:8px 10px;border-radius:9px;font-size:12px}
+.workspace-page #app .lookup-detail-panel{
+ padding:20px 22px;position:sticky;top:84px;
+ min-height:490px;max-height:calc(100svh - 100px);overflow-y:auto;scrollbar-width:thin;scroll-margin-top:80px;
+}
+.workspace-page #app .lookup-detail-top .eyebrow{display:none}
+.workspace-page #app .lookup-detail-close{width:42px;height:42px;display:grid;place-items:center}
+.workspace-page #app .lookup-detail-title{font-size:clamp(22px,2.1vw,29px);margin:0 0 11px;font-weight:760;letter-spacing:-.03em;line-height:1.25}
+.workspace-page #app .lookup-badges{gap:7px;margin-bottom:16px}
+.workspace-page #app .lookup-detail-tabs{position:sticky;top:-20px;z-index:2;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;min-height:48px;border-bottom:1px solid var(--border);background:var(--surface);margin:0 0 18px}
+.workspace-page #app .lookup-detail-tab{flex:1 0 auto;min-height:46px;padding:10px 13px;background:transparent;color:var(--muted);font-size:13px;font-weight:650;border:0;border-bottom:3px solid transparent}
+.workspace-page #app .lookup-detail-tab[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent)}
+.workspace-page #app .lookup-detail-pane[hidden]{display:none!important}
+.workspace-page #app .lookup-detail-pane{animation:premiumPaneIn .15s ease-out}
+@keyframes premiumPaneIn{from{opacity:.75}to{opacity:1}}
+.workspace-page #app .lookup-fields{grid-template-columns:repeat(2,minmax(0,1fr));border:0;gap:12px;background:transparent}
+.workspace-page #app .lookup-field{background:var(--surface-soft);padding:13px;border:1px solid var(--border);border-radius:11px}
+.workspace-page #app .lookup-field dt{font-size:12px;line-height:1.4}
+.workspace-page #app .lookup-field dd{font-size:14px;line-height:1.55;overflow-wrap:anywhere}
+.workspace-page #app .lookup-mapping{border-top:0;padding-top:0;margin-top:0}
+.workspace-page #app .lookup-mapping h4{font-size:15px}
+.workspace-page #app .lookup-evidence,.workspace-page #app .lookup-scd,.workspace-page #app .lookup-ml{border-radius:12px}
+.workspace-page #app .lookup-warning{border-radius:8px}
+.workspace-page #app .lookup-disclaimer{padding:3px 1px;font-size:12px;line-height:1.6}
+.workspace-page #app .lookup-detail-empty{min-height:310px}
+.workspace-page #app .lookup-detail-icon{background:var(--selection)}
+.workspace-page #app .metrics{gap:13px}
+.workspace-page #app .metric{border-radius:14px;padding:21px}
+.workspace-page #app .metric-top{font-size:12px}
+.workspace-page #app .metric-value{font-size:clamp(25px,2.6vw,36px);line-height:1.1;letter-spacing:-.03em}
+.workspace-page #app :is(.depth-panel,.explore-panel,.report-evidence,.fp-panel,.dp-card){border-radius:15px}
+.workspace-page #app :is(.depth-rank,.depth-range-row,.depth-quality){min-width:0}
+.workspace-page #app .depth-source table{font-size:12px}
+@media(max-width:1350px){
+ .workspace-page #app #filters{grid-template-columns:minmax(170px,1fr) repeat(2,minmax(138px,1fr)) 90px}
+ .workspace-page #app #filters .search-field{grid-column:span 2}
+ .workspace-page[data-active-view="lookup"] #app #filters{grid-template-columns:repeat(2,minmax(0,1fr)) 90px}
+ .workspace-page #app .lookup-layout{grid-template-columns:minmax(280px,.9fr) minmax(0,1.1fr)}
+}
+@media(max-width:1090px){
+ .workspace-page #app #filters{grid-template-columns:repeat(2,minmax(0,1fr)) 90px}
+ .workspace-page #app #filters .search-field{grid-column:span 2}
+ .workspace-page[data-active-view="lookup"] #app #filters{grid-template-columns:repeat(2,minmax(0,1fr)) 90px}
+ .workspace-page #app .lookup-layout{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .workspace-page #app .lookup-detail-panel{padding:16px}
+ .workspace-page #app .lookup-fields{grid-template-columns:1fr}
+}
+@media(max-width:980px){
+ .workspace-page #app .lookup-layout{grid-template-columns:1fr}
+ .workspace-page #app .lookup-results{max-height:400px}
+ .workspace-page #app .lookup-detail-panel{position:static;max-height:none;min-height:260px;overflow:visible;scroll-margin-top:75px;padding:20px}
+ .workspace-page #app .lookup-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .workspace-page #app .lookup-detail-tabs{position:static}
+}
+@media(max-width:760px){
+ .workspace-page #app .topbar{height:64px}
+ .workspace-page #app .content{padding:14px 13px calc(92px + env(safe-area-inset-bottom))}
+ .workspace-page #app .page-head{padding:20px 17px!important;border-radius:15px}
+ .workspace-page #app .page-head p{font-size:14px;line-height:1.6}
+ .workspace-page #app #filters{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px}
+ .workspace-page #app #filters .search-field{grid-column:1/-1}
+ .workspace-page #app #filters #reset{grid-column:1/-1;min-height:44px}
+ .workspace-page #app #filters .ph-filter-trigger{height:53px;padding:7px 30px 7px 11px}
+ .workspace-page #app .ph-filter-label{font-size:11px}
+ .workspace-page #app .ph-filter-value{font-size:12px}
+ .workspace-page #app .ph-filter-menu{width:min(325px,calc(100vw - 30px))}
+ .workspace-page #app .ph-filter:nth-of-type(2n) .ph-filter-menu{left:auto;right:0}
+ .workspace-page #app .ph-filter-option{min-height:45px;font-size:13px}
+ .workspace-page[data-active-view="lookup"] #app .page-head{padding:7px 2px 12px!important}
+ .workspace-page #app .lookup-search-form{display:grid;grid-template-columns:minmax(0,1fr);gap:9px}
+ .workspace-page #app .lookup-search-box{min-height:52px}
+ .workspace-page #app .lookup-search-box input{font-size:16px}
+ .workspace-page #app .lookup-submit{min-height:46px;width:100%}
+ .workspace-page #app .lookup-toolbar{justify-content:space-between;align-items:flex-start;gap:8px}
+ .workspace-page #app .lookup-current-toggle{font-size:12px}
+ .workspace-page #app .lookup-eda-link{display:none}
+ .workspace-page #app .lookup-results-heading{padding:16px}
+ .workspace-page #app .lookup-results-column>.lookup-tabs{padding:4px 8px 0}
+ .workspace-page #app .lookup-tabs button{font-size:12px;padding:12px 8px}
+ .workspace-page #app .lookup-results{padding:9px;max-height:380px}
+ .workspace-page #app .lookup-item{min-height:82px;margin-bottom:8px;padding:12px;gap:5px}
+ .workspace-page #app .lookup-item-bottom>b{font-size:11px}
+ .workspace-page #app .lookup-detail-panel{padding:16px}
+ .workspace-page #app .lookup-detail-tabs{gap:2px}
+ .workspace-page #app .lookup-detail-tab{padding:10px 8px;font-size:12px}
+ .workspace-page #app .lookup-fields{grid-template-columns:1fr}
+ .workspace-page #app .lookup-field{padding:12px}
+ .workspace-page #app .depth-svg-scroll{overflow-x:auto;scrollbar-width:thin;padding:9px}
+ .workspace-page #app .depth-svg{min-width:650px;max-height:none}
+ .workspace-page #app .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .workspace-page #app .metric{min-height:115px;padding:14px}
+ .workspace-page #app .metric-value{font-size:clamp(22px,6vw,30px)}
+ .workspace-page #app .metric-note{font-size:11px}
+}
+@media(max-width:390px){
+ .workspace-page #app .lookup-tabs button>span{display:none}
+ .workspace-page #app .lookup-pagination button{min-width:58px}
+ .workspace-page #app .lookup-results-heading h3{font-size:15px}
+ .workspace-page #app .lookup-result-count{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ .workspace-page #app .lookup-detail-pane{animation:none}
+}
