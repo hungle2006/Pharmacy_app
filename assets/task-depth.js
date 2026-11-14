@@ -8,12 +8,24 @@ function monthIndex(name){return /^\d{4}-\d{2}$/.test(name)?Number(name.slice(0,
 function recent(rows,range){const a=(rows||[]).filter(r=>monthIndex(r.name)!==null).sort((a,b)=>a.name.localeCompare(b.name));if(!a.length||range==='all')return a;const end=monthIndex(a.at(-1).name);return a.filter(r=>monthIndex(r.name)>end-Number(range));}
 function spreads(rows){return (rows||[]).filter(r=>finite(r.median)&&Number(r.median)>0&&finite(r.p10)&&finite(r.p90)).map(r=>({...r,low:Number(r.p10)/Number(r.median)*100,high:Number(r.p90)/Number(r.median)*100}));}
 function completeness(q){return Object.entries({drug_name:'Tên thuốc',ingredient:'Hoạt chất',strength:'Hàm lượng',dosage_form:'Dạng bào chế',manufacturer:'Nhà sản xuất',country:'Quốc gia',unit:'Đơn vị giá'}).map(([key,name])=>({key,name,value:Math.max(0,n(q?.[key])),missing:Math.max(0,n(q?.total)-n(q?.[key]))})).sort((a,b)=>b.missing-a.missing);}
+// Human-friendly vertical ticks and date handling are pure for regression tests.
+function niceMonthlyScale(rawMax){
+ const max=Math.max(1,n(rawMax)),target=max/5,base=Math.pow(10,Math.floor(Math.log10(target)));
+ const nice=[1,2,2.5,5,10],steps=nice.map(x=>x*base);
+ const step=steps.reduce((best,value)=>Math.abs(Math.log(value/target))<Math.abs(Math.log(best/target))?value:best);
+ const ticks=Math.max(1,Math.ceil(max/step-1e-10));
+ return {step,ticks,max:step*ticks};
+}
+function monthInVietnam(date=new Date()){
+ const parts=new Intl.DateTimeFormat('en-US',{year:'numeric',month:'2-digit',timeZone:'Asia/Ho_Chi_Minh'}).formatToParts(date);
+ return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
+}
 const priceBandSeries=bins=>{
  const names=['Dưới 1.000','1.000–<5.000','5.000–<10.000','10.000–<50.000','50.000–<100.000','Từ 100.000'];
  const counts=new Map((bins||[]).filter(r=>Number.isInteger(Number(r.bucket))&&Number(r.bucket)>=0&&Number(r.bucket)<6).map(r=>[Number(r.bucket),Math.max(0,n(r.value))]));
  return names.map((name,i)=>({name:name+' ₫',value:counts.get(i)||0}));
 };
-const exports={groupOther,monthIndex,recent,spreads,completeness,priceBandSeries};
+const exports={groupOther,monthIndex,recent,spreads,completeness,priceBandSeries,niceMonthlyScale,monthInVietnam};
 if(typeof module!=='undefined'&&module.exports)module.exports=exports;
 if(typeof window==='undefined')return;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -49,22 +61,63 @@ function mix(rows,total){
  }).join('');
  return '<div class="taste-mosaic" role="group" aria-label="Cơ cấu tỷ trọng dạng bào chế; kích thước mỗi ô theo tỷ lệ sản phẩm">'+pieces+'</div><div class="depth-legend taste-mosaic-legend">'+a.map((r,i)=>'<span><i style="background:'+(r.other?'var(--chart-other)':C.color(r.name,i))+'"></i>'+esc(r.name)+' <b>'+pct(r.value,total??sum)+'</b></span>').join('')+'</div>'+source(['Nhóm','Số sản phẩm','Tỷ lệ'],a.map(r=>[r.name,num(r.value),pct(r.value,total??sum)]),'Nhóm loại trừ nhau; kích thước ô tính trên tổng các nhóm đã hiển thị. Nhóm khác cộng các nhãn còn lại. Tổng '+num(sum)+' trên mẫu số '+num(total??sum)+'.');
 }
+
 function timeChart(d){
- const mode=state.mode,a=recent(d.timeline,state.range).filter(r=>finite(mode==='median'?r.median:r.value));
- const buttons=controls('range',[['6','6 tháng'],['12','12 tháng'],['24','24 tháng'],['all','Toàn bộ']],state.range)+controls('mode',[['count','Số quan sát'],['median','Trung vị giá']],mode);
- if(!a.length)return buttons+note('Không có quan sát có ngày trong khoảng này.');
- const get=r=>n(mode==='median'?r.median:r.value),max=Math.max(1,...a.map(get)),lo=monthIndex(a[0].name),hi=monthIndex(a.at(-1).name),span=Math.max(1,hi-lo);
- // Round to human-readable uniform grid steps instead of raw 622 / 1244 / 1866 ticks.
- const scale=Math.pow(10,Math.floor(Math.log10(max/5))),nice=[1,2,2.5,5,10].find(v=>v*scale>=max/5)*scale;
- const yMax=Math.max(nice,Math.ceil(max/nice)*nice),ticks=Math.round(yMax/nice);
- const left=88,right=856,top=26,bottom=244,x=r=>lo===hi?(left+right)/2:left+(monthIndex(r.name)-lo)/span*(right-left),y=v=>bottom-v/yMax*(bottom-top);
- const now=new Date(),currentMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
- const partial=a.at(-1).name===currentMonth;
- let marks='';for(let t=0;t<=ticks;t++){const v=nice*t,yy=y(v);marks+='<line x1="'+left+'" x2="'+right+'" y1="'+yy+'" y2="'+yy+'" class="depth-gridline"/><text x="'+(left-12)+'" y="'+(yy+5)+'" text-anchor="end">'+esc(C.compact(v))+'</text>';}
- const width=Math.max(5,Math.min(38,(right-left)/(span+1)*.55));
- a.forEach((r,i)=>{const xx=x(r),yy=y(get(r)),isPartial=partial&&i===a.length-1,tipText=num(get(r))+(mode==='median'?' ₫':' quan sát')+' · '+num(r.value)+' quan sát tháng'+(isPartial?' · Tháng hiện tại chưa kết thúc':'');if(mode==='count')marks+='<rect x="'+(xx-width/2)+'" y="'+yy+'" width="'+width+'" height="'+Math.max(0,bottom-yy)+'" class="depth-mark'+(isPartial?' is-partial':'')+'" '+tip(r.name,tipText)+'><title>'+esc(tipText)+'</title></rect>';else{marks+='<line x1="'+xx+'" x2="'+xx+'" y1="'+yy+'" y2="'+bottom+'" class="taste-time-stem"/>';marks+='<circle cx="'+xx+'" cy="'+yy+'" r="5" class="depth-dot'+(isPartial?' is-partial':'')+'" '+tip(r.name,tipText)+'><title>'+esc(tipText)+'</title></circle>';}});
- const indexes=[0,Math.floor((a.length-1)/2),a.length-1].filter((v,i,b)=>b.indexOf(v)===i);indexes.forEach((i,j)=>{const r=a[i];marks+='<text x="'+x(r)+'" y="278" text-anchor="'+(j===0?'start':j===indexes.length-1?'end':'middle')+'">'+esc(r.name)+'</text>';});
- return buttons+'<div class="depth-axis"><span>'+esc(mode==='median'?'Trung vị · VND / đơn vị nguồn':'Số quan sát giá VND')+'</span><span>'+a[0].name+' → '+a.at(-1).name+'</span></div><div class="depth-svg-scroll"><svg viewBox="0 0 920 300" class="depth-svg" role="img" aria-label="'+esc(mode==='median'?'Trung vị giá theo tháng':'Số quan sát theo tháng')+'">'+marks+'</svg></div>'+(partial?'<p class="depth-partial-note">Tháng '+esc(currentMonth)+' chưa kết thúc. Cột cuối được làm nhạt; không xem mức giảm số bản ghi tháng này là xu hướng thị trường.</p>':'')+source(['Tháng','Quan sát','Trung vị (VND)'],a.map(r=>[r.name,num(r.value),num(r.median)]),'Ngày từ declaration_date. Số quan sát là cột; trung vị từng tháng là chấm có chân, không nối thành chuỗi giá của cùng một thuốc. Tháng thiếu được giữ trống và tháng cuối có thể chưa kết thúc.');
+ const mode=state.mode,rows=recent(d.timeline,state.range).filter(r=>finite(mode==='median'?r.median:r.value));
+ const buttons=controls('range',[['6','6 tháng'],['12','12 tháng'],['24','24 tháng'],['all','Toàn bộ']],state.range)
+  +controls('mode',[['count','Số quan sát'],['median','Trung vị giá']],mode);
+ if(!rows.length)return buttons+note('Không có quan sát có ngày trong khoảng này.');
+ const measure=r=>Math.max(0,n(mode==='median'?r.median:r.value));
+ const scale=niceMonthlyScale(Math.max(...rows.map(measure))),minMonth=monthIndex(rows[0].name),maxMonth=monthIndex(rows.at(-1).name);
+ const span=Math.max(1,maxMonth-minMonth+1),left=166,right=1046,top=35,bottom=251;
+ // Half-cell side margins keep the first and last bars away from the axis labels.
+ const slot=(right-left)/span,x=r=>left+(monthIndex(r.name)-minMonth+.5)*slot,y=v=>bottom-(v/scale.max)*(bottom-top);
+ const barWidth=Math.max(10,Math.min(40,slot*.53));
+ const partial=rows.at(-1).name===monthInVietnam(),partialRow=partial?rows.at(-1):null;
+ let marks='';
+ for(let i=0;i<=scale.ticks;i++){
+  const value=i*scale.step,yy=y(value);
+  marks+='<line x1="'+left+'" y1="'+yy+'" x2="'+right+'" y2="'+yy+'" class="depth-monthly-grid"/>';
+  marks+='<text x="'+(left-24)+'" y="'+(yy+5)+'" text-anchor="end" class="depth-monthly-label">'+esc(C.compact(value))+'</text>';
+ }
+ rows.forEach((r,i)=>{
+  const value=measure(r),xx=x(r),yy=y(value),isPartial=partial&&i===rows.length-1;
+  const content=num(value)+(mode==='median'?' ₫':' quan sát')+' · '+r.name
+   +(isPartial?' · Tháng này chưa kết thúc':'');
+  if(mode==='count'){
+   marks+='<rect x="'+(xx-barWidth/2)+'" y="'+yy+'" width="'+barWidth+'" height="'+Math.max(0,bottom-yy)+'" rx="6" class="depth-monthly-bar'+(isPartial?' is-partial':'')+'" '+tip(r.name,content)+'><title>'+esc(content)+'</title></rect>';
+  }else{
+   marks+='<line x1="'+xx+'" y1="'+yy+'" x2="'+xx+'" y2="'+bottom+'" class="depth-monthly-stem'+(isPartial?' is-partial':'')+'"/>';
+   marks+='<circle cx="'+xx+'" cy="'+yy+'" r="5.5" class="depth-monthly-dot'+(isPartial?' is-partial':'')+'" '+tip(r.name,content)+'><title>'+esc(content)+'</title></circle>';
+  }
+  // A tiny true-height partial-month bar remains accurate; the marker provides legibility,
+  // not a fabricated minimum bar height.
+  if(isPartial){
+   marks+='<circle cx="'+xx+'" cy="'+yy+'" r="5" class="depth-monthly-partial-marker" '+tip(r.name,content)+'><title>'+esc(content)+'</title></circle>';
+  }
+ });
+ const indexes=[0,Math.floor((rows.length-1)/2),rows.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+ indexes.forEach((idx,i)=>{
+  const r=rows[idx],align=i===0?'start':i===indexes.length-1?'end':'middle';
+  const offset=i===0?-barWidth/2:i===indexes.length-1?barWidth/2:0;
+  marks+='<text x="'+(x(r)+offset)+'" y="293" text-anchor="'+align+'" class="depth-monthly-label depth-monthly-x-label">'+esc(r.name)+'</text>';
+ });
+ if(partialRow){
+  const xx=x(partialRow),yy=y(measure(partialRow)),tagX=Math.min(right-170,Math.max(left+7,xx-145));
+  marks+='<line x1="'+xx+'" y1="95" x2="'+xx+'" y2="'+Math.max(100,yy-9)+'" class="depth-monthly-partial-guide"/>';
+  marks+='<rect x="'+tagX+'" y="56" width="164" height="34" rx="8" class="depth-monthly-current-tag"/>';
+  marks+='<text x="'+(tagX+82)+'" y="77" text-anchor="middle" class="depth-monthly-current-text">Đang cập nhật</text>';
+ }
+ const dateRange=rows[0].name+' → '+rows.at(-1).name;
+ const unit=mode==='median'?'Trung vị · VND / đơn vị nguồn':'Số quan sát giá VND';
+ const header='<div class="depth-monthly-header"><div class="depth-monthly-headline"><span class="depth-monthly-eyebrow">THEO THÁNG KÊ KHAI</span><strong>'+esc(unit)+'</strong></div><div class="depth-monthly-meta"><span>'+esc(dateRange)+'</span>'+(partial?'<span class="depth-monthly-badge">Tháng chưa hoàn tất</span>':'')+'</div></div>';
+ const caption=partial
+  ?'<p class="depth-monthly-note"><strong>Tháng '+esc(partialRow.name)+' chưa kết thúc.</strong> Số quan sát tháng này vẫn đang được bổ sung; không suy diễn cột thấp là thị trường giảm giá hoặc giảm hoạt động.</p>'
+  :'<p class="depth-monthly-note">Đếm các quan sát theo ngày kê khai; không đại diện số lượng bán hoặc doanh thu thị trường.</p>';
+ const svg='<div class="depth-svg-scroll depth-monthly-scroll" tabindex="0" role="region" aria-label="Biểu đồ theo tháng, cuộn ngang nếu màn hình nhỏ"><svg viewBox="0 0 1120 318" class="depth-svg depth-monthly-svg" role="img" aria-label="'+esc(mode==='median'?'Trung vị giá kê khai theo tháng':'Số quan sát giá kê khai theo tháng')+'"><title>'+esc(unit+' · '+dateRange)+'</title>'+marks+'</svg></div>';
+ return buttons+'<div class="depth-monthly">'+header+svg+caption+'</div>'
+  +source(['Tháng','Quan sát','Trung vị (VND)'],rows.map(r=>[r.name,num(r.value),num(r.median)]),
+    'Nguồn declaration_date · quan sát giá VND. Mỗi tháng là một tập quan sát riêng; không cộng các cột thành doanh số và không nối giá trung vị thành chuỗi cùng một thuốc. Các tháng không có dữ liệu giữ nguyên khoảng trống. Tháng hiện tại chưa hoàn tất.');
 }
 
 function priceBands(d){
