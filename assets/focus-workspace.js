@@ -131,7 +131,7 @@
       const box=trigger.getBoundingClientRect();
       const bottomSafe=matchMedia('(max-width:760px)').matches?82:18;
       const below=Math.max(0,innerHeight-bottomSafe-box.bottom-7);
-      const above=Math.max(0,box.top-18);
+      const above=Math.max(0,picker.getBoundingClientRect().top-18);
       const openUp=below<Math.min(300,menu.scrollHeight)&&above>below;
       menu.classList.toggle('focus-menu-up',openUp);
       const room=openUp?above:below;
