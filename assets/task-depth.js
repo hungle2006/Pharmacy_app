@@ -15,7 +15,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const num=(v,d=0)=>finite(v)?Number(v).toLocaleString('vi-VN',{maximumFractionDigits:d}):'—';
 const pct=(a,b)=>n(b)>0?num(n(a)/n(b)*100,1)+'%':'—';
 const C=window.PharmaCharts;
-const state={range:'24',mode:'count',limit:6,share:false,manufacturer:'products'};
+const state={range:'12',mode:'count',limit:6,share:false,manufacturer:'products'};
 let active=null;
 const tip=(a,b)=>'tabindex="0" data-tip="'+esc(a)+'" data-value="'+esc(b)+'"';
 const note=t=>'<p class="depth-reading">'+esc(t)+'</p>';
@@ -77,15 +77,21 @@ function flagBars(m){return [['Chấp nhận phục vụ',m.accepted],['Cần r�
 function rankControls(){return controls('limit',[[6,'6 nhóm'],[10,'10 nhóm'],['all','Tối đa 50']],state.limit)+controls('share',[['false','Số lượng'],['true','Tỷ lệ %']],String(state.share));}
 function nextActions(rows){return '<div class="depth-next">'+rows.map(([view,title,sub])=>'<button data-view="'+view+'"><b>'+esc(title)+' ↗</b><span>'+esc(sub)+'</span></button>').join('')+'</div>';}
 
+function countryRing(rows,total){
+ const count=n(total);if(!count)return note('Không có sản phẩm trong phạm vi lọc.');
+ const top=(rows||[]).map(r=>({...r,value:n(r.value)})).sort((a,b)=>b.value-a.value).slice(0,5);
+ const remainder=Math.max(0,count-top.reduce((sum,r)=>sum+r.value,0));
+ const groups=remainder?[...top,{name:'Các nhãn khác',value:remainder,other:true}]:top;
+ let offset=0;
+ const marks=groups.map((r,i)=>{const share=r.value/count*100,color=r.other?'var(--chart-other)':C.color(r.name,i);const mark='<circle cx="100" cy="100" r="73" fill="none" stroke="'+color+'" stroke-width="25" pathLength="100" stroke-dasharray="'+share+' '+(100-share)+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 100 100)" '+tip(r.name,num(r.value)+' sản phẩm · '+pct(r.value,count))+'><title>'+esc(r.name)+': '+pct(r.value,count)+'</title></circle>';offset+=share;return mark;}).join('');
+ return '<div class="workspace-ring"><svg viewBox="0 0 200 200" role="img" aria-label="Cơ cấu nhãn quốc gia trên '+num(count)+' sản phẩm">'+marks+'<text class="ring-total" x="100" y="98" text-anchor="middle">'+num(count)+'</text><text class="ring-caption" x="100" y="119" text-anchor="middle">sản phẩm</text></svg><div class="ring-legend">'+groups.map((r,i)=>'<div><i style="background:'+(r.other?'var(--chart-other)':C.color(r.name,i))+'"></i><span>'+esc(r.name)+'</span><b>'+pct(r.value,count)+'</b></div>').join('')+'</div></div>'+source(['Nhãn quốc gia','Sản phẩm','Tỷ lệ'],groups.map(r=>[r.name,num(r.value),pct(r.value,count)]),'Mẫu số: '+num(count)+' sản phẩm DAV phân biệt. Giữ nhãn quốc gia gốc; India và Ấn Độ chưa gộp.');
+}
 function overview(d){
- const s=d.summary,top=d.countries?.[0],lead=d.ingredients?.[0],q=completeness(d.quality)[0];
- return findings([['NGUỒN CUNG DẪN ĐẦU',top?.name||'—',num(top?.value)+' / '+num(s.products)+' sản phẩm · '+pct(top?.value,s.products)],['ĐỘ PHỦ GIÁ',num(s.priced)+' quan sát','Số lần ghi nhận giá khác số sản phẩm.'],['CẦN ĐỐI CHIẾU',q?.name||'—',num(q?.missing)+' sản phẩm thiếu; ảnh hưởng phân nhóm và so sánh.']])+
- step('01','Đọc quy mô và nhịp ghi nhận','Cột thể hiện số giá đã thu thập theo tháng. Nhiều quan sát hơn chưa có nghĩa giá hoặc nhu cầu tăng.')+
- panel('overview-time','Nhịp ghi nhận dữ liệu giá','Ngày kê khai thực tế · bộ lọc hiện tại',timeChart(d),'Trung vị tháng mô tả cơ cấu quan sát. Task Dự báo đọc biến động theo lịch sử của cùng nhóm thuốc.')+
- step('02','Đọc cơ cấu nguồn cung','Đếm sản phẩm DAV phân biệt. Giữ nhóm chưa xác định và nhãn quốc gia theo nguồn.')+
- grid(panel('overview-country','Cơ cấu nhãn quốc gia','Top 5 nhãn và phần còn lại · sản phẩm',mix(d.countries,s.products),'Một quốc gia có thể có nhiều cách ghi; cần bảng quy đổi trước khi tổng hợp quốc gia chính thức.'),
- panel('overview-ingredient','Hoạt chất nổi bật trong danh mục','Top 8 theo số sản phẩm · bấm tên để lọc',ranking(d.ingredients,{total:s.products,filter:'ingredient',limit:8}),lead?lead.name+' có '+num(lead.makers)+' nhà sản xuất. Tên hoạt chất giữ theo văn bản nguồn.':''))+
- step('03','Chọn câu hỏi cần đi sâu','Giá → nhóm tương đồng. Nguồn cung → nhà sản xuất. Độ tin cậy → trường thiếu và bằng chứng mapping.')+
+ const s=d.summary,lead=d.ingredients?.[0];
+ return '<div class="overview-primary">'+panel('overview-time','Nhịp ghi nhận dữ liệu giá','Số quan sát theo tháng kê khai · bộ lọc hiện tại',timeChart(d),'Số quan sát phản ánh dữ liệu thu thập, không đại diện doanh số.')+
+ panel('overview-country','Cơ cấu nguồn cung','Theo nhãn quốc gia gốc',countryRing(d.countries,s.products),'Tên quốc gia giữ theo nguồn; cần quy đổi trước khi gộp nhãn tương đương.')+'</div>'+
+ '<div class="overview-secondary">'+panel('overview-ingredient','Hoạt chất nổi bật','Top 8 theo số sản phẩm · bấm tên để lọc',ranking(d.ingredients,{total:s.products,filter:'ingredient',limit:8}),lead?lead.name+' có '+num(lead.makers)+' nhà sản xuất. Tên hoạt chất giữ theo nguồn.':'')+
+ '<section class="panel overview-quick"><div class="overview-quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></div><h2>Từ một tên thuốc,<br>mở thêm nhiều góc nhìn.</h2><p>Đối chiếu hoạt chất, giá kê khai và bằng chứng liên kết RxNorm từ dữ liệu nguồn.</p><button type="button" data-view="lookup">Tra cứu thuốc <span aria-hidden="true">↗</span></button></section></div>'+
  nextActions([['pricing','Đọc chênh lệch giá','Phân vị trong nhóm cùng cấu hình'],['competition','Đọc cấu trúc nguồn cung','Danh mục rộng hay tập trung'],['quality','Kiểm tra độ tin cậy','Trường thiếu và liên kết cần rà soát']]);
 }
 function pricing(d){
@@ -162,7 +168,7 @@ function forecastIntervals(report){
 }
 document.addEventListener('pharmabiz:market-report',event=>{const host=document.getElementById('market-history-ranges');if(host&&event.detail?.kind==='dav-market-price-trend')host.innerHTML=PharmaExplore.forecast(event.detail)+forecastIntervals(event.detail)+PharmaStudy.interpretation('market-forecast',{market:event.detail});});
 
-function render(view,d){active={view,d};const fn={overview,pricing,competition,portfolio,quality}[view];return fn?PharmaExplore.analytical(view,d)+fn(d)+PharmaStudy.interpretation(view,{data:d}):'';}
+function render(view,d){active={view,d};const fn={overview,pricing,competition,portfolio,quality}[view];return fn?(view==='overview'?fn(d)+PharmaExplore.analytical(view,d):PharmaExplore.analytical(view,d)+fn(d))+PharmaStudy.interpretation(view,{data:d}):'';}
 document.addEventListener('click',event=>{
  const button=event.target.closest('[data-depth-key]');if(!button||!active)return;
  const key=button.dataset.depthKey,val=button.dataset.depthValue;if(!Object.hasOwn(state,key))return;
