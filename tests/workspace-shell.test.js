@@ -35,7 +35,7 @@ test('mobile lookup opens a detail panel instead of forcing document scrolling',
 test('detail sheet has keyboard closing, focus trapping, and mobile-safe spacing',()=>{
  const script=read('assets/workspace-shell.js');
  const css=read('assets/workspace-shell.css');
- for(const text of ['aria-modal="true"','aria-labelledby="ws-sheet-heading"','Escape','e.shiftKey','document.activeElement===last','role="listbox"','Ctrl K']){
+ for(const text of ['aria-modal="true"','aria-labelledby="ws-sheet-heading"','Escape','e.shiftKey','document.activeElement===last','role="listbox"','e.ctrlKey||e.metaKey']){
   assert.ok(script.includes(text), 'missing '+text);
  }
  assert.match(css,/@media\(max-width:760px\)/);
@@ -55,7 +55,7 @@ test('workspace keeps source rows accessible and does not substitute fabricated 
 test('button motion remains subtle and cannot conflict with old whole-app WAAPI pointer animation',()=>{
  const motion=read('assets/motion-mobile.js');
  const css=read('assets/workspace-shell.css');
- assert.match(motion,/closest\('#cover button'\)/);
+ assert.doesNotMatch(motion,/\.animate\(\[\{transform:'scale\(1\)'/);
  assert.match(css,/transform:scale\(\.978\)/);
  assert.match(css,/transition-duration:90ms/);
 });
@@ -72,4 +72,80 @@ test('record detail sheet does not get wrapped inside a new collapsed details co
  const css=read('assets/workspace-shell.css');
  assert.match(focus,/records\?\.closest\('\.ws-sheet-body'\)\?null:fold\(records/);
  assert.match(css,/#records-disclosure:not\(\.ws-in-sheet\)\{display:none!important\}/);
+});
+
+test('header omits the redundant task-selection CTA while keeping existing navigation',()=>{
+ const shell=read('assets/workspace-shell.js');
+ const html=read('index.html');
+ assert.doesNotMatch(shell,/createElement\('button'\);taskAction/);
+ assert.doesNotMatch(shell,/<span>Chọn tác vụ<\/span>/);
+ assert.match(shell,/actions\.append\(sourceAction\)/);
+ assert.match(html,/<nav id="mobile-taskbar"/);
+ assert.match(html,/<nav id="nav"/);
+});
+test('focus chapters use an accessible bounded custom popover rather than native select UI',()=>{
+ const focus=read('assets/focus-workspace.js');
+ const css=read('assets/workspace-shell.css');
+ assert.match(focus,/const trigger=document\.createElement\('button'\)/);
+ assert.match(focus,/trigger\.setAttribute\('aria-haspopup','menu'\)/);
+ assert.match(focus,/menuSearch\.addEventListener\('input',drawMenu\)/);
+ assert.match(focus,/select\.dispatchEvent\(new Event\('change'/);
+ assert.match(focus,/trigger\.setAttribute\('aria-expanded','false'\)/);
+ assert.match(focus,/e\.key==='Escape'/);
+ assert.match(css,/select\.focus-native-select/);
+ assert.match(css,/\.focus-menu-list\{[^}]*overflow-y:auto/s);
+ assert.match(css,/@media\(max-width:490px\)/);
+});
+
+
+test('mobile popover opening upwards measures available space from entire picker, not trigger',()=>{
+ const src=read('assets/focus-workspace.js');
+ const css=read('assets/workspace-shell.css');
+ assert.match(src,/const above=Math\.max\(0,picker\.getBoundingClientRect\(\)\.top-18\)/);
+ assert.match(src,/menu\.classList\.toggle\('focus-menu-up',openUp\)/);
+ assert.match(src,/menu\.style\.maxHeight=Math\.max\(118,Math\.min\(440,room-8\)\)\+'px'/);
+ assert.match(css,/\.focus-menu\.focus-menu-up/);
+});
+
+test('Start motion has synchronized 440ms exit, app reveal and optional reduced motion',()=>{
+ const presentation=read('assets/presentation.js');
+ const motion=read('assets/motion-mobile.js');
+ const css=read('assets/responsive-polish.css');
+ assert.match(presentation,/button\.classList\.add\('is-entering'\)/);
+ assert.match(presentation,/button\.setAttribute\('aria-busy','true'\)/);
+ assert.match(presentation,/PharmaMotion\.reveal\(\)/);
+ assert.match(presentation,/matches\?0:440/);
+ assert.match(motion,/function reveal\(\)/);
+ assert.match(css, /animation:pb-start-exit 440ms/);
+ assert.ok(css.includes('.start-btn:active:not(:disabled)'));
+ assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'));
+});
+test('responsive element spacing covers compact phone heights without replacing Blender scene',()=>{
+ const css=read('assets/responsive-polish.css');
+ const html=read('index.html');
+ assert.ok(css.includes('@media(max-width:760px) and (max-height:690px)'));
+ assert.match(css,/height:100dvh/);
+ assert.match(css,/min-height:48px/);
+ assert.ok(css.includes('@media(max-width:370px)'));
+ assert.match(css,/#mobile-taskbar button/);
+ assert.ok(html.indexOf('assets/responsive-polish.css')>html.indexOf('assets/workspace-shell.css'));
+ assert.match(html,/<canvas id="scene"/);
+});
+
+
+test('mobile lookup collapsed filter has one full-width row and no tiny 40px retry control',()=>{
+ const css=read('assets/responsive-polish.css');
+ const content=read('assets/presentation.js');
+ assert.ok(css.includes('grid-template-columns:minmax(0,1fr)!important'));
+ assert.ok(css.includes('#filter-toggle'));
+ assert.ok(css.includes('max-height:46px!important'));
+ assert.ok(css.includes('.lookup-retry'));
+ assert.ok(css.includes('min-height:44px'));
+ assert.ok(content.includes('title="Hồ sơ → Cấu hình → Giá → Bằng chứng">Cách đọc kết quả</summary>'));
+});
+test('primary desktop quick search submit exposes a proper 44px touch target',()=>{
+ const css=read('assets/responsive-polish.css');
+ assert.ok(css.includes('.workspace-search button[type="submit"]'));
+ assert.ok(css.includes('min-width:44px;width:44px'));
+ assert.ok(css.includes('min-height:44px;height:44px'));
 });

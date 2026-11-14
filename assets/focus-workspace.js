@@ -38,8 +38,23 @@
     const name=view()+':'+(root.id||'analysis');
     const deck=document.createElement('div');deck.className='focus-deck';deck.dataset.focusState=name;
     const toolbar=document.createElement('div');toolbar.className='focus-toolbar';
-    const picker=document.createElement('label');picker.className='focus-picker';picker.append(document.createTextNode(root.id==='market-explore'?'Khám phá báo cáo':'Chọn góc nhìn'));
-    const select=document.createElement('select');select.setAttribute('aria-label',root.id==='market-explore'?'Chọn phần báo cáo thị trường':'Chọn phần phân tích');picker.append(select);
+    const picker=document.createElement('div');picker.className='focus-picker';
+    const pickerCaption=document.createElement('span');pickerCaption.className='focus-picker-caption';
+    pickerCaption.textContent=root.id==='market-explore'?'KHÁM PHÁ BÁO CÁO':'GÓC NHÌN HIỆN TẠI';
+    picker.append(pickerCaption);
+    // Keep the original select as a hidden state mirror for existing research/chart modules.
+    const select=document.createElement('select');select.className='focus-native-select';
+    select.setAttribute('aria-hidden','true');select.tabIndex=-1;picker.append(select);
+    const trigger=document.createElement('button');trigger.type='button';trigger.className='focus-current';
+    trigger.setAttribute('aria-haspopup','menu');trigger.setAttribute('aria-expanded','false');
+    trigger.setAttribute('aria-label','Mở danh sách các góc nhìn');
+    trigger.innerHTML='<span class="focus-current-step"></span><span class="focus-current-text"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+    const menu=document.createElement('div');menu.className='focus-menu';menu.hidden=true;
+    menu.id='focus-menu-'+(++serial);
+    trigger.setAttribute('aria-controls',menu.id);
+    menu.innerHTML='<label class="focus-menu-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input type="search" autocomplete="off" placeholder="Tìm nội dung…" aria-label="Tìm góc nhìn"></label><div class="focus-menu-list" role="menu" aria-label="Chọn góc nhìn phân tích"></div>';
+    picker.append(trigger,menu);
+    const menuSearch=menu.querySelector('input'),menuList=menu.querySelector('.focus-menu-list');
     const nav=document.createElement('div');nav.className='focus-navigation';
     const prev=document.createElement('button');prev.type='button';prev.innerHTML=arrow(-1);prev.setAttribute('aria-label','Phần trước');
     const next=document.createElement('button');next.type='button';next.innerHTML=arrow(1);next.setAttribute('aria-label','Phần tiếp theo');
@@ -61,6 +76,7 @@
       pages.forEach((page,i)=>{const hide=i!==index;if(page.hidden!==hide)page.hidden=hide;});
       select.value=String(index);select.setAttribute('aria-controls',pages[index].id);prev.disabled=index===0;next.disabled=index===pages.length-1;
       counter.textContent=(index+1)+' / '+pages.length;selections.set(name,pages[index].dataset.focusKey);
+      updateTrigger();closeMenu(false);
       if(announce){
         status.textContent='Đang xem: '+select.options[index].textContent;
         // Keep the user's position when switching within the visible toolbar.
@@ -72,6 +88,93 @@
         }
       }
     }
+    function updateTrigger(){
+      const selectedTitle=select.options[index]?.textContent||'Chọn nội dung';
+      const name=trigger.querySelector('.focus-current-text');
+      if(name.textContent!==selectedTitle)name.textContent=selectedTitle;
+      name.title=selectedTitle;
+      trigger.querySelector('.focus-current-step').textContent=String(index+1).padStart(2,'0')+' / '+String(pages.length).padStart(2,'0');
+      trigger.title=selectedTitle;
+    }
+    function closeMenu(restoreFocus=false){
+      if(menu.hidden)return;
+      menu.hidden=true;trigger.setAttribute('aria-expanded','false');
+      if(restoreFocus)trigger.focus({preventScroll:true});
+    }
+    function optionsInMenu(){return [...menuList.querySelectorAll('.focus-menu-option')];}
+    function drawMenu(){
+      const query=menuSearch.value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('vi-VN').trim();
+      menuList.replaceChildren();
+      for(const [i,opt] of [...select.options].entries()){
+        const label=opt.textContent;
+        const normalized=label.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('vi-VN');
+        if(query&&!normalized.includes(query))continue;
+        const item=document.createElement('button');item.type='button';item.className='focus-menu-option';
+        item.dataset.index=String(i);
+        item.setAttribute('role','menuitemradio');item.setAttribute('aria-checked',String(index===i));
+        const num=document.createElement('span');num.className='focus-menu-index';num.textContent=String(i+1).padStart(2,'0');
+        const labelEl=document.createElement('span');labelEl.className='focus-menu-title';labelEl.textContent=label;
+        const check=document.createElement('span');check.className='focus-menu-check';check.textContent=index===i?'✓':'';
+        check.setAttribute('aria-hidden','true');
+        item.append(num,labelEl,check);menuList.append(item);
+      }
+      if(!menuList.children.length){
+        const empty=document.createElement('p');empty.className='focus-menu-empty';empty.textContent='Không có mục phù hợp.';
+        menuList.append(empty);
+      }
+    }
+    function openMenu(){
+      // Close menus on other chapter toolbars before opening this one.
+      document.dispatchEvent(new CustomEvent('pharmabiz:focus-menu-open',{detail:{source:menu}}));
+      menuSearch.value='';drawMenu();menu.hidden=false;
+      // Keep the list inside the visual viewport even if the toolbar is near its bottom.
+      const box=trigger.getBoundingClientRect();
+      const bottomSafe=matchMedia('(max-width:760px)').matches?82:18;
+      const below=Math.max(0,innerHeight-bottomSafe-box.bottom-7);
+      const above=Math.max(0,picker.getBoundingClientRect().top-18);
+      const openUp=below<Math.min(300,menu.scrollHeight)&&above>below;
+      menu.classList.toggle('focus-menu-up',openUp);
+      const room=openUp?above:below;
+      menu.style.maxHeight=Math.max(118,Math.min(440,room-8))+'px';
+      trigger.setAttribute('aria-expanded','true');
+      menuSearch.focus({preventScroll:true});
+    }
+    function choose(number){
+      const i=Number(number);
+      if(!Number.isInteger(i)||i<0||i>=pages.length)return;
+      select.value=String(i);select.dispatchEvent(new Event('change',{bubbles:true}));
+      closeMenu(true);
+    }
+    trigger.addEventListener('click',()=>menu.hidden?openMenu():closeMenu(true));
+    trigger.addEventListener('keydown',e=>{
+      if(e.key==='ArrowDown'||e.key==='Enter'||e.key===' '){
+        if(menu.hidden){e.preventDefault();openMenu();}
+      }
+    });
+    menuSearch.addEventListener('input',drawMenu);
+    menu.addEventListener('click',e=>{
+      const item=e.target.closest('.focus-menu-option');
+      if(item)choose(item.dataset.index);
+    });
+    menu.addEventListener('keydown',e=>{
+      if(e.key==='Escape'){e.preventDefault();closeMenu(true);return;}
+      const items=optionsInMenu();
+      if(e.key==='Enter'&&e.target===menuSearch&&items.length){e.preventDefault();choose(items[0].dataset.index);return;}
+      if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key)||!items.length)return;
+      e.preventDefault();
+      const current=items.indexOf(document.activeElement);
+      const target=e.key==='Home'?0:e.key==='End'?items.length-1:
+        e.key==='ArrowDown'?Math.min(items.length-1,current+1):Math.max(0,current-1);
+      items[target].focus({preventScroll:true});
+    });
+    document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!picker.contains(e.target))closeMenu();});
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape'&&!menu.hidden){e.preventDefault();closeMenu(true);}
+    });
+    document.addEventListener('pharmabiz:focus-menu-open',e=>{
+      if(e.detail?.source!==menu)closeMenu();
+    });
+    deck.addEventListener('focus:titles-sync',()=>{updateTrigger();if(!menu.hidden)drawMenu();});
     select.addEventListener('change',()=>show(select.value,true));
     prev.addEventListener('click',()=>show(index-1,true));next.addEventListener('click',()=>show(index+1,true));
     deck.addEventListener('focus-main',()=>show(0,true));show(index);
@@ -100,7 +203,9 @@
     const model=document.getElementById('dp-model-summary')?.parentElement;if(model?.classList.contains('dp-card'))fold(model,'Phạm vi và chất lượng mô hình');
     for(const deck of content.querySelectorAll('.focus-deck')){
       const pages=[...deck.querySelectorAll(':scope > .focus-page')],options=deck.querySelector('select').options;
-      pages.forEach((page,i)=>{const node=[...page.children].find(n=>!n.classList.contains('depth-step'));const title=titleOf(node);if(options[i]&&options[i].textContent!==title){options[i].textContent=title;page.setAttribute('aria-label',title);}});
+      let updated=false;
+      pages.forEach((page,i)=>{const node=[...page.children].find(n=>!n.classList.contains('depth-step'));const title=titleOf(node);if(options[i]&&options[i].textContent!==title){options[i].textContent=title;page.setAttribute('aria-label',title);updated=true;}});
+      if(updated)deck.dispatchEvent(new Event('focus:titles-sync'));
     }
   }
   function queue(){if(!scheduled){scheduled=true;requestAnimationFrame(sync);}}

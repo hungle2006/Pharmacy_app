@@ -476,3 +476,273 @@ body.ws-detail-active{overflow:hidden}
  }
  .workspace-page #app .ws-head-actions #export .ws-export-label{display:none}
 }
+
+
+/* Compact, responsive chapter picker: replaces the oversized native select. */
+.workspace-page #app .focus-toolbar{
+ align-items:center;
+ overflow:visible;
+ isolation:isolate;
+}
+.workspace-page #app .focus-picker{
+ position:relative;
+ display:flex;
+ flex-direction:column;
+ align-items:stretch;
+ gap:6px;
+ min-width:0;
+ max-width:100%;
+}
+.workspace-page #app .focus-picker-caption{
+ font-size:10px;
+ font-weight:750;
+ letter-spacing:.09em;
+ line-height:1.5;
+ color:var(--muted);
+}
+.workspace-page #app .focus-picker select.focus-native-select{
+ position:absolute!important;
+ width:1px!important;
+ height:1px!important;
+ min-height:1px!important;
+ padding:0!important;
+ margin:0!important;
+ border:0!important;
+ opacity:0!important;
+ clip-path:inset(50%)!important;
+ pointer-events:none!important;
+ overflow:hidden!important;
+}
+.workspace-page #app .focus-current{
+ display:grid;
+ grid-template-columns:auto minmax(0,1fr) 19px;
+ align-items:center;
+ gap:12px;
+ width:100%;
+ min-height:50px;
+ padding:8px 14px 8px 9px;
+ text-align:left;
+ border:1px solid var(--border);
+ border-radius:12px;
+ background:var(--surface-soft);
+ color:var(--ink);
+ cursor:pointer;
+ box-shadow:0 1px 1px color-mix(in srgb,var(--ink) 2%,transparent);
+}
+.workspace-page #app .focus-current:hover{
+ background:var(--selection);
+ border-color:color-mix(in srgb,var(--accent) 38%,var(--border));
+}
+.workspace-page #app .focus-current[aria-expanded="true"]{
+ background:var(--surface);
+ border-color:var(--accent);
+ box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 11%,transparent);
+}
+.workspace-page #app .focus-current-step{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ padding:7px 10px;
+ min-height:32px;
+ border-radius:8px;
+ background:var(--selection);
+ font-weight:740;
+ letter-spacing:.04em;
+ font-size:11px;
+ font-variant-numeric:tabular-nums;
+ color:var(--accent);
+ white-space:nowrap;
+}
+.workspace-page #app .focus-current-text{
+ min-width:0;
+ display:block;
+ overflow:hidden;
+ white-space:nowrap;
+ text-overflow:ellipsis;
+ font-size:14px;
+ font-weight:690;
+ line-height:1.45;
+ letter-spacing:-.009em;
+}
+.workspace-page #app .focus-current>svg{
+ width:17px;height:17px;
+ color:var(--muted);
+ transition:transform 175ms var(--ws-ease);
+}
+.workspace-page #app .focus-current[aria-expanded="true"]>svg{transform:rotate(180deg)}
+.workspace-page #app .focus-menu{
+ position:absolute;
+ z-index:100;
+ top:calc(100% + 7px);
+ left:0;
+ width:min(470px,calc(100vw - 32px));
+ max-height:min(440px,calc(100svh - 170px));
+ display:flex;
+ flex-direction:column;
+ overflow:hidden;
+ padding:9px;
+ border:1px solid var(--border);
+ border-radius:15px;
+ background:var(--surface);
+ box-shadow:0 18px 55px color-mix(in srgb,var(--ink) 16%,transparent);
+ animation:ws-focus-menu-in 170ms var(--ws-ease);
+}
+.workspace-page #app .focus-menu[hidden]{display:none!important}
+@keyframes ws-focus-menu-in{
+ from{opacity:.55;transform:translateY(-5px)}
+ to{opacity:1;transform:translateY(0)}
+}
+.workspace-page #app .focus-menu-search{
+ display:flex;
+ align-items:center;
+ gap:10px;
+ min-height:44px;
+ padding:0 12px;
+ margin:2px 2px 8px;
+ border:1px solid var(--border);
+ border-radius:10px;
+ background:var(--surface-soft);
+ color:var(--accent);
+ flex:0 0 auto;
+}
+.workspace-page #app .focus-menu-search>svg{width:17px;height:17px;flex:0 0 auto}
+.workspace-page #app .focus-menu-search>input{
+ font-family:inherit;
+ font-size:14px;
+ line-height:1.5;
+ min-height:42px;
+ width:100%;
+ min-width:0;
+ background:transparent;
+ border:0;
+ padding:0;
+ color:var(--ink);
+ outline:0;
+}
+.workspace-page #app .focus-menu-search>input:focus-visible{outline:0}
+.workspace-page #app .focus-menu-list{
+ display:grid;
+ gap:3px;
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ scrollbar-width:thin;
+ padding:2px 3px 4px;
+ min-height:0;
+}
+.workspace-page #app .focus-menu-option{
+ display:grid;
+ align-items:center;
+ grid-template-columns:34px minmax(0,1fr) 22px;
+ gap:10px;
+ min-height:48px;
+ width:100%;
+ text-align:left;
+ background:transparent;
+ border:1px solid transparent;
+ border-radius:10px;
+ padding:8px 11px;
+ color:var(--ink);
+}
+.workspace-page #app .focus-menu-option:hover,
+.workspace-page #app .focus-menu-option:focus-visible{
+ border-color:var(--border);
+ background:var(--surface-soft);
+}
+.workspace-page #app .focus-menu-option[aria-checked="true"]{
+ background:var(--selection);
+ border-color:color-mix(in srgb,var(--accent) 26%,var(--border));
+ color:var(--accent);
+}
+.workspace-page #app .focus-menu-index{
+ font-size:11px;
+ font-weight:700;
+ color:var(--muted);
+ font-variant-numeric:tabular-nums;
+}
+.workspace-page #app .focus-menu-title{
+ font-size:13px;
+ line-height:1.5;
+ font-weight:570;
+ overflow-wrap:anywhere;
+}
+.workspace-page #app .focus-menu-option[aria-checked="true"] .focus-menu-title{font-weight:730}
+.workspace-page #app .focus-menu-check{
+ justify-self:center;
+ font-size:18px;
+ font-weight:750;
+ color:var(--accent);
+}
+.workspace-page #app .focus-menu-empty{
+ font-size:13px;
+ color:var(--muted);
+ padding:14px 12px;
+ margin:0;
+}
+.workspace-page #app .focus-navigation{
+ align-self:end;
+ padding-bottom:3px;
+}
+.workspace-page #app .focus-navigation>button:not(:disabled):hover{
+ background:var(--selection);
+ border-color:color-mix(in srgb,var(--accent) 38%,var(--border));
+}
+@media(max-width:760px){
+ .workspace-page #app .focus-toolbar{
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end;
+  gap:10px;
+  padding:12px;
+ }
+ .workspace-page #app .focus-current{
+  min-height:48px;
+  padding:7px 10px 7px 7px;
+  gap:8px;
+ }
+ .workspace-page #app .focus-current-text{font-size:13px}
+ .workspace-page #app .focus-current-step{font-size:10px;padding:7px 8px}
+ .workspace-page #app .focus-menu{
+  width:min(420px,calc(100vw - 36px));
+  max-height:min(370px,calc(100svh - 180px));
+ }
+ .workspace-page #app .focus-menu-option{min-height:48px}
+}
+@media(max-width:490px){
+ .workspace-page #app .focus-toolbar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:9px;
+  align-items:stretch;
+ }
+ .workspace-page #app .focus-picker{width:100%}
+ .workspace-page #app .focus-current{
+  min-height:52px;
+  grid-template-columns:auto minmax(0,1fr) 18px;
+ }
+ .workspace-page #app .focus-current-text{
+  white-space:normal;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+ }
+ .workspace-page #app .focus-menu{max-width:100%;width:100%}
+ .workspace-page #app .focus-navigation{
+  justify-content:flex-end;
+  align-self:auto;
+  padding:0;
+  gap:7px;
+ }
+ .workspace-page #app .focus-navigation .ws-open-source{margin-right:auto}
+ .workspace-page #app .focus-navigation .focus-counter{display:block;margin:0 5px;min-width:37px}
+}
+@media(prefers-reduced-motion:reduce){
+ .workspace-page #app .focus-menu{animation:none}
+ .workspace-page #app .focus-current>svg{transition:none}
+}
+
+
+/* Open upwards when the lower viewport has insufficient room. */
+.workspace-page #app .focus-menu.focus-menu-up{
+ top:auto;
+ bottom:calc(100% + 7px);
+}

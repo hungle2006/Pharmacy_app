@@ -119,7 +119,7 @@
     if($('filter-context')){$('filter-context').hidden=special||!data;}
     if(theory()){$('status').hidden=true;$('visuals').innerHTML=PharmaTasks.render(view);return;}
     if(featurePriceView()||diseasePredictView()){$('visuals').innerHTML='';return;}
-    if(lookupView()||marketForecastView()){$('lookup-task-story').innerHTML=lookupView()?'<details class="lookup-guide"><summary>Cách đọc kết quả: hồ sơ → cấu hình → giá → bằng chứng</summary><div class="lookup-guide-content">'+PharmaTasks.intro(view)+PharmaDepth.lookupGuide()+'</div></details>':'';$('market-task-story').innerHTML=marketForecastView()?PharmaTasks.intro(view):'';$('visuals').innerHTML='';return;}
+    if(lookupView()||marketForecastView()){$('lookup-task-story').innerHTML=lookupView()?'<details class="lookup-guide"><summary title="Hồ sơ → Cấu hình → Giá → Bằng chứng">Cách đọc kết quả</summary><div class="lookup-guide-content">'+PharmaTasks.intro(view)+PharmaDepth.lookupGuide()+'</div></details>':'';$('market-task-story').innerHTML=marketForecastView()?PharmaTasks.intro(view):'';$('visuals').innerHTML='';return;}
     if(!data){$('metrics').innerHTML=[['Sản phẩm','◫'],['Hoạt chất','◇'],['Nhà sản xuất','▥'],['Giá trung vị','↗']].map(([l,i])=>metric(l,'—','Đang chờ dữ liệu nguồn',i)).join('');$('visuals').innerHTML=panel('Kết nối dữ liệu phân tích','Không sử dụng số liệu mô phỏng','<div class="empty"><strong>Đang chờ dữ liệu từ Neon</strong>Nhấn làm mới để thử lại nếu kết nối chưa sẵn sàng.</div>');$('records').innerHTML='<tr><td colspan="5">Chưa có dữ liệu nguồn.</td></tr>';$('records-count').textContent='—';$('range').textContent='Chưa có bản ghi';$('pageinfo').textContent='—';$('prev').disabled=true;$('next').disabled=true;return;}
     const s=data.summary||{};renderFilterContext();
     $('metrics').innerHTML=view==='pricing'?metric('Giá P10',money(s.p10),'Phân vị 10% · VND','↓')+metric('Giá trung vị',money(s.median),'Phân vị 50% · VND','◫')+metric('Giá P90',money(s.p90),'Phân vị 90% · VND','↑')+metric('Quan sát có giá',fmt(s.priced),'Giá không âm · VND','▤'):metric('Sản phẩm phân biệt',fmt(s.products),'ID sản phẩm DAV trong bộ lọc','◫')+metric('Tên hoạt chất nguồn',fmt(s.ingredients),'Tên phân biệt từ dữ liệu nguồn','◇')+metric('Nhà sản xuất',fmt(s.manufacturers),'Tên nhà sản xuất phân biệt','▥')+metric('Giá trung vị',money(s.median),fmt(s.priced)+' quan sát giá VND','↗');
@@ -164,13 +164,21 @@
   });
   let entranceTimer;
   $('start').onclick=()=>{
-    if($('start').disabled)return;
-    navigate(view);$('app').hidden=false;$('cover').classList.add('entering');$('start').disabled=true;
-    entranceTimer=setTimeout(()=>{$('cover').hidden=true;$('app').hidden=false;$('cover').classList.remove('entering');$('start').disabled=false;$('page-title').setAttribute('tabindex','-1');$('page-title').focus({preventScroll:true});},matchMedia('(prefers-reduced-motion:reduce)').matches?0:520);
+    const button=$('start');
+    if(button.disabled)return;
+    button.disabled=true;button.classList.add('is-entering');button.setAttribute('aria-busy','true');
+    navigate(view);$('app').hidden=false;$('cover').classList.add('entering');
+    clearTimeout(entranceTimer);
+    entranceTimer=setTimeout(()=>{
+      $('cover').hidden=true;$('app').hidden=false;$('cover').classList.remove('entering');
+      button.disabled=false;button.classList.remove('is-entering');button.removeAttribute('aria-busy');
+      PharmaMotion.reveal();
+      $('page-title').setAttribute('tabindex','-1');$('page-title').focus({preventScroll:true});
+    },matchMedia('(prefers-reduced-motion:reduce)').matches?0:440);
   };
   $('logout').onclick=()=>{
     clearTimeout(entranceTimer);closeMenu();$('tooltip').hidden=true;
-    $('app').hidden=true;PharmaFeaturePrice.activate('intro');PharmaDisease.activate('intro');$('cover').hidden=false;$('cover').classList.remove('entering');$('start').disabled=false;
+    $('app').hidden=true;PharmaFeaturePrice.activate('intro');PharmaDisease.activate('intro');$('cover').hidden=false;$('cover').classList.remove('entering');$('start').disabled=false;$('start').classList.remove('is-entering');$('start').removeAttribute('aria-busy');
     document.dispatchEvent(new CustomEvent('pharmabiz:lookup-view',{detail:{active:false}}));
     document.dispatchEvent(new CustomEvent('pharmabiz:market-forecast-view',{detail:{active:false}}));
     const url=new URL(location);url.searchParams.set('view','intro');url.hash='';history.replaceState(null,'',url);
