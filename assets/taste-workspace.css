@@ -202,6 +202,20 @@
 .workspace-page #app .taste-lollipop-line>span{position:absolute;top:50%;height:2px;left:0;z-index:1;background:var(--chart-primary)}
 .workspace-page #app .taste-lollipop-line>i{position:absolute;top:50%;z-index:2;width:12px;height:12px;background:var(--chart-primary);border:3px solid var(--surface);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 1px var(--chart-primary)}
 .workspace-page #app .taste-lollipop-line:focus-visible{outline:2px solid var(--accent);border-radius:4px}
+
+.workspace-page #app .taste-funnel{display:grid;gap:16px;margin:15px 0 22px;padding:12px;border-radius:14px;background:color-mix(in srgb,var(--taste-wash) 18%,var(--surface))}
+.workspace-page #app .taste-funnel-step{display:grid;gap:8px}
+.workspace-page #app .taste-funnel-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;font-size:13px;line-height:1.45}
+.workspace-page #app .taste-funnel-head>span{min-width:0;color:var(--ink);font-weight:610}
+.workspace-page #app .taste-funnel-head>span b{font-size:11px;letter-spacing:.04em;color:var(--accent);margin-right:8px}
+.workspace-page #app .taste-funnel-head strong{white-space:nowrap;font-variant-numeric:tabular-nums}
+.workspace-page #app .taste-funnel-head strong small{color:var(--muted);font-weight:500}
+.workspace-page #app .taste-funnel-rail{height:clamp(18px,2.5vw,30px);width:100%;border-radius:7px;overflow:hidden;background:var(--surface);border:1px solid var(--border);display:flex;justify-content:center}
+.workspace-page #app .taste-funnel-rail i{display:block;height:100%;background:linear-gradient(90deg,var(--chart-primary-soft),var(--chart-primary));border-radius:4px;transition:width .18s ease}
+.workspace-page #app .taste-funnel-step p{margin:0!important;text-align:right;font-size:11px!important;color:var(--muted);line-height:1.4!important}
+@media(max-width:760px){.workspace-page #app .taste-funnel{padding:11px;gap:14px}.workspace-page #app .taste-funnel-head{font-size:12px}.workspace-page #app .taste-funnel-head strong{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.workspace-page #app .taste-funnel-rail i{transition:none}}
+
 .workspace-page #app .taste-price-interval{display:flex;align-items:center;gap:12px;margin:17px 0 14px}
 .workspace-page #app .taste-price-interval-track{
  position:relative;
