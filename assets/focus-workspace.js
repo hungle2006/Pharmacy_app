@@ -90,7 +90,7 @@
     const analysis=document.getElementById('depth-analytical')||document.getElementById('visuals');
     makeDeck(analysis);makeDeck(document.getElementById('market-explore'));compactForm();
     const records=document.getElementById('records-panel');
-    const disclosure=fold(records,'Khám phá bản ghi nguồn','records-disclosure');
+    const disclosure=records?.closest('.ws-sheet-body')?null:fold(records,'Khám phá bản ghi nguồn','records-disclosure');
     if(disclosure){if(disclosure.hidden!==records.hidden)disclosure.hidden=records.hidden;
       let count=disclosure.querySelector('.focus-record-count');if(!count){count=document.createElement('span');count.className='focus-record-count';disclosure.firstElementChild.append(count);}
       const countText=text(document.getElementById('records-count'));if(count.textContent!==countText)count.textContent=countText;
