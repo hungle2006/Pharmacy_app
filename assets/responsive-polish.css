@@ -1,0 +1,267 @@
+/* Pharmacy UI visual QA pass | screen-first, with deliberate spacing.
+   Keeps all data, task selection routes and the approved Blender capsule. */
+
+/* START: the CTA is responsive and smooth without animating the WebGL scene itself. */
+.workspace-page #cover.start-focus.entering{
+ animation:pb-start-exit 440ms cubic-bezier(.25,.7,.3,1) forwards;
+ pointer-events:none;
+}
+@keyframes pb-start-exit{
+ from{opacity:1;transform:translateY(0)}
+ to{opacity:0;transform:translateY(-10px)}
+}
+.workspace-page #cover .start-btn{
+ position:relative;isolation:isolate;overflow:hidden;
+ transform:translateZ(0);
+ transition:background-color 190ms cubic-bezier(.2,.75,.2,1),
+ border-color 190ms cubic-bezier(.2,.75,.2,1),
+ box-shadow 190ms cubic-bezier(.2,.75,.2,1),
+ transform 190ms cubic-bezier(.2,.75,.2,1);
+ box-shadow:0 5px 15px #087f7130;
+}
+.workspace-page #cover .start-btn:after{
+ content:"";pointer-events:none;position:absolute;inset:0;
+ width:50%;left:-60%;
+ background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);
+ transform:skewX(-16deg) translateX(0);
+ transition:transform 400ms cubic-bezier(.2,.75,.2,1);
+}
+.workspace-page #cover .start-btn span,
+.workspace-page #cover .start-btn svg{
+ transition:transform 200ms cubic-bezier(.2,.75,.2,1);
+}
+.workspace-page #cover .start-btn:focus-visible{
+ outline:3px solid #53c5a7;outline-offset:4px;
+}
+@media(hover:hover) and (pointer:fine){
+ .workspace-page #cover .start-btn:hover:not(:disabled){
+  transform:translateY(-2px);background:#096b62;
+  box-shadow:0 12px 24px #087f7133;
+ }
+ .workspace-page #cover .start-btn:hover:not(:disabled) span{transform:translateX(4px)}
+ .workspace-page #cover .start-btn:hover:not(:disabled):after{transform:skewX(-16deg) translateX(560%)}
+}
+.workspace-page #cover .start-btn:active:not(:disabled){
+ transform:translateY(0) scale(.984);box-shadow:0 3px 10px #087f7126;
+ transition-duration:95ms;
+}
+.workspace-page #cover .start-btn.is-entering{
+ background:#0a7167;border-color:#0a7167;cursor:progress;
+ box-shadow:0 4px 14px #087f711f;
+}
+.workspace-page #cover .start-btn.is-entering:after{
+ animation:pb-start-loading 440ms ease-out both;
+}
+@keyframes pb-start-loading{
+ from{transform:skewX(-16deg) translateX(0)}
+ to{transform:skewX(-16deg) translateX(560%)}
+}
+/* Small-height phones: fit title, real 3D stage, copy, CTA and footer together. */
+@media(max-width:760px){
+ .workspace-page #cover.start-focus{padding-inline:clamp(14px,5vw,24px)}
+ .workspace-page #cover .start-copy{width:100%}
+ .workspace-page #cover .start-btn{min-height:52px;width:100%;font-size:15px}
+ .workspace-page #cover .start-art{min-width:0}
+ .workspace-page #cover .start-description{max-width:48ch}
+ .workspace-page #cover .start-footer{padding-top:8px;padding-bottom:calc(9px + env(safe-area-inset-bottom))}
+}
+@media(max-width:390px){
+ .workspace-page #cover h1{font-size:clamp(30px,9.3vw,36px);letter-spacing:-1.15px;line-height:1.13}
+ .workspace-page #cover .start-description{font-size:13px;line-height:1.62}
+ .workspace-page #cover .start-intro{font-size:11px}
+ .workspace-page #cover .start-sources{gap:9px}
+ .workspace-page #cover .start-sources span{font-size:11px}
+}
+@media(max-width:760px) and (max-height:690px){
+ .workspace-page #cover.start-focus{
+  height:100dvh;min-height:0;max-height:none;
+  display:grid;grid-template-rows:54px minmax(0,1fr) 43px;
+  overflow-y:auto;
+ }
+ .workspace-page #cover .start-header{min-height:54px}
+ .workspace-page #cover .start-main{justify-content:space-between}
+ .workspace-page #cover .start-art{flex:1 1 112px;min-height:105px;max-height:170px;margin-inline:0}
+ .workspace-page #cover .start-copy{padding:5px 0 9px;flex:0 0 auto}
+ .workspace-page #cover .start-intro{margin-bottom:8px}
+ .workspace-page #cover h1{font-size:clamp(28px,8.4vw,33px);margin:0 0 9px}
+ .workspace-page #cover .start-description{font-size:12.5px;line-height:1.5;margin:0 0 11px}
+ .workspace-page #cover .start-btn{min-height:48px;padding:11px 16px}
+ .workspace-page #cover .start-footer{min-height:43px;padding:7px 0 calc(7px + env(safe-area-inset-bottom))}
+ .workspace-page #cover .start-sources span{font-size:10px}
+}
+/* WORKSPACE: keep hierarchy tight but never stack controls without breathing room. */
+.workspace-page #app .page-head .ws-head-actions{
+ align-self:center;
+ row-gap:9px;
+}
+.workspace-page #app .page-head p{
+ max-width:61ch;
+}
+.workspace-page #app .ws-action,
+.workspace-page #app .ws-back,
+.workspace-page #app .focus-navigation button{
+ min-height:44px;
+}
+.workspace-page #app .ws-action:focus-visible,
+.workspace-page #app .focus-current:focus-visible{
+ outline:2px solid var(--accent);outline-offset:3px;
+}
+.workspace-page #app .focus-toolbar{
+ border-radius:14px;
+ box-shadow:0 4px 18px color-mix(in srgb,var(--ink) 4%,transparent);
+}
+.workspace-page #app .focus-menu{
+ box-shadow:0 18px 43px color-mix(in srgb,var(--ink) 14%,transparent);
+}
+.workspace-page #app .focus-menu-option{
+ transition:background-color 155ms ease,border-color 155ms ease,color 155ms ease;
+}
+.workspace-page #app :is(.panel,.depth-panel,.explore-panel,.report-evidence){
+ scroll-margin-top:95px;
+}
+.workspace-page #app .ws-sheet-body{scrollbar-gutter:stable}
+.workspace-page #app .ws-palette-results,
+.workspace-page #app .focus-menu-list{overscroll-behavior:contain}
+.workspace-page #app .nav-button .nav-arrow{opacity:.7}
+.workspace-page #app .nav-button.active .nav-arrow{opacity:1}
+/* Interactive panels and menus animate only compositor-friendly properties. */
+.workspace-page #app .ws-sheet{
+ animation-duration:205ms;
+}
+.workspace-page #app .ws-close:hover:not(:disabled){
+ background:var(--selection);border-color:var(--accent);
+}
+.workspace-page #app .ws-close:active:not(:disabled){
+ transform:scale(.975);
+}
+/* Fixed header and footer elements must not crowd the content on narrow phones. */
+@media(max-width:980px){
+ .workspace-page #app .page-head{min-height:0}
+ .workspace-page #app .focus-deck{min-width:0}
+ .workspace-page #app :is(.dp-results,.fp-panel,.lookup-results-column){
+  scroll-margin-top:90px;
+ }
+}
+@media(max-width:760px){
+ .workspace-page #app .content{
+  padding:12px 13px calc(90px + env(safe-area-inset-bottom));
+ }
+ .workspace-page #app .topbar{min-height:60px;gap:8px}
+ .workspace-page #app .topbar-right{gap:5px}
+ .workspace-page #app .page-head{
+  gap:11px;
+  padding:17px 16px!important;
+  margin-bottom:12px!important;
+ }
+ .workspace-page #app .page-head h1{
+  font-size:clamp(24px,7.1vw,30px);
+  letter-spacing:-.033em;
+  line-height:1.22;
+ }
+ .workspace-page #app .page-head p{line-height:1.55}
+ .workspace-page #app .ws-head-actions{
+  display:flex!important;
+  justify-content:flex-start!important;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  width:100%;
+ }
+ .workspace-page #app .ws-head-actions>.ws-action{width:auto;flex:1 1 auto}
+ .workspace-page #app .ws-head-actions>.ws-source-action{min-width:98px}
+ .workspace-page #app .ws-head-actions>#export:not([hidden]){
+  display:inline-grid;
+  place-items:center;
+  flex:0 0 44px;
+  width:44px!important;
+  min-width:44px;
+  max-width:44px;
+  min-height:44px;
+  padding:0!important;
+  grid-column:auto!important;
+ }
+ .workspace-page #app .ws-head-actions>#export .ws-export-label{display:none}
+ .workspace-page #app .metric{
+  padding:13px;
+  min-height:111px;
+  gap:6px;
+ }
+ .workspace-page #app .metric-value{font-size:clamp(21px,6.1vw,29px)}
+ .workspace-page #app .metric-note{line-height:1.35}
+ .workspace-page #app .focus-toolbar{
+  top:61px;
+  padding:11px 12px;
+  margin-bottom:11px;
+  gap:8px;
+ }
+ .workspace-page #app .focus-current-text{
+  overflow-wrap:anywhere;
+ }
+ .workspace-page #app .focus-menu-option{
+  padding:9px 10px;
+  min-height:45px;
+ }
+ .workspace-page #app .focus-page{
+  overflow-wrap:anywhere;
+ }
+ .workspace-page #app .depth-panel{
+  padding:16px 14px;
+ }
+ .workspace-page #app .depth-svg-scroll{
+  max-width:100%;
+  overscroll-behavior-x:contain;
+ }
+ .workspace-page #app .lookup-results-column{
+  overflow:hidden;
+ }
+ .workspace-page #app #lookup-panel .lookup-item{
+  min-height:78px;
+  padding:12px;
+ }
+ .workspace-page #mobile-taskbar{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:5px;
+  padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--border);
+  background:var(--surface);
+  box-shadow:0 -8px 24px color-mix(in srgb,var(--ink) 5%,transparent);
+ }
+ .workspace-page #mobile-taskbar button{
+  min-height:51px;
+  width:100%;
+  min-width:0;
+  padding:7px 3px;
+  font-size:11px;
+  line-height:1.3;
+  border-radius:11px;
+  transition:background-color 170ms ease,color 170ms ease,transform 110ms ease;
+ }
+ .workspace-page #mobile-taskbar button:active{transform:scale(.97)}
+ .workspace-page #mobile-taskbar button.active{
+  border:1px solid color-mix(in srgb,var(--accent) 19%,var(--border));
+ }
+}
+@media(max-width:370px){
+ .workspace-page #app .topbar{padding:0 9px}
+ .workspace-page #app .content{padding-inline:10px}
+ .workspace-page #app .page-head{padding:15px 13px!important}
+ .workspace-page #app .focus-toolbar{padding:9px}
+ .workspace-page #app .focus-navigation{gap:4px}
+ .workspace-page #app .focus-navigation .focus-counter{font-size:11px}
+ .workspace-page #app .metric{padding:11px;min-height:108px}
+ .workspace-page #app .metric-value{font-size:22px}
+ .workspace-page #mobile-taskbar{gap:3px;padding-inline:6px}
+ .workspace-page #mobile-taskbar button{font-size:10.5px}
+}
+@media(prefers-reduced-motion:reduce){
+ .workspace-page #cover.start-focus.entering{animation:none}
+ .workspace-page #cover .start-btn,
+ .workspace-page #cover .start-btn span,
+ .workspace-page #cover .start-btn svg,
+ .workspace-page #cover .start-btn:after,
+ .workspace-page #app .focus-menu-option,
+ .workspace-page #mobile-taskbar button{
+  animation:none!important;transition:none!important;
+ }
+}
