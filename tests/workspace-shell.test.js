@@ -55,7 +55,7 @@ test('workspace keeps source rows accessible and does not substitute fabricated 
 test('button motion remains subtle and cannot conflict with old whole-app WAAPI pointer animation',()=>{
  const motion=read('assets/motion-mobile.js');
  const css=read('assets/workspace-shell.css');
- assert.match(motion,/closest\('#cover button'\)/);
+ assert.doesNotMatch(motion,/\.animate\(\[\{transform:'scale\(1\)'/);
  assert.match(css,/transform:scale\(\.978\)/);
  assert.match(css,/transition-duration:90ms/);
 });
@@ -105,4 +105,29 @@ test('mobile popover opening upwards measures available space from entire picker
  assert.match(src,/menu\.classList\.toggle\('focus-menu-up',openUp\)/);
  assert.match(src,/menu\.style\.maxHeight=Math\.max\(118,Math\.min\(440,room-8\)\)\+'px'/);
  assert.match(css,/\.focus-menu\.focus-menu-up/);
+});
+
+test('Start motion has synchronized 440ms exit, app reveal and optional reduced motion',()=>{
+ const presentation=read('assets/presentation.js');
+ const motion=read('assets/motion-mobile.js');
+ const css=read('assets/responsive-polish.css');
+ assert.match(presentation,/button\.classList\.add\('is-entering'\)/);
+ assert.match(presentation,/button\.setAttribute\('aria-busy','true'\)/);
+ assert.match(presentation,/PharmaMotion\.reveal\(\)/);
+ assert.match(presentation,/matches\?0:440/);
+ assert.match(motion,/function reveal\(\)/);
+ assert.match(css, /animation:pb-start-exit 440ms/);
+ assert.match(css, /\\.start-btn:active:not\\(:disabled\\)/);
+ assert.match(css, /@media\\(prefers-reduced-motion:reduce\\)/);
+});
+test('responsive element spacing covers compact phone heights without replacing Blender scene',()=>{
+ const css=read('assets/responsive-polish.css');
+ const html=read('index.html');
+ assert.match(css,/@media\\(max-width:760px\\) and \\(max-height:690px\\)/);
+ assert.match(css,/height:100dvh/);
+ assert.match(css,/min-height:48px/);
+ assert.match(css,/@media\\(max-width:370px\\)/);
+ assert.match(css,/#mobile-taskbar button/);
+ assert.ok(html.indexOf('assets/responsive-polish.css')>html.indexOf('assets/workspace-shell.css'));
+ assert.match(html,/<canvas id="scene"/);
 });
