@@ -35,7 +35,8 @@
 
   const head=content.querySelector('.page-head');
   const actions=document.createElement('div');actions.className='ws-head-actions';
-  const exportButton=$('export');if(exportButton)actions.append(exportButton);
+  const exportButton=$('export');
+  if(exportButton){exportButton.innerHTML=icon('document')+'<span class="ws-export-label">Xuất CSV</span>';exportButton.setAttribute('aria-label','Xuất trang dữ liệu CSV');}
   const sourceAction=document.createElement('button');sourceAction.type='button';
   sourceAction.className='ws-action ws-source-action';
   sourceAction.innerHTML=icon('document')+'<span>Bản ghi</span>';
@@ -45,6 +46,7 @@
   taskAction.innerHTML=icon('layers')+'<span>Chọn tác vụ</span><kbd>Ctrl K</kbd>';
   taskAction.setAttribute('aria-label','Tìm và chuyển tác vụ');
   actions.append(sourceAction,taskAction);
+  if(exportButton)actions.append(exportButton);
   head.append(actions);
 
   // One reusable accessible overlay handles source tables and mobile drug detail.
@@ -155,7 +157,12 @@
     }
     if(e.key==='Escape'){
       if(!palette.hidden){e.preventDefault();closePalette();}
-      else if(!layer.hidden){e.preventDefault();closeSheet();}
+      else if(!layer.hidden){
+        e.preventDefault();
+        const lookupClose=current?.kind==='lookup'?current.node.querySelector('#lookup-detail-close'):null;
+        closeSheet();
+        if(lookupClose?.isConnected)lookupClose.click();
+      }
     }
     const overlay=!palette.hidden?palette:!layer.hidden?layer:null;
     if(!overlay||e.key!=='Tab')return;
