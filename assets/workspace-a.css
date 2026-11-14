@@ -334,8 +334,8 @@
   .workspace-page #app .status-strip .signal{margin-top:7px;flex:none}
   .workspace-page #app .filters{grid-template-columns:1fr 1fr;padding:10px;gap:8px;border-radius:12px}
   .workspace-page #app .filters :is(input,select){font-size:16px;min-width:0;min-height:44px;width:100%}
-  .workspace-page #app .filters .search-field{grid-column:1/-1;min-width:0}
-  .workspace-page #app .filters #reset{min-height:44px;grid-column:1/-1;width:100%;font-size:18px;display:flex;align-items:center;justify-content:center}
+  .workspace-page #app .filters .search-field{grid-column:1/-1;min-width:0;order:-1}
+  .workspace-page #app .filters #reset{order:3;min-height:44px;grid-column:1/-1;width:100%;font-size:18px;display:flex;align-items:center;justify-content:center}
   .workspace-page #app .filters #reset::after{font-size:12px;margin-left:8px}
   .workspace-page #app .filter-context{font-size:12px;line-height:1.75;margin:13px 0 18px}
   .workspace-page #app .metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0 20px}
