@@ -63,13 +63,13 @@
       counter.textContent=(index+1)+' / '+pages.length;selections.set(name,pages[index].dataset.focusKey);
       if(announce){
         status.textContent='Đang xem: '+select.options[index].textContent;
-        // Always return to the selected chapter's heading; never leave readers stranded
-        // at the previous chapter's scroll position (especially on narrow screens).
-        const offset=matchMedia('(max-width:760px)').matches?76:92;
-        const target=Math.max(0,window.scrollY+deck.getBoundingClientRect().top-offset);
-        if(Math.abs(window.scrollY-target)>12)window.scrollTo({
-          top:target,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'
-        });
+        // Keep the user's position when switching within the visible toolbar.
+        // Only recover the toolbar if it is completely outside the viewport.
+        const box=toolbar.getBoundingClientRect();
+        if(box.bottom<0||box.top>window.innerHeight-42){
+          const offset=matchMedia('(max-width:760px)').matches?66:82;
+          window.scrollTo({top:Math.max(0,window.scrollY+box.top-offset),behavior:'auto'});
+        }
       }
     }
     select.addEventListener('change',()=>show(select.value,true));
