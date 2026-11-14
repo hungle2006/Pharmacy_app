@@ -35,7 +35,7 @@ test('mobile lookup opens a detail panel instead of forcing document scrolling',
 test('detail sheet has keyboard closing, focus trapping, and mobile-safe spacing',()=>{
  const script=read('assets/workspace-shell.js');
  const css=read('assets/workspace-shell.css');
- for(const text of ['aria-modal="true"','aria-labelledby="ws-sheet-heading"','Escape','e.shiftKey','document.activeElement===last','role="listbox"','Ctrl K']){
+ for(const text of ['aria-modal="true"','aria-labelledby="ws-sheet-heading"','Escape','e.shiftKey','document.activeElement===last','role="listbox"','e.ctrlKey||e.metaKey']){
   assert.ok(script.includes(text), 'missing '+text);
  }
  assert.match(css,/@media\(max-width:760px\)/);
@@ -72,4 +72,27 @@ test('record detail sheet does not get wrapped inside a new collapsed details co
  const css=read('assets/workspace-shell.css');
  assert.match(focus,/records\?\.closest\('\.ws-sheet-body'\)\?null:fold\(records/);
  assert.match(css,/#records-disclosure:not\(\.ws-in-sheet\)\{display:none!important\}/);
+});
+
+test('header omits the redundant task-selection CTA while keeping existing navigation',()=>{
+ const shell=read('assets/workspace-shell.js');
+ const html=read('index.html');
+ assert.doesNotMatch(shell,/createElement\('button'\);taskAction/);
+ assert.doesNotMatch(shell,/<span>Chọn tác vụ<\/span>/);
+ assert.match(shell,/actions\.append\(sourceAction\)/);
+ assert.match(html,/<nav id="mobile-taskbar"/);
+ assert.match(html,/<nav id="nav"/);
+});
+test('focus chapters use an accessible bounded custom popover rather than native select UI',()=>{
+ const focus=read('assets/focus-workspace.js');
+ const css=read('assets/workspace-shell.css');
+ assert.match(focus,/const trigger=document\.createElement\('button'\)/);
+ assert.match(focus,/trigger\.setAttribute\('aria-haspopup','menu'\)/);
+ assert.match(focus,/menuSearch\.addEventListener\('input',drawMenu\)/);
+ assert.match(focus,/select\.dispatchEvent\(new Event\('change'/);
+ assert.match(focus,/trigger\.setAttribute\('aria-expanded','false'\)/);
+ assert.match(focus,/e\.key==='Escape'/);
+ assert.match(css,/select\.focus-native-select/);
+ assert.match(css,/\.focus-menu-list\{[^}]*overflow-y:auto/s);
+ assert.match(css,/@media\(max-width:490px\)/);
 });
