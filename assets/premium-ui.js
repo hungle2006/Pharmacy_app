@@ -11,6 +11,9 @@
  if(!app||!filters||!lookup||!form||!results||!details)return;
  const orig=document.createComment('original analytics filter position');
  filters.before(orig);
+ const story=document.getElementById('lookup-task-story');
+ const storyOrig=document.createComment('original task-guide position');
+ if(story)story.before(storyOrig);
  const tabs=document.querySelector('.lookup-tabs');
  if(tabs)results.insertBefore(tabs,document.getElementById('lookup-results'));
  const labels={
@@ -106,8 +109,8 @@
  document.addEventListener('pharmabiz:lookup-view',e=>{
   const active=Boolean(e.detail?.active);
   closeMenu();
-  if(active){form.after(filters);filters.hidden=false;document.body.dataset.lookupMode=document.getElementById('lookup-tab-rx')?.getAttribute('aria-pressed')==='true'?'rx':'dav';}
-  else{orig.after(filters);delete document.body.dataset.lookupMode;}
+  if(active){form.after(filters);if(story)filters.after(story);filters.hidden=false;document.body.dataset.lookupMode=document.getElementById('lookup-tab-rx')?.getAttribute('aria-pressed')==='true'?'rx':'dav';}
+  else{orig.after(filters);if(story)storyOrig.after(story);delete document.body.dataset.lookupMode;}
   syncAll();
  });
  document.getElementById('lookup-tab-dav')?.addEventListener('click',()=>{document.body.dataset.lookupMode='dav';closeMenu();});
