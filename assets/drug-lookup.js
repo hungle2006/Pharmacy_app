@@ -105,6 +105,7 @@
       p.set('mode','products');
       if(state.query)p.set('q',state.query);
       if($('lookup-current').checked)p.set('currentOnly','true');
+      for(const key of ['ingredient','country','kind','unit']){const filter=$(key)?.value?.trim();if(filter)p.set(key,filter);}
     }else p.set('q',state.query);
     try{
       const response=await fetch((state.mode==='dav'?'/api/data?':'/api/rxnorm?')+p,{signal:controller.signal,cache:'no-store'});
@@ -115,6 +116,7 @@
       state.total=Number(body.totalRows||0);
       state.totalPages=Number(body.totalPages||0);
       renderItems();
+      if(state.items.length&&state.mode==='dav'&&state.page===1&&matchMedia('(min-width:981px)').matches)selectItem(0,true);
       status(state.total?'Kết quả từ Neon Gold · '+fmt(state.total)+' '+(state.mode==='dav'?'sản phẩm trong phạm vi tìm kiếm':'thuật ngữ phù hợp'):'Không có bản ghi phù hợp.');
     }catch(e){
       if(controller.signal.aborted||id!==state.requestId)return;
@@ -131,7 +133,7 @@
     $('lookup-prev').disabled=true;$('lookup-next').disabled=true;
   }
   const field=(label,value)=>'<div class="lookup-field"><dt>'+esc(label)+'</dt><dd>'+esc(text(value))+'</dd></div>';
-  function renderDavDetail(d,raw) {
+  function renderDavDetail(d,raw,auto=false) {
     const p=d.product;
     const accepted=Number(p.accepted_for_serving)===1;
     const candidate=Boolean(p.suggested_scd_rxcui);
@@ -166,7 +168,8 @@
       '<p>PharmaBiz đã ngừng dự báo cho từng thuốc. Các mức tăng/giảm theo 3, 6 và 12 tháng được phân tích chung từ những lần kê khai giá lịch sử.</p>'+
       '<button type="button" data-view="market-forecast">Xem dashboard dự báo thị trường ↗</button>'+
       '<p>Giá DAV trên đây là giá quan sát đã công bố, không phải giá AI.</p></section>');
-    bindClose();
+    document.dispatchEvent(new CustomEvent('pharmabiz:lookup-detail-render',{detail:{mode:'dav'}}));
+    if(!auto)bindClose();
   }
   // Each RxNorm term can be explored in the opposite direction without
   // inventing new RxCUI/SCD relationships. Reverse paging is independent
@@ -275,6 +278,7 @@
       '<dl class="lookup-fields">'+field('RxCUI',raw.rxcui)+field('Loại thuật ngữ (TTY)',raw.canonical_tty)+field('Nguồn thuật ngữ (SAB)',raw.canonical_sab)+field('Các loại TTY',raw.tty_set)+field('SCD',raw.scd_name)+field('Dạng bào chế',raw.dose_form_name)+field('Số thành phần SCD',raw.component_count)+'</dl>'+
       '<p class="lookup-warning">Thông tin thuật ngữ RxNorm không tự xác nhận tương đương với thuốc DAV hoặc chỉ định điều trị.</p>'+
       '<section id="lookup-reverse-dav" class="lookup-reverse" aria-label="Thuốc DAV liên quan RxNorm"><p class="lookup-muted">Đang tìm thuốc DAV…</p></section>';
+    document.dispatchEvent(new CustomEvent('pharmabiz:lookup-detail-render',{detail:{mode:'rx'}}));
     bindClose();
     loadReverseDav(raw,reversePage,reverseReview);
   }
@@ -286,7 +290,7 @@
       details.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth',block:'start'});
     details.focus({preventScroll:true});
   }
-  async function selectItem(index){
+  async function selectItem(index,auto=false){
     const raw=state.items[index];if(!raw)return;
     const rx=state.mode==='rx';
     state.selection=String(rx?raw.rxcui:raw.id);
@@ -301,7 +305,7 @@
       const data=await response.json();
       if(!response.ok||data.mode!=='database')throw new Error(data.notice||data.reason||'Không đọc được chi tiết');
       if(req!==state.detailRequestId||!state.active)return;
-      renderDavDetail(data,raw);
+      renderDavDetail(data,raw,auto);
     }catch(e){
       if(controller.signal.aborted||req!==state.detailRequestId)return;
       details.innerHTML='<div class="lookup-detail-empty"><h3>Không tải được chi tiết</h3><p>'+esc(e.message||'Lỗi kết nối')+'</p></div>';
@@ -331,5 +335,6 @@
     if(!active){state.controller?.abort();state.detailController?.abort();rxReverseAbort?.abort();}
   });
   document.addEventListener('pharmabiz:lookup-refresh',()=>{state.page=1;search();});
+  document.addEventListener('pharmabiz:lookup-filters',()=>{if(state.active&&state.mode==='dav'){state.page=1;search();}});
 })();
 
