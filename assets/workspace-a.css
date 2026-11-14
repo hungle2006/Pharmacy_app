@@ -452,3 +452,23 @@
 @media(max-width:370px){.workspace-page #app .topbar{padding:0 13px}.workspace-page #app .workspace-brand{font-size:19px;gap:7px}.workspace-page #app .content{padding-left:14px;padding-right:14px}.workspace-page #app .metric-value{font-size:25px}.workspace-page #app .workspace-ring{gap:10px}.workspace-page #app .workspace-ring svg{min-width:120px;width:120px}}
 @media(prefers-reduced-motion:reduce){.workspace-page #app *,.workspace-page #app *:before,.workspace-page #app *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media print{.workspace-page #app .sidebar,.workspace-page #app .topbar,.workspace-page #mobile-taskbar{display:none!important}.workspace-page #app .main{margin:0}.workspace-page #app .content{max-width:none;padding:0}.workspace-page #app :is(.panel,.metric){break-inside:avoid;box-shadow:none}}
+
+/* Visual QA pass 2: compact filters on phones and a stable desktop filter grid. */
+.workspace-page #app .filters{display:grid;grid-template-columns:minmax(190px,1.6fr) repeat(4,minmax(95px,1fr)) 44px}
+.workspace-page #app .filter-options{display:contents}
+.workspace-page #app .filter-toggle{display:none}
+.workspace-page #app .lookup-search-box input:focus-visible{outline:none;box-shadow:none}
+.workspace-page #app .lookup-search-box:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.workspace-page #app .lookup-submit svg{width:18px;height:18px}
+@media(max-width:1150px) and (min-width:761px){.workspace-page #app .filters{grid-template-columns:repeat(2,minmax(0,1fr)) 44px}.workspace-page #app .filters .search-field{grid-column:1/-1}.workspace-page #app .filters #reset{grid-column:3;grid-row:2/4;height:100%}}
+@media(max-width:760px){
+ .workspace-page #app .filters{grid-template-columns:minmax(0,1fr);padding:10px;gap:8px}
+ .workspace-page #app .filters .search-field{order:0;grid-column:1;grid-row:auto}
+ .workspace-page #app .filter-toggle{display:flex;align-items:center;gap:8px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--ink);padding:10px 12px;min-height:44px;text-align:left;font-size:13px;font-weight:600}
+ .workspace-page #app .filter-toggle>span{font-size:11px;color:var(--muted);font-weight:400;flex:1;line-height:1.7}
+ .workspace-page #app .filter-toggle>svg{width:17px;height:17px;flex-shrink:0}
+ .workspace-page #app .filter-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .workspace-page #app #filter-toggle[aria-expanded=false]+.filter-options{display:none}
+ .workspace-page #app .filters #reset{order:0;grid-column:1/-1;grid-row:auto}
+ .workspace-page #app #filter-toggle[aria-expanded=true]>svg{transform:rotate(180deg)}
+}
