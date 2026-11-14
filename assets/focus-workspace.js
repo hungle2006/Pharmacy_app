@@ -61,7 +61,16 @@
       pages.forEach((page,i)=>{const hide=i!==index;if(page.hidden!==hide)page.hidden=hide;});
       select.value=String(index);select.setAttribute('aria-controls',pages[index].id);prev.disabled=index===0;next.disabled=index===pages.length-1;
       counter.textContent=(index+1)+' / '+pages.length;selections.set(name,pages[index].dataset.focusKey);
-      if(announce)status.textContent='Đang xem: '+select.options[index].textContent;
+      if(announce){
+        status.textContent='Đang xem: '+select.options[index].textContent;
+        // Always return to the selected chapter's heading; never leave readers stranded
+        // at the previous chapter's scroll position (especially on narrow screens).
+        const offset=matchMedia('(max-width:760px)').matches?76:92;
+        const target=Math.max(0,window.scrollY+deck.getBoundingClientRect().top-offset);
+        if(Math.abs(window.scrollY-target)>12)window.scrollTo({
+          top:target,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'
+        });
+      }
     }
     select.addEventListener('change',()=>show(select.value,true));
     prev.addEventListener('click',()=>show(index-1,true));next.addEventListener('click',()=>show(index+1,true));
