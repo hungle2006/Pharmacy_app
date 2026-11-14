@@ -289,10 +289,15 @@
 }
 @media(max-width:760px){
  .workspace-page #app #filters{
+  grid-template-columns:minmax(0,1fr)!important;
   min-height:0;
   padding:0!important;
   margin-bottom:10px;
   gap:9px;
+ }
+ .workspace-page #app #filters #filter-toggle{
+  grid-column:1/-1;
+  width:100%!important;
  }
  .workspace-page #app #filters #filter-toggle{
   box-sizing:border-box;
