@@ -739,3 +739,10 @@ body.ws-detail-active{overflow:hidden}
  .workspace-page #app .focus-menu{animation:none}
  .workspace-page #app .focus-current>svg{transition:none}
 }
+
+
+/* Open upwards when the lower viewport has insufficient room. */
+.workspace-page #app .focus-menu.focus-menu-up{
+ top:auto;
+ bottom:calc(100% + 7px);
+}
