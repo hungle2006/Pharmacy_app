@@ -59,3 +59,19 @@ Ngày rà soát: 15/11/2026. Scope: Start, workspace header, chapter selector, s
 - Focus popup previously measured inside viewport at 320/375, after fixing initial 7px upward clipping.
 
 These checks verify Chromium layout, not native Safari/iPhone or every individual API state.
+
+
+## Final regression pass (Chromium, branch before merge)
+
+- Node syntax + `npm test`: **69 passed, 0 failed**.
+- Start 320×568: CTA bottom at 516px, footer below; document width exactly 320px, 3D canvas present.
+- Start 375×812: CTA bottom at 675px; 3D canvas present, no horizontal overflow.
+- 768×900 and 1440×900: Start clicked and dashboard entered successfully; no stuck disabled/busy button.
+- Reduced-motion 375×812: Start immediately enters dashboard, cover is hidden.
+- Lookup 320px: filter container width=300px, toggle width=300px, height=46px, result card starts at y=584px.
+- Lookup 375px: filter container width=349px, toggle width=349px, height=46px, result card starts at y=584px.
+- Desktop 1440px: quick search submit hitbox=44×44px.
+- No horizontal document overflow or browser page errors in the tested Start/lookup paths.
+- Existing chapter popover was tested at 1440/1024/768/375/320px: search, option selection, Escape and prev/next navigation behaved as expected; no menu clipping after mobile anchor fix.
+
+**Residual checks:** Native iOS Safari, Android Chrome hardware, and all data-driven popup states have not been visually compared on real devices. The shipped revision preserves the underlying data and 3D asset.
