@@ -1,0 +1,54 @@
+/* Progressive reading: content remains in the DOM, one selected chapter is visible. */
+.workspace-page #app .focus-deck{min-width:0;margin:20px 0 24px}
+.workspace-page #app .focus-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;padding:16px 18px;margin-bottom:15px;border:1px solid var(--border);border-radius:13px;background:var(--surface);position:sticky;top:84px;z-index:35}
+.workspace-page #app .focus-picker{display:grid;gap:7px;min-width:0;font-size:12px;font-weight:600;color:var(--muted)}
+.workspace-page #app .focus-picker select{font:550 14px/1.4 var(--font-ui,system-ui,sans-serif);min-height:44px;max-width:100%;width:100%;padding:9px 34px 9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft);color:var(--ink);cursor:pointer;text-overflow:ellipsis}
+.workspace-page #app .focus-navigation{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.workspace-page #app .focus-navigation button{display:grid;place-items:center;width:44px;min-height:44px;border:1px solid var(--border);border-radius:8px;color:var(--ink);background:var(--surface);cursor:pointer}
+.workspace-page #app .focus-navigation button svg{height:18px;width:18px}.workspace-page #app .focus-navigation button:disabled{opacity:.35;cursor:default}
+.workspace-page #app .focus-counter{font-size:12px;min-width:36px;text-align:center;color:var(--muted);font-variant-numeric:tabular-nums}
+.workspace-page #app .focus-page{min-width:0;outline:none}.workspace-page #app .focus-page[hidden]{display:none!important}
+.workspace-page #app .focus-page>.panel,.workspace-page #app .focus-page>.explore-panel,.workspace-page #app .focus-page>.study-interpretation{margin:0}
+.workspace-page #app .focus-fold{margin:14px 0;border:1px solid var(--border);border-radius:12px;background:var(--surface);min-width:0}
+.workspace-page #app .focus-fold>summary{min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 18px;list-style:none;cursor:pointer;font-size:14px;line-height:1.6;font-weight:600;color:var(--ink)}
+.workspace-page #app .focus-fold>summary::-webkit-details-marker{display:none}
+.workspace-page #app .focus-fold>summary:after{content:'+';font-size:22px;font-weight:400;color:var(--accent);line-height:1}
+.workspace-page #app .focus-fold[open]>summary:after{content:'−'}
+.workspace-page #app .focus-fold>summary small{font-size:12px;color:var(--muted);font-weight:400;margin-left:8px}
+.workspace-page #app .focus-fold[hidden]{display:none!important}
+.workspace-page #app .focus-fold>.panel{margin:0;border:0;box-shadow:none}
+.workspace-page #app .focus-fold>.depth-findings{margin:0;padding:0 18px 18px}
+.workspace-page #app .focus-record-count{margin-left:auto;color:var(--muted);font-size:12px;font-weight:450;white-space:nowrap}
+.workspace-page #app details.study-opening{padding:0;border-radius:12px;margin:14px 0}
+.workspace-page #app details.study-opening>summary{padding:15px 18px;min-height:52px}
+.workspace-page #app details.study-opening:not([open])>summary h2{display:none}
+.workspace-page #app details.study-opening>summary .study-opening-label{font-size:13px}
+.workspace-page #app details.study-opening[open] .study-body{padding:0 18px 18px}
+.workspace-page #app #lookup-task-story{margin-bottom:16px}
+.workspace-page #app .fp-optional{grid-column:1/-1;margin:0}
+.workspace-page #app .fp-optional-grid{padding:0 16px 16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.workspace-page #app .fp-optional-grid>label{min-width:0}
+.workspace-page #app .dp-workspace>.focus-fold>.dp-card{border:0;margin:0;padding-top:5px}
+.workspace-page #app .focus-status{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.workspace-page #app #market-explore .market-details{display:block}
+.workspace-page #app #market-explore .market-article{margin:0}
+@media(max-width:760px){
+ .workspace-page #app .focus-deck{margin:16px 0 20px}
+ .workspace-page #app .focus-toolbar{top:68px;padding:12px;gap:8px;grid-template-columns:minmax(0,1fr) auto;align-items:end;box-shadow:0 3px 10px #143c3605}
+ .workspace-page #app .focus-picker{font-size:12px;gap:6px}.workspace-page #app .focus-picker select{font-size:14px;padding-left:10px}
+ .workspace-page #app .focus-navigation{gap:5px}.workspace-page #app .focus-counter{display:none}
+ .workspace-page #app .focus-fold>summary{font-size:14px;padding:14px;min-height:54px}
+ .workspace-page #app .focus-record-count{font-size:11px}
+ .workspace-page #app .fp-optional-grid{grid-template-columns:minmax(0,1fr);gap:14px}
+ .workspace-page #app .market-horizon-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .workspace-page #app .market-horizon-grid>button{min-width:0;padding:12px 8px;min-height:142px;border-radius:11px}
+ .workspace-page #app .market-horizon-grid .market-card-sub,.workspace-page #app .market-horizon-grid .market-horizon-arrow{display:none}
+ .workspace-page #app .market-horizon-grid h3{font-size:13px;line-height:1.5;margin:8px 0}
+ .workspace-page #app .market-horizon-grid .market-horizon-value{font-size:22px;line-height:1.3;letter-spacing:-.5px}
+ .workspace-page #app .market-horizon-grid .market-card-label{font-size:11px;line-height:1.4}
+ .workspace-page #app .market-horizon-grid .market-chip{font-size:10px;padding:3px 5px}
+ .workspace-page #app .market-horizon-grid .market-horizon-meta{font-size:11px;line-height:1.5}
+ .workspace-page #app .market-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .workspace-page #app .market-stat{padding:12px 9px;min-width:0}.workspace-page #app .market-stat>span{font-size:11px;line-height:1.5}.workspace-page #app .market-stat strong{font-size:21px;letter-spacing:-.5px}.workspace-page #app .market-stat small{font-size:11px;line-height:1.5}
+}
+@media print{.workspace-page #app .focus-toolbar{display:none}.workspace-page #app .focus-page[hidden]{display:block!important}.workspace-page #app .focus-fold:not([open])>*:not(summary){display:block}.workspace-page #app .focus-fold>summary:after{display:none}}

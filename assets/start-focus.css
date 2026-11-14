@@ -1,0 +1,56 @@
+/* Approved A, Start iteration. The capsule is the main visual; one clear entry action. */
+.workspace-page #cover.start-focus{--start-bg:#f3f7f7;--start-ink:#173d42;--start-muted:#5b7478;--start-line:#d6e5e3;--start-soft:#dfeee9;position:relative;display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-height:640px;height:100svh;max-height:1200px;padding:0 clamp(24px,5.6vw,88px);overflow:hidden;background:var(--start-bg);color:var(--start-ink);isolation:isolate}
+[data-theme=dark] .workspace-page #cover.start-focus{--start-bg:#10282c;--start-ink:#e7f2ef;--start-muted:#a8c3c1;--start-line:#335356;--start-soft:#1e4545}
+.workspace-page #cover.start-focus[hidden]{display:none!important}
+.workspace-page #cover .start-header{position:relative;inset:auto;display:flex;align-items:center;justify-content:space-between;min-height:100px;padding:0;z-index:3;border-bottom:1px solid var(--start-line)}
+.workspace-page #cover .brand{color:var(--start-ink);font-size:24px;gap:11px;letter-spacing:-.6px}
+.workspace-page #cover .brand-symbol{width:38px;height:38px;background:#123c3d;color:#e3f3ec;border-radius:12px}
+.workspace-page #cover .accent{color:inherit}
+.workspace-page #cover .start-header-note{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--start-muted)}
+.workspace-page #cover .start-header-note:before{content:'';width:6px;height:6px;border-radius:50%;background:#0d7d73}
+.workspace-page #cover .start-main{position:relative;min-height:0;display:grid;grid-template-columns:1.03fr 1fr;gap:28px;align-items:center}
+.workspace-page #cover .start-copy{position:relative;inset:auto;transform:none;width:auto;max-width:640px;z-index:2;padding:20px 0 44px}
+.workspace-page #cover .start-intro{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--start-muted);margin:0 0 24px;line-height:1.5}
+.workspace-page #cover .start-intro svg{width:18px;height:18px;color:#0d7d73}
+.workspace-page #cover h1{font:650 clamp(42px,4.75vw,72px)/1.12 var(--font-ui,system-ui,sans-serif);letter-spacing:-2.3px;max-width:660px;margin:0 0 24px;text-wrap:balance;color:var(--start-ink)}
+.workspace-page #cover .start-description{color:var(--start-muted);font-size:17px;line-height:1.8;max-width:440px;margin:0 0 32px}
+.workspace-page #cover .start-btn{width:204px;min-height:60px;margin:0;padding:16px 22px;border:1px solid #0d7d73;border-radius:12px;background:#0d7d73;color:#fff;box-shadow:none;font-size:16px;font-weight:650;animation:none;justify-content:space-between;gap:35px}
+.workspace-page #cover .start-btn:before{display:none}
+.workspace-page #cover .start-btn span{border:0;width:23px;height:23px;border-radius:0}
+.workspace-page #cover .start-btn svg{width:23px;height:23px;display:block}
+.workspace-page #cover .start-btn:hover{background:#09685f;box-shadow:0 9px 24px #0d7d731f}
+.workspace-page #cover .start-art{position:relative;align-self:stretch;min-width:0;min-height:390px;z-index:1;touch-action:pan-y}
+.workspace-page #cover .start-art:before{content:'';position:absolute;width:88%;aspect-ratio:1;left:6%;top:50%;transform:translateY(-50%);border:1px solid var(--start-line);border-radius:50%;background:radial-gradient(circle at 45% 42%,var(--start-soft),transparent 68%)}
+.workspace-page #cover .start-art:after{content:'';position:absolute;width:72%;aspect-ratio:1;left:14%;top:50%;transform:translateY(-50%);border:1px dashed var(--start-line);border-radius:50%;z-index:-1}
+.workspace-page #cover #scene{position:absolute;inset:0;width:100%;height:100%;opacity:1;pointer-events:none;z-index:1;filter:none;mix-blend-mode:normal}
+.workspace-page #cover .start-art .blender-fallback{position:absolute;inset:0;overflow:hidden;z-index:1;pointer-events:none}
+.workspace-page #cover .start-art .blender-stage{position:absolute;width:100%;height:100%;left:0;top:0;opacity:1;transform:none;filter:none}
+.workspace-page #cover .start-art .blender-stage img{position:absolute;width:100%;height:100%;max-width:none;left:0;top:0;object-fit:contain;transform:none;opacity:1;filter:none}
+.workspace-page #cover .start-art .blender-orbit{display:none}
+.workspace-page #cover .start-scene-note{position:absolute;bottom:9%;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.04em;color:var(--start-muted);white-space:nowrap;z-index:2;display:flex;align-items:center;gap:8px}
+.workspace-page #cover .start-scene-note:before{content:'';height:5px;width:5px;background:#0d7d73;border-radius:50%}
+.workspace-page #cover .start-footer{position:relative;inset:auto;z-index:2;min-height:86px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid var(--start-line);font-size:12px;color:var(--start-muted);padding:12px 0}
+.workspace-page #cover .start-sources{display:flex;align-items:center;gap:23px;flex-wrap:wrap}
+.workspace-page #cover .start-sources span{font-size:13px;color:var(--start-ink);font-weight:550}
+.workspace-page #cover .start-footer p{font-size:12px;color:var(--start-muted);margin:0;text-align:right;max-width:260px;line-height:1.6}
+@media(max-width:1000px) and (min-width:761px){.workspace-page #cover.start-focus{padding:0 38px}.workspace-page #cover .start-main{gap:0}.workspace-page #cover h1{font-size:48px;letter-spacing:-1.7px}.workspace-page #cover .start-description{font-size:16px}.workspace-page #cover .start-art{min-height:360px}}
+@media(max-width:760px){
+ .workspace-page #cover.start-focus{padding:0 24px;min-height:630px;height:100svh;max-height:none;grid-template-rows:70px minmax(0,1fr) auto}
+ .workspace-page #cover .start-header{min-height:70px;border-bottom:0}
+ .workspace-page #cover .brand{font-size:21px}.workspace-page #cover .brand-symbol{width:34px;height:34px;border-radius:10px}
+ .workspace-page #cover .start-header-note{font-size:0;gap:0}.workspace-page #cover .start-header-note:before{width:7px;height:7px}
+ .workspace-page #cover .start-main{display:flex;flex-direction:column;gap:0;align-items:stretch;justify-content:center;min-height:0}
+ .workspace-page #cover .start-art{order:0;align-self:auto;flex:1 1 220px;min-height:170px;max-height:300px;margin:0 6px}
+ .workspace-page #cover .start-art:before{width:72%;left:14%}.workspace-page #cover .start-art:after{width:56%;left:22%}
+ .workspace-page #cover .start-art .blender-stage img{width:92%;height:110%;left:4%;top:-4%}
+ .workspace-page #cover .start-scene-note{bottom:3%;font-size:11px}
+ .workspace-page #cover .start-copy{order:1;padding:12px 0 25px;max-width:none;flex:0 0 auto}
+ .workspace-page #cover .start-intro{font-size:12px;margin:0 0 14px;gap:7px}.workspace-page #cover .start-intro svg{height:16px;width:16px}
+ .workspace-page #cover h1{font-size:40px;line-height:1.13;letter-spacing:-1.4px;margin:0 0 16px;max-width:410px;text-wrap:normal}
+ .workspace-page #cover .start-description{font-size:15px;line-height:1.7;margin:0 0 22px;max-width:370px}
+ .workspace-page #cover .start-btn{width:100%;min-height:56px;font-size:16px;padding:15px 20px}
+ .workspace-page #cover .start-footer{min-height:65px;padding:13px 0 calc(13px + env(safe-area-inset-bottom));gap:12px;justify-content:center}
+ .workspace-page #cover .start-sources{width:100%;justify-content:space-between;gap:14px}.workspace-page #cover .start-sources span{font-size:12px}.workspace-page #cover .start-footer p{display:none}
+}
+@media(max-height:740px) and (max-width:760px){.workspace-page #cover.start-focus{min-height:590px;grid-template-rows:62px minmax(0,1fr) 53px}.workspace-page #cover .start-header{min-height:62px}.workspace-page #cover .start-art{min-height:145px;max-height:190px}.workspace-page #cover .start-copy{padding-bottom:18px}.workspace-page #cover .start-intro{margin-bottom:10px}.workspace-page #cover h1{font-size:35px;margin-bottom:12px}.workspace-page #cover .start-description{font-size:14px;margin-bottom:17px}.workspace-page #cover .start-footer{min-height:53px}.workspace-page #cover .start-scene-note{display:none}}
+@media(prefers-reduced-motion:reduce){.workspace-page #cover .start-btn,.workspace-page #cover .start-btn span{transition:none}.workspace-page #cover .blender-stage{animation:none!important}}
