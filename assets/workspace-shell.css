@@ -1,0 +1,446 @@
+/* PharmaBiz / Workspace System 2026
+   Dense information, generous rhythm, accessible motion and progressive detail.
+   Strictly scoped to #app: Start / Three.js capsule / Blender asset stay unchanged. */
+.workspace-page #app{
+ --ws-xs:6px;--ws-sm:10px;--ws-md:16px;--ws-lg:22px;--ws-xl:30px;
+ --ws-border:color-mix(in srgb,var(--ink) 11%,transparent);
+ --ws-elev:0 12px 32px color-mix(in srgb,var(--ink) 7%,transparent);
+ --ws-ease:cubic-bezier(.2,.75,.2,1);
+ --ws-speed:190ms;
+ font-synthesis:none;
+}
+.workspace-page #app [hidden]{display:none!important}
+.workspace-page #app *{min-width:0}
+.workspace-page #app button,
+.workspace-page #app a,
+.workspace-page #app summary{
+ -webkit-tap-highlight-color:transparent;
+}
+.workspace-page #app button{
+ cursor:pointer;touch-action:manipulation;
+ transition:background-color var(--ws-speed) var(--ws-ease),
+ border-color var(--ws-speed) var(--ws-ease),
+ color var(--ws-speed) var(--ws-ease),
+ box-shadow var(--ws-speed) var(--ws-ease),
+ transform var(--ws-speed) var(--ws-ease);
+}
+.workspace-page #app button:disabled{cursor:not-allowed;transform:none!important;opacity:.5}
+.workspace-page #app button:focus-visible,
+.workspace-page #app a:focus-visible,
+.workspace-page #app summary:focus-visible,
+.workspace-page #app input:focus-visible,
+.workspace-page #app select:focus-visible{
+ outline:2px solid var(--accent);outline-offset:3px;
+}
+.workspace-page #app .ws-icon{width:19px;height:19px;display:block;flex:0 0 auto}
+@media(hover:hover) and (pointer:fine){
+ .workspace-page #app :is(.ws-action,.ws-close,.ws-back,.ws-open-source,.lookup-submit,.focus-navigation button,.lookup-pagination button,.ws-palette-item):hover:not(:disabled){
+  transform:translateY(-1px);box-shadow:0 6px 15px color-mix(in srgb,var(--ink) 9%,transparent);
+ }
+ .workspace-page #app :is(.nav-button,.ws-action,.lookup-item,.market-horizon):hover:not(:disabled){
+  border-color:color-mix(in srgb,var(--accent) 35%,var(--border));
+ }
+}
+.workspace-page #app :is(.ws-action,.ws-close,.ws-back,.ws-open-source,.lookup-submit,.focus-navigation button,.lookup-pagination button):active:not(:disabled){
+ transform:scale(.978);transition-duration:90ms;
+}
+.workspace-page #app .sidebar{
+ width:246px;padding:24px 16px 20px;
+ background:linear-gradient(175deg,#0c4241,#123737 59%,#0e4948);
+ border-right:1px solid #ffffff17;
+}
+.workspace-page #app .sidebar>.brand{margin-bottom:12px}
+.workspace-page #app .sidebar .workspace-title{margin:18px 10px 22px}
+.workspace-page #app .sidebar .nav-caption{
+ margin:19px 12px 10px;letter-spacing:.12em;font-size:10px;font-weight:750;
+}
+.workspace-page #app .sidebar .nav-button{
+ display:flex;gap:12px;align-items:center;min-height:45px;padding:10px 12px;
+ border:1px solid transparent;border-radius:11px;margin:3px 0;line-height:1.4;
+ font-size:13px;font-weight:560;
+}
+.workspace-page #app .sidebar .nav-button .nav-icon{display:grid;place-items:center;flex:0 0 20px}
+.workspace-page #app .sidebar .nav-button .nav-icon svg{width:18px;height:18px}
+.workspace-page #app .sidebar .nav-button.active{
+ background:#e8f6ef;color:#12433b;font-weight:740;box-shadow:inset 3px 0 0 #148c76;
+}
+.workspace-page #app .sidebar .nav-button.active .nav-icon{color:#12433b}
+.workspace-page #app .sidebar .workspace-links{padding-top:16px}
+.workspace-page #app .sidebar .sidebar-bottom{margin-top:20px}
+.workspace-page #app .main{margin-left:246px;background:var(--bg)}
+.workspace-page #app .topbar{
+ height:69px;padding:0 clamp(17px,2vw,32px);
+ background:var(--surface);border-bottom:1px solid var(--border);
+}
+.workspace-page #app .topbar .breadcrumb{font-size:12px}
+.workspace-page #app .topbar .breadcrumb strong{font-size:13px;letter-spacing:.005em}
+.workspace-page #app .topbar-right{gap:8px}
+.workspace-page #app :is(.icon-button,.theme-toggle,.workspace-logout){
+ border-radius:11px;min-width:44px;min-height:44px;
+}
+.workspace-page #app .workspace-search{border-radius:13px;max-width:390px;min-height:44px}
+.workspace-page #app .content{max-width:1650px;padding:clamp(17px,2.25vw,31px)}
+.workspace-page #app .page-head{
+ display:flex;align-items:center;justify-content:space-between;gap:24px;
+ min-height:132px;border-radius:18px;
+ padding:clamp(19px,2vw,29px) clamp(20px,2.5vw,34px)!important;
+ margin:0 0 17px!important;
+ background:linear-gradient(115deg,var(--surface),color-mix(in srgb,var(--taste-wash) 45%,var(--surface)))!important;
+}
+.workspace-page #app .page-head:after{right:-80px;opacity:.28;pointer-events:none}
+.workspace-page #app .page-head>div:first-child{flex:1 1 360px;min-width:0}
+.workspace-page #app .page-head .eyebrow{
+ font-size:10px;letter-spacing:.12em;line-height:1.5;margin-bottom:10px;color:var(--accent);
+}
+.workspace-page #app .page-head h1{
+ font-size:clamp(26px,2.75vw,37px);line-height:1.18;font-weight:760;
+ letter-spacing:-.035em;margin:0 0 9px;text-wrap:balance;
+}
+.workspace-page #app .page-head p{max-width:65ch;font-size:13px;line-height:1.6;color:var(--muted)}
+.workspace-page #app .ws-head-actions{
+ display:flex;align-items:center;justify-content:flex-end;gap:9px;
+ flex:0 0 auto;flex-wrap:wrap;position:relative;z-index:1;
+}
+.workspace-page #app .ws-action{
+ display:inline-flex;align-items:center;justify-content:center;gap:9px;
+ padding:11px 15px;min-height:44px;border:1px solid var(--ws-border);border-radius:12px;
+ background:var(--surface);color:var(--ink);font-size:12px;font-weight:690;line-height:1.25;white-space:nowrap;
+}
+.workspace-page #app .ws-action.ws-task-action{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.workspace-page #app .ws-action.ws-task-action .ws-icon{stroke:currentColor}
+.workspace-page #app .ws-action kbd{
+ background:color-mix(in srgb,var(--surface) 21%,transparent);
+ color:inherit;border:1px solid currentColor;border-radius:5px;
+ opacity:.75;font-family:inherit;font-weight:500;font-size:10px;padding:3px 5px;
+}
+.workspace-page #app .ws-source-action{background:var(--surface-soft)}
+.workspace-page #app .page-head .ws-head-actions #export{
+ min-height:44px;margin:0;border-radius:12px;font-size:12px;padding:10px 12px;
+}
+.workspace-page #app .status-strip{
+ background:none;border:0;padding:6px 1px;margin:0 0 10px;
+ font-size:11px;line-height:1.5;min-height:25px;
+}
+.workspace-page #app .metrics{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:12px;margin:12px 0 19px;
+}
+.workspace-page #app .metric{
+ min-height:120px;border:1px solid var(--ws-border);border-radius:15px;
+ background:var(--surface);padding:17px 18px;box-shadow:none;
+}
+.workspace-page #app .metric:first-child{background:color-mix(in srgb,var(--taste-wash) 55%,var(--surface))}
+.workspace-page #app .metric-top{font-size:11px;letter-spacing:.02em}
+.workspace-page #app .metric-value{font-size:clamp(23px,2vw,31px);margin:12px 0 5px;line-height:1.1}
+.workspace-page #app .metric-note{font-size:11px;line-height:1.45}
+.workspace-page #app .filter-context{margin:8px 0 14px}
+.workspace-page #app .filters{border-radius:15px;gap:10px}
+.workspace-page #app .ph-filter-trigger{border-radius:12px}
+.workspace-page #app .ph-filter-menu{border-radius:16px;box-shadow:var(--ws-elev)}
+.workspace-page #app .focus-deck{margin:9px 0 17px}
+.workspace-page #app .focus-toolbar{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;
+ padding:12px 14px;gap:12px;margin:0 0 13px;
+ background:var(--surface);border:1px solid var(--ws-border);
+ border-radius:14px;top:77px;box-shadow:0 4px 15px color-mix(in srgb,var(--ink) 3%,transparent);
+}
+.workspace-page #app .focus-picker{font-size:11px;color:var(--muted);gap:6px}
+.workspace-page #app .focus-picker select{
+ border-radius:10px;padding:9px 37px 9px 13px;min-height:44px;
+ background:var(--surface-soft);font-size:14px;color:var(--ink);
+}
+.workspace-page #app .focus-navigation{gap:6px;align-items:center}
+.workspace-page #app .focus-navigation button{
+ border-radius:10px;min-height:44px;width:44px;border:1px solid var(--border);
+ background:var(--surface);color:var(--ink);
+}
+.workspace-page #app .focus-navigation .ws-open-source{
+ display:inline-flex;justify-content:center;align-items:center;gap:7px;
+ min-width:100px;width:auto;padding:0 12px;background:var(--selection);
+ color:var(--accent);font-size:12px;font-weight:690;
+}
+.workspace-page #app .focus-navigation .ws-open-source[hidden]{display:none!important}
+.workspace-page #app .focus-counter{font-size:12px;min-width:37px;font-variant-numeric:tabular-nums}
+.workspace-page #app .focus-page{
+ min-width:0;padding:0;
+ animation:ws-chapter-in 170ms var(--ws-ease);
+}
+@keyframes ws-chapter-in{from{opacity:.65;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.workspace-page #app .focus-page > :is(.panel,.explore-panel,.study-interpretation){
+ border-radius:17px;
+}
+@media(min-width:1100px) and (min-height:700px){
+ .workspace-page #app .focus-page{
+  max-height:min(70svh,690px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  padding-right:4px;
+ }
+}
+.workspace-page #app :is(.panel,.depth-panel,.report-evidence,.explore-panel,.fp-panel,.dp-card){
+ border-radius:16px;border-color:var(--ws-border);
+}
+.workspace-page #app .depth-panel{padding:clamp(17px,2vw,25px);min-width:0}
+.workspace-page #app .depth-panel .panel-head{padding:0 0 15px;margin-bottom:14px}
+.workspace-page #app .depth-panel .panel-head h2{font-size:clamp(17px,1.5vw,20px)!important}
+.workspace-page #app .depth-panel .panel-head p{font-size:12px;line-height:1.55}
+.workspace-page #app .depth-svg-scroll{border-radius:12px}
+.workspace-page #app .depth-source{border-top:1px solid var(--border);margin-top:16px}
+.workspace-page #app .depth-source:not(.ws-in-sheet)>summary{min-height:44px;font-size:12px}
+.workspace-page #app .depth-rank{margin:12px 0}
+.workspace-page #app :is(.table-scroll,.depth-source .table-scroll){
+ max-width:100%;overflow-x:auto;scrollbar-width:thin;
+}
+.workspace-page #app :is(.records-panel,.explore-panel,.report-evidence) .table-scroll{
+ max-height:min(50svh,520px);overflow:auto;
+}
+.workspace-page #app .focus-fold{border-radius:13px;margin:12px 0}
+.workspace-page #app .focus-fold>summary{
+ min-height:50px;padding:12px 15px;font-size:13px;
+}
+.workspace-page #app .focus-fold[open]>summary{background:var(--surface-soft)}
+.workspace-page #app .task-reading{max-width:100%}
+.workspace-page #app #records-panel:not(.ws-in-sheet){display:none!important}
+.workspace-page #app #lookup-panel .lookup-intro{display:none}
+.workspace-page #app #lookup-panel .lookup-search-form{margin:8px 0 12px}
+.workspace-page #app #lookup-panel .lookup-layout{gap:15px}
+.workspace-page #app #lookup-panel :is(.lookup-results-column,.lookup-detail-panel){border-radius:16px}
+.workspace-page #app #lookup-panel .lookup-results-column{align-self:start}
+.workspace-page #app #lookup-panel .lookup-item{border-radius:12px;min-height:84px}
+.workspace-page #app #lookup-panel .lookup-results{max-height:min(56svh,560px)}
+.workspace-page #app #lookup-panel .lookup-detail-panel{top:81px;max-height:calc(100svh - 103px)}
+.workspace-page #app #market-forecast-panel .market-hero{
+ padding:clamp(16px,2vw,25px);border-radius:17px;min-height:0;
+}
+.workspace-page #app #market-forecast-panel .market-hero p{font-size:13px;line-height:1.6}
+.workspace-page #app #market-forecast-panel .market-stats{gap:11px}
+.workspace-page #app #market-forecast-panel .market-stat{padding:14px}
+.workspace-page #app #market-forecast-panel .market-horizon-grid{gap:12px}
+.workspace-page #app #market-forecast-panel .market-horizon{border-radius:14px;min-height:150px;padding:18px}
+.workspace-page #app #market-explore .focus-deck{margin-top:12px}
+.workspace-page #app :is(.fp-grid,.dp-grid){gap:16px;align-items:start}
+.workspace-page #app .dp-results{scroll-margin-top:80px;border-radius:17px}
+.workspace-page #app .dp-flash-card{border-radius:15px}
+.workspace-page #app :is(.dp-card,.fp-panel) :is(input,select,textarea){
+ border-radius:10px;max-width:100%;
+}
+.workspace-page #app :is(.dp-card,.fp-panel) :is(button,.dp-flash-action){min-height:44px}
+.workspace-page #app :is(.report-controls,.task-tabs,.market-horizon-grid) button:focus-visible{outline-offset:3px}
+.workspace-page #app .page-footer{padding:12px 0 17px;font-size:11px}
+/* Deep detail sheets — a back action, not another long document section. */
+.workspace-page #app .ws-layer,
+.workspace-page #app .ws-palette{position:fixed;inset:0;z-index:150;display:flex}
+.workspace-page #app .ws-layer[hidden],
+.workspace-page #app .ws-palette[hidden]{display:none!important}
+body.ws-detail-active{overflow:hidden}
+.workspace-page #app .ws-shade,.workspace-page #app .ws-palette-shade{
+ position:absolute;inset:0;background:rgba(10,25,27,.5);
+}
+.workspace-page #app .ws-sheet{
+ position:absolute;top:0;right:0;bottom:0;
+ width:min(760px,calc(100vw - 45px));
+ background:var(--surface);
+ box-shadow:-22px 0 70px rgba(0,0,0,.15);
+ display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+ animation:ws-sheet-in 230ms var(--ws-ease);border-left:1px solid var(--border);
+}
+@keyframes ws-sheet-in{from{opacity:.7;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.workspace-page #app .ws-sheet-header{
+ display:flex;align-items:center;justify-content:space-between;gap:20px;
+ padding:22px 26px 18px;border-bottom:1px solid var(--border);
+}
+.workspace-page #app .ws-sheet-kicker{font-size:10px;font-weight:750;letter-spacing:.1em;color:var(--accent)}
+.workspace-page #app .ws-sheet-header h2{font-size:clamp(19px,2vw,25px);letter-spacing:-.025em;margin:6px 0 0;line-height:1.3}
+.workspace-page #app .ws-close{
+ width:44px;height:44px;border:1px solid var(--border);background:var(--surface-soft);
+ border-radius:12px;display:grid;place-items:center;color:var(--ink);flex:0 0 auto;
+}
+.workspace-page #app .ws-sheet-body{
+ overflow:auto;overscroll-behavior:contain;padding:22px 26px 35px;
+ scrollbar-width:thin;min-height:0;
+}
+.workspace-page #app .ws-sheet-body > *{width:100%;max-width:100%;display:block}
+.workspace-page #app .ws-sheet-body .ws-in-sheet{
+ position:relative!important;top:auto!important;left:auto!important;
+ min-height:0!important;max-height:none!important;height:auto!important;
+ margin:0!important;border:0!important;border-radius:0!important;
+ box-shadow:none!important;padding:0!important;overflow:visible!important;
+ background:transparent!important;
+}
+.workspace-page #app .ws-sheet-body .ws-in-sheet > summary{
+ display:flex;align-items:center;gap:10px;min-height:48px;font-size:14px;
+ padding:11px 0;font-weight:700;
+}
+.workspace-page #app .ws-sheet-body .ws-in-sheet :is(table,.table-scroll){max-width:100%}
+.workspace-page #app .ws-sheet-body .ws-in-sheet .table-scroll{overflow:auto;max-height:none}
+.workspace-page #app .ws-sheet-footer{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ padding:13px 26px calc(14px + env(safe-area-inset-bottom));
+ border-top:1px solid var(--border);background:var(--surface);
+}
+.workspace-page #app .ws-sheet-footer>span{font-size:11px;line-height:1.5;color:var(--muted)}
+.workspace-page #app .ws-back{
+ display:flex;align-items:center;gap:8px;padding:10px 15px;
+ min-height:44px;border-radius:11px;color:var(--accent);
+ background:var(--selection);border:1px solid var(--border);font-size:13px;font-weight:700;
+}
+/* Command palette: a fast 15-task switcher, not another sidebar. */
+.workspace-page #app .ws-palette{align-items:flex-start;justify-content:center;padding:clamp(50px,13svh,128px) 18px 22px}
+.workspace-page #app .ws-palette-dialog{
+ z-index:1;position:relative;width:min(590px,100%);
+ background:var(--surface);border-radius:18px;
+ border:1px solid var(--border);box-shadow:var(--ws-elev);
+ max-height:min(72svh,680px);display:flex;flex-direction:column;overflow:hidden;
+ animation:ws-palette-in 180ms var(--ws-ease);
+}
+@keyframes ws-palette-in{from{opacity:0;transform:translateY(-8px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+.workspace-page #app .ws-palette-input{display:flex;align-items:center;gap:12px;padding:14px 17px;border-bottom:1px solid var(--border)}
+.workspace-page #app .ws-palette-input>.ws-icon{color:var(--accent)}
+.workspace-page #app .ws-palette-input>input{
+ flex:1;min-width:0;border:0;background:none;outline:0;color:var(--ink);
+ font-size:16px;line-height:1.4;padding:9px 0;min-height:44px;
+}
+.workspace-page #app .ws-palette-input>input:focus-visible{outline:none}
+.workspace-page #app .ws-palette-input>button{
+ display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;
+ border:1px solid var(--border);border-radius:10px;background:var(--surface-soft);color:var(--muted);
+}
+.workspace-page #app .ws-palette-results{min-height:0;overflow-y:auto;scrollbar-width:thin;padding:11px}
+.workspace-page #app .ws-palette-item{
+ display:grid;grid-template-columns:35px minmax(0,1fr) 38px;align-items:center;gap:11px;
+ width:100%;min-height:51px;text-align:left;padding:7px 11px;
+ border:1px solid transparent;border-radius:11px;color:var(--ink);background:transparent;
+ font-size:13px;font-weight:620;line-height:1.45;
+}
+.workspace-page #app .ws-palette-item[aria-selected=true]{background:var(--selection);border-color:color-mix(in srgb,var(--accent) 23%,var(--border))}
+.workspace-page #app .ws-palette-item-icon{
+ width:34px;height:34px;background:var(--surface-soft);color:var(--accent);
+ border:1px solid var(--border);border-radius:9px;display:grid;place-items:center;
+}
+.workspace-page #app .ws-palette-item small{text-align:right;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.workspace-page #app .ws-palette-empty{padding:23px 17px;color:var(--muted);font-size:13px}
+.workspace-page #app .ws-palette-hint{
+ font-size:11px;color:var(--muted);padding:13px 18px;margin:0;
+ border-top:1px solid var(--border);background:var(--surface-soft);
+}
+@media(max-width:1270px){
+ .workspace-page #app .page-head{min-height:120px;gap:14px}
+ .workspace-page #app .ws-head-actions{gap:7px}
+ .workspace-page #app .ws-action{padding:10px}
+ .workspace-page #app .ws-action kbd{display:none}
+ .workspace-page #app .metrics{gap:10px}
+}
+@media(max-width:1050px){
+ .workspace-page #app .sidebar{width:220px;padding:19px 11px}
+ .workspace-page #app .main{margin-left:220px}
+ .workspace-page #app .topbar{padding:0 17px}
+ .workspace-page #app .content{padding:17px}
+ .workspace-page #app .page-head{flex-wrap:wrap;padding:20px!important}
+ .workspace-page #app .page-head>div:first-child{flex-basis:100%}
+ .workspace-page #app .ws-head-actions{width:100%;justify-content:flex-start}
+ .workspace-page #app .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .workspace-page #app .metric{min-height:104px;padding:14px 15px}
+ .workspace-page #app .focus-toolbar{top:75px}
+}
+@media(max-width:980px){
+ .workspace-page #app #lookup-panel .lookup-detail-panel:not(.ws-in-sheet){display:none!important}
+ .workspace-page #app #lookup-panel .lookup-results{max-height:min(57svh,530px)}
+}
+@media(max-width:760px){
+ .workspace-page #app .sidebar{width:min(340px,88vw);padding:22px 16px}
+ .workspace-page #app .main{margin-left:0}
+ .workspace-page #app .topbar{height:61px;padding:0 12px;gap:8px}
+ .workspace-page #app .topbar-right{gap:6px}
+ .workspace-page #app .content{padding:12px 13px calc(94px + env(safe-area-inset-bottom))}
+ .workspace-page #app .page-head{
+  display:flex;align-items:flex-start;flex-direction:column;
+  min-height:0;margin:0 0 12px!important;padding:18px 17px!important;
+  gap:13px;border-radius:15px;
+ }
+ .workspace-page #app .page-head>div:first-child{flex-basis:auto;width:100%}
+ .workspace-page #app .page-head .eyebrow{margin-bottom:8px}
+ .workspace-page #app .page-head h1{font-size:clamp(24px,7.2vw,30px);line-height:1.22;margin-bottom:8px}
+ .workspace-page #app .page-head p{font-size:13px;line-height:1.6}
+ .workspace-page #app .ws-head-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .workspace-page #app .ws-head-actions:has(.ws-source-action:not([hidden])){grid-template-columns:repeat(2,minmax(0,1fr))}
+ .workspace-page #app .ws-action{width:100%;min-height:44px;gap:7px;justify-content:center;font-size:12px;padding:10px 9px}
+ .workspace-page #app .ws-action.ws-task-action{grid-column:auto}
+ .workspace-page #app .page-head .ws-head-actions #export:not([hidden]){grid-column:1/-1;width:100%}
+ .workspace-page #app .ws-head-actions .ws-task-action:only-child,
+ .workspace-page #app .ws-head-actions .ws-task-action:not(:has(~.ws-action)){min-width:0}
+ .workspace-page #app .status-strip{font-size:11px;margin-bottom:9px}
+ .workspace-page #app .metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0 14px}
+ .workspace-page #app .metric{min-height:107px;padding:13px;border-radius:12px}
+ .workspace-page #app .metric-top{font-size:11px}
+ .workspace-page #app .metric-value{font-size:clamp(21px,6vw,27px);margin:7px 0 4px;overflow-wrap:anywhere}
+ .workspace-page #app .metric-note{font-size:10px}
+ .workspace-page #app .focus-deck{margin:7px 0 14px}
+ .workspace-page #app .focus-toolbar{
+  top:62px;grid-template-columns:minmax(0,1fr) auto;padding:9px;gap:7px;
+  margin-bottom:10px;border-radius:12px;
+ }
+ .workspace-page #app .focus-picker{font-size:10px}
+ .workspace-page #app .focus-picker select{font-size:12px;min-height:44px;padding:8px 25px 8px 9px;max-width:100%}
+ .workspace-page #app .focus-navigation{gap:4px}
+ .workspace-page #app .focus-navigation button{width:40px;min-height:44px}
+ .workspace-page #app .focus-navigation .ws-open-source{width:42px;min-width:42px;padding:0}
+ .workspace-page #app .focus-navigation .ws-open-source>span{display:none}
+ .workspace-page #app .focus-counter{min-width:27px;font-size:11px}
+ .workspace-page #app .focus-page{max-height:none;overflow:visible;padding:0}
+ .workspace-page #app .depth-panel{padding:16px}
+ .workspace-page #app .depth-panel .panel-head{margin:0 0 12px;padding-bottom:12px}
+ .workspace-page #app .depth-panel .panel-head h2{font-size:17px!important}
+ .workspace-page #app .depth-axis{font-size:11px}
+ .workspace-page #app #lookup-panel .lookup-layout{gap:10px}
+ .workspace-page #app #lookup-panel .lookup-results{max-height:min(51svh,460px);padding:9px}
+ .workspace-page #app #lookup-panel .lookup-results-heading{padding:14px}
+ .workspace-page #app #lookup-panel .lookup-item{padding:12px;min-height:78px;margin:0 0 8px}
+ .workspace-page #app #market-forecast-panel .market-stats{gap:9px}
+ .workspace-page #app #market-forecast-panel .market-horizon-grid{
+  display:flex;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;
+  gap:10px;padding:3px 2px 13px;margin:0 0 12px;scrollbar-width:thin;
+ }
+ .workspace-page #app #market-forecast-panel .market-horizon{
+  flex:0 0 min(74vw,285px);min-width:min(74vw,285px);
+  scroll-snap-align:start;min-height:168px;margin:0;
+ }
+ .workspace-page #app #mobile-taskbar{
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  gap:6px;border-radius:15px 15px 0 0;box-shadow:0 -5px 18px rgba(0,0,0,.05);
+ }
+ .workspace-page #app #mobile-taskbar button{min-height:50px;border-radius:11px}
+ .workspace-page #app .ws-sheet{width:100vw;border:0;animation:ws-sheet-in 180ms var(--ws-ease)}
+ .workspace-page #app .ws-sheet-header{padding:15px 17px 13px}
+ .workspace-page #app .ws-sheet-header h2{font-size:21px}
+ .workspace-page #app .ws-sheet-body{padding:15px 17px 24px}
+ .workspace-page #app .ws-sheet-footer{padding:10px 17px calc(14px + env(safe-area-inset-bottom))}
+ .workspace-page #app .ws-sheet-footer>span{display:none}
+ .workspace-page #app .ws-back{width:100%;justify-content:center}
+ .workspace-page #app .ws-palette{padding:68px 10px 14px}
+ .workspace-page #app .ws-palette-dialog{border-radius:15px;max-height:calc(100svh - 95px)}
+ .workspace-page #app .ws-palette-input{padding:11px 13px}
+ .workspace-page #app .ws-palette-item{min-height:51px}
+ .workspace-page #app .ws-palette-hint{font-size:10px;line-height:1.5}
+}
+@media(max-width:390px){
+ .workspace-page #app .content{padding-left:11px;padding-right:11px}
+ .workspace-page #app .page-head{padding:16px 14px!important}
+ .workspace-page #app .ws-head-actions{gap:7px}
+ .workspace-page #app .ws-action{font-size:11px}
+ .workspace-page #app .ws-action .ws-icon{width:17px;height:17px}
+ .workspace-page #app .focus-toolbar{grid-template-columns:minmax(0,1fr);gap:7px}
+ .workspace-page #app .focus-navigation{justify-content:space-between}
+ .workspace-page #app .focus-navigation .ws-open-source{width:44px}
+ .workspace-page #app .focus-counter{margin-inline:auto}
+ .workspace-page #app .metric{padding:11px;min-height:106px}
+ .workspace-page #app .metric-value{font-size:22px}
+}
+@media(prefers-reduced-motion:reduce){
+ .workspace-page #app button,.workspace-page #app .focus-page,.workspace-page #app .ws-sheet,.workspace-page #app .ws-palette-dialog{
+  animation:none!important;transition:none!important;transform:none!important;
+ }
+}
+@media print{
+ .workspace-page #app .ws-layer,.workspace-page #app .ws-palette,.workspace-page #app .ws-head-actions{display:none!important}
+ .workspace-page #app #records-panel:not(.ws-in-sheet){display:block!important}
+ .workspace-page #app .focus-page{max-height:none;overflow:visible}
+}
