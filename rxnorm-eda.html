@@ -102,7 +102,8 @@ body{font-family:var(--font-ui);background:var(--bg);color:var(--ink);font-varia
   const titleOf = step => document.querySelector(`[data-step="${step.id}"]`).textContent.trim().replace(/^\d+/, '').trim();
   let filter = 'all';
   let current = steps.find(step => step.id === location.hash.slice(1)) || steps[0];
-  let presenting = false;
+  let presenting = true;
+  document.body.classList.add('presenting');
   let toastTimer;
   const visibleSteps = () => steps.filter(step => filter === 'all' || step.dataset.report === filter);
   function toast(message) {
@@ -129,7 +130,7 @@ body{font-family:var(--font-ui);background:var(--bg);color:var(--ink);font-varia
     document.getElementById('prev-step').disabled = index === 0;
     document.getElementById('next-step').disabled = index === visible.length - 1;
     document.getElementById('present-toggle').setAttribute('aria-pressed', String(presenting));
-    document.getElementById('present-toggle').innerHTML = presenting ? 'Thoát trình chiếu <span>×</span>' : 'Trình chiếu <span>↗</span>';
+    document.getElementById('present-toggle').innerHTML = presenting ? 'Xem toàn bộ' : 'Đọc từng phần';
   }
   function closeMenu() {
     document.body.classList.remove('menu-open');
@@ -166,7 +167,7 @@ body{font-family:var(--font-ui);background:var(--bg);color:var(--ink);font-varia
     presenting = !presenting;
     document.body.classList.toggle('presenting', presenting);
     go(current);
-    if (presenting) toast('Dùng ← → để chuyển chủ đề · Esc để thoát · ⛶ để toàn màn hình');
+    if (presenting) toast('Bấm mục lục hoặc nút Trước / Tiếp để chọn phần.');
   });
   document.getElementById('notes-toggle')?.addEventListener('click', event => {
     const hidden = document.body.classList.toggle('hide-notes');

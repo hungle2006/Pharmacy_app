@@ -4,6 +4,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const cover = document.getElementById('cover');
 const canvas = document.getElementById('scene');
+const visualStage = cover.querySelector('.start-art') || cover;
 const reduced = matchMedia('(prefers-reduced-motion:reduce)');
 let renderer, model, frame = 0, previous = 0, running = false, elapsed = 0, fallbackActive = false;
 const pointer = {x:0,y:0};
@@ -15,7 +16,7 @@ function fallback() {
   canvas.hidden=true;canvas.dataset.renderer='blender-poster';cover.dataset.fallback='poster';
   const backdrop=document.createElement('div');backdrop.className='blender-fallback';backdrop.setAttribute('aria-hidden','true');
   backdrop.innerHTML='<div class="blender-stage"><div class="blender-orbit"></div><div class="blender-orbit two"></div><img src="/assets/models/capsule-poster.png" alt="" width="800" height="800"></div>';
-  cover.prepend(backdrop);
+  visualStage.prepend(backdrop);
   const stage=backdrop.querySelector('.blender-stage');
   cover.addEventListener('pointermove',e=>{if(!reduced.matches)stage.style.transform=`rotateY(${(e.clientX/innerWidth-.5)*10}deg) rotateX(${(e.clientY/innerHeight-.5)*-6}deg)`;});
   cover.addEventListener('pointerleave',()=>{stage.style.transform='';});
@@ -55,11 +56,11 @@ try {
   }
   function theme() {const dark=document.documentElement.dataset.theme==='dark';key.intensity=dark?4:3;renderer.toneMappingExposure=dark?1.2:1.05;draw();}
   function size() {
-    const w=cover.clientWidth,h=cover.clientHeight;if(!w||!h)return;
+    const w=visualStage.clientWidth,h=visualStage.clientHeight;if(!w||!h)return;
     renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
     const halfHeight=Math.tan(THREE.MathUtils.degToRad(17.5))*camera.position.z;
-    group.position.set((w<760?.38:.60)*halfHeight*camera.aspect,0,0);
-    group.scale.setScalar(w<760?.68:Math.min(1.08,h/850));draw();
+    group.position.set(visualStage===cover?(w<760?.38:.60)*halfHeight*camera.aspect:0,0,0);
+    group.scale.setScalar(visualStage===cover?(w<760?.68:Math.min(1.08,h/850)):(innerWidth<760?.83:1.04));draw();
   }
   function draw() {
     if(fallbackActive)return;
@@ -77,9 +78,10 @@ try {
   new GLTFLoader().load('/assets/models/pharmabiz-capsule.glb',gltf=>{
     model=gltf.scene;group.add(model);canvas.dataset.renderer='blender-webgl';size();start();
   },undefined,fallback);
-  cover.addEventListener('pointermove',e=>{pointer.x=e.clientX/innerWidth-.5;pointer.y=e.clientY/innerHeight-.5;});
+  visualStage.addEventListener('pointermove',e=>{const bounds=visualStage.getBoundingClientRect();pointer.x=(e.clientX-bounds.left)/bounds.width-.5;pointer.y=(e.clientY-bounds.top)/bounds.height-.5;});
   cover.addEventListener('pointerleave',()=>{pointer.x=0;pointer.y=0;});
   window.addEventListener('resize',size,{passive:true});
+  if(visualStage!==cover)new ResizeObserver(size).observe(visualStage);
   document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
   new MutationObserver(()=>{if(cover.hidden)stop();else{size();start();}}).observe(cover,{attributes:true,attributeFilter:['hidden']});
   new MutationObserver(theme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});

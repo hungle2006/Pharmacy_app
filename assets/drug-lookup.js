@@ -18,7 +18,7 @@
   };
   const initialQuery=(new URLSearchParams(location.search).get('q')||'').slice(0,200);
   if(initialQuery)$('lookup-search').value=initialQuery;
-  const state={active:false,mode:'dav',page:1,size:20,query:'',items:[],total:0,totalPages:0,selection:null,controller:null,detailController:null,requestId:0,detailRequestId:0,loaded:false,debounce:null};
+  const state={active:false,mode:'dav',page:1,size:8,query:'',items:[],total:0,totalPages:0,selection:null,controller:null,detailController:null,requestId:0,detailRequestId:0,loaded:false,debounce:null};
   const results=$('lookup-results'),details=$('lookup-details'),message=$('lookup-message');
   const status=(messageText,kind='normal')=>{
     message.textContent=messageText;

@@ -19,16 +19,18 @@
 <link rel="stylesheet" href="/assets/feature-price.css">
 <link rel="stylesheet" href="/assets/disease-predict.css">
 <link rel="stylesheet" href="/assets/workspace-a.css?v=20261114a">
+<link rel="stylesheet" href="/assets/start-focus.css?v=20261114b">
+<link rel="stylesheet" href="/assets/focus-workspace.css?v=20261114b">
 </head>
 <body class="workspace-page">
-<section class="cover" id="cover" aria-label="Giới thiệu PharmaBiz">
-  <canvas id="scene" aria-hidden="true"></canvas>
-  <div class="cover-grid" aria-hidden="true"></div>
-  <header class="cover-nav"><a class="brand" href="/" aria-label="PharmaBiz"><span class="brand-symbol">P</span><span>Pharma<span class="accent">Biz</span></span></a><div class="cover-actions"><span class="cover-edition">VIETNAM MARKET INTELLIGENCE <i></i> 2026</span></div></header>
-  <div class="cover-copy"><div class="eyebrow"><span class="signal"></span> PHARMACEUTICAL BUSINESS INTELLIGENCE</div><h1>Dữ liệu rõ ràng.<br>Quyết định <span>vững vàng.</span></h1><p>Từ dữ liệu thuốc, bệnh và giá phân tán<br>đến một hệ thống tra cứu và phân tích có thể kiểm chứng.</p><div class="cover-cta"><button id="start" class="start-btn" type="button">Start <span aria-hidden="true">↗</span></button></div><div class="cover-tags"><span>DAV</span><i></i><span>RxNorm</span><i></i><span>ICD-10</span><i></i><span>MEDI</span></div></div>
-  <div class="scene-label label-one"><span class="signal"></span> CONNECTED INTELLIGENCE<small>One workspace. Multiple perspectives.</small></div>
-  <div class="scene-label label-two"><span>01 / DATA IN MOTION</span><small>Di chuyển chuột để khám phá không gian</small></div>
-  <footer class="cover-footer"><span>DESIGNED FOR DATA. BUILT FOR INSIGHT.</span><span>Pharmaceutical Pricing & Market Analysis <b>↗</b></span></footer>
+<section class="cover start-focus" id="cover" aria-label="Giới thiệu PharmaBiz">
+  <!-- Approved A: one-screen entry; original Blender model remains the hero asset. -->
+  <header class="start-header"><a class="brand" href="/" aria-label="PharmaBiz"><span class="brand-symbol">P</span><span>Pharma<span class="accent">Biz</span></span></a><span class="start-header-note">Không gian dữ liệu dược Việt Nam</span></header>
+  <div class="start-main">
+    <div class="start-copy"><p class="start-intro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 20V8h5v12M10 20V4h5v16M16 20v-8h5v8"/></svg>Tra cứu. Phân tích. Đối chiếu.</p><h1>Dữ liệu dược.<br>Mở góc nhìn mới.</h1><p class="start-description">Khám phá thuốc, giá kê khai và bằng chứng liên kết trong một không gian.</p><button id="start" class="start-btn" type="button">Start <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></span></button></div>
+    <div class="start-art" aria-label="Mô hình viên nang 3D"><canvas id="scene" aria-hidden="true"></canvas><span class="start-scene-note">Viên nang 3D tương tác</span></div>
+  </div>
+  <footer class="start-footer"><div class="start-sources" aria-label="Nguồn dữ liệu"><span>DAV</span><span>RxNorm</span><span>ICD-10</span><span>MEDI</span></div><p>Dữ liệu có nguồn.<br>Góc nhìn có căn cứ.</p></footer>
 </section>
 <div class="app" id="app" hidden>
   <div class="mobile-backdrop" id="backdrop" hidden></div>
@@ -81,7 +83,7 @@
         <div class="market-stats" id="market-summary"></div>
         <div class="market-section-title"><h3>Biến động theo thời hạn</h3><p>Chọn một mốc để khám phá dữ liệu lịch sử và kết quả kiểm định</p></div>
         <div class="market-horizon-grid" id="market-horizons"></div>
-        <div class="market-details">
+        <div id="market-explore"><div class="market-details">
           <article class="market-article">
             <div class="market-card-heading"><h3>Xu hướng giá trong <span id="market-selected-horizon">6 tháng</span></h3><div id="market-model-status"><span class="market-chip">Đang tải</span></div></div>
             <div id="market-main-number" class="market-feature-num">—</div>
@@ -111,6 +113,7 @@
           <p class="market-muted">So sánh xu hướng có trọng số thời gian, phân cấp nhóm thuốc, hồi quy có biến thời gian và baseline giá không đổi. Chỉ tập validation chọn mô hình; tập test cuối độc lập.</p>
           <div id="market-validation" aria-live="polite"></div>
         </article>
+        </div>
       </section>
       <section id="disease-predict-panel" aria-label="Dự đoán bệnh từ mô tả và đối chiếu dữ liệu thuốc" hidden></section>
       <section id="feature-price-panel" aria-label="Ước tính giá thuốc từ đặc trưng" hidden></section>
@@ -125,6 +128,6 @@
 <nav id="mobile-taskbar" class="mobile-taskbar" aria-label="Điều hướng nhanh điện thoại"></nav>
 <div class="chart-tooltip" id="tooltip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
-<script src="/assets/chart-system.js" defer></script><script src="/assets/scene3d.js" defer></script><script src="/assets/drug-lookup.js" defer></script><script src="/assets/market-forecast.js" defer></script><script src="/assets/reports.js" defer></script><script src="/assets/feature-price.js" defer></script><script src="/assets/disease-predict.js" defer></script><script src="/assets/data-exploration.js" defer></script><script src="/assets/motion-mobile.js" defer></script><script src="/assets/task-depth.js" defer></script><script src="/assets/research-study.js" defer></script><script src="/assets/task-narratives.js" defer></script><script src="/assets/presentation.js" defer></script>
+<script src="/assets/chart-system.js" defer></script><script src="/assets/scene3d.js" defer></script><script src="/assets/drug-lookup.js" defer></script><script src="/assets/market-forecast.js" defer></script><script src="/assets/reports.js" defer></script><script src="/assets/feature-price.js" defer></script><script src="/assets/disease-predict.js" defer></script><script src="/assets/data-exploration.js" defer></script><script src="/assets/motion-mobile.js" defer></script><script src="/assets/task-depth.js" defer></script><script src="/assets/research-study.js" defer></script><script src="/assets/task-narratives.js" defer></script><script src="/assets/presentation.js" defer></script><script src="/assets/focus-workspace.js" defer></script>
 </body></html>
 
