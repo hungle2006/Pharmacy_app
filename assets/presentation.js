@@ -164,13 +164,21 @@
   });
   let entranceTimer;
   $('start').onclick=()=>{
-    if($('start').disabled)return;
-    navigate(view);$('app').hidden=false;$('cover').classList.add('entering');$('start').disabled=true;
-    entranceTimer=setTimeout(()=>{$('cover').hidden=true;$('app').hidden=false;$('cover').classList.remove('entering');$('start').disabled=false;$('page-title').setAttribute('tabindex','-1');$('page-title').focus({preventScroll:true});},matchMedia('(prefers-reduced-motion:reduce)').matches?0:520);
+    const button=$('start');
+    if(button.disabled)return;
+    button.disabled=true;button.classList.add('is-entering');button.setAttribute('aria-busy','true');
+    navigate(view);$('app').hidden=false;$('cover').classList.add('entering');
+    clearTimeout(entranceTimer);
+    entranceTimer=setTimeout(()=>{
+      $('cover').hidden=true;$('app').hidden=false;$('cover').classList.remove('entering');
+      button.disabled=false;button.classList.remove('is-entering');button.removeAttribute('aria-busy');
+      PharmaMotion.reveal();
+      $('page-title').setAttribute('tabindex','-1');$('page-title').focus({preventScroll:true});
+    },matchMedia('(prefers-reduced-motion:reduce)').matches?0:440);
   };
   $('logout').onclick=()=>{
     clearTimeout(entranceTimer);closeMenu();$('tooltip').hidden=true;
-    $('app').hidden=true;PharmaFeaturePrice.activate('intro');PharmaDisease.activate('intro');$('cover').hidden=false;$('cover').classList.remove('entering');$('start').disabled=false;
+    $('app').hidden=true;PharmaFeaturePrice.activate('intro');PharmaDisease.activate('intro');$('cover').hidden=false;$('cover').classList.remove('entering');$('start').disabled=false;$('start').classList.remove('is-entering');$('start').removeAttribute('aria-busy');
     document.dispatchEvent(new CustomEvent('pharmabiz:lookup-view',{detail:{active:false}}));
     document.dispatchEvent(new CustomEvent('pharmabiz:market-forecast-view',{detail:{active:false}}));
     const url=new URL(location);url.searchParams.set('view','intro');url.hash='';history.replaceState(null,'',url);
