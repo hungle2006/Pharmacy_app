@@ -131,3 +131,21 @@ test('responsive element spacing covers compact phone heights without replacing 
  assert.ok(html.indexOf('assets/responsive-polish.css')>html.indexOf('assets/workspace-shell.css'));
  assert.match(html,/<canvas id="scene"/);
 });
+
+
+test('mobile lookup collapsed filter has one full-width row and no tiny 40px retry control',()=>{
+ const css=read('assets/responsive-polish.css');
+ const content=read('assets/presentation.js');
+ assert.ok(css.includes('grid-template-columns:minmax(0,1fr)!important'));
+ assert.ok(css.includes('#filter-toggle'));
+ assert.ok(css.includes('max-height:46px!important'));
+ assert.ok(css.includes('.lookup-retry'));
+ assert.ok(css.includes('min-height:44px'));
+ assert.ok(content.includes('title="Hồ sơ → Cấu hình → Giá → Bằng chứng">Cách đọc kết quả</summary>'));
+});
+test('primary desktop quick search submit exposes a proper 44px touch target',()=>{
+ const css=read('assets/responsive-polish.css');
+ assert.ok(css.includes('.workspace-search button[type="submit"]'));
+ assert.ok(css.includes('min-width:44px;width:44px'));
+ assert.ok(css.includes('min-height:44px;height:44px'));
+});
