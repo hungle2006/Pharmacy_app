@@ -19,7 +19,8 @@
     chevron:'<path d="m9 18 6-6-6-6"/>',
     refresh:'<path d="M20 7v5h-5"/><path d="M4.6 10a8 8 0 0 1 13.9-4l1.5 1M4 17v-5h5M19.4 14a8 8 0 0 1-13.9 4L4 17"/>',
     spark:'<path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3ZM19 17l.7 2.3L22 20l-2.3.7L19 23l-.7-2.3L16 20l2.3-.7L19 17Z"/>',
-    up:'<path d="m18 15-6-6-6 6M12 9v12M4 4h16"/>'
+    up:'<path d="m18 15-6-6-6 6M12 9v12M4 4h16"/>',
+    menu:'<path d="M4 7h16M4 12h16M4 17h16"/>'
   };
   function icon(name){
     return '<svg class="ws-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[name]+'</svg>';
@@ -27,7 +28,7 @@
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   // Consistent small vector icons replace font-dependent character glyphs.
-  for(const [id,name] of [['refresh','refresh'],['back-top','up'],['sidebar-close','x'],['prev','left'],['next','right']]){
+  for(const [id,name] of [['refresh','refresh'],['back-top','up'],['sidebar-close','x'],['menu','menu'],['prev','left'],['next','right']]){
     const b=$(id);if(!b)continue;
     b.innerHTML=icon(name);
     if(id==='refresh'&&!b.hasAttribute('aria-label'))b.setAttribute('aria-label','Làm mới dữ liệu');
