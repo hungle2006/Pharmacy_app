@@ -1,0 +1,319 @@
+/* PharmaBiz desktop workspace — focused 2026-11-15 audit.
+   Keep original Start scene, data logic and phone-specific layouts intact. */
+@media (min-width:761px) {
+  .workspace-page #app {
+    --desktop-rail:246px;
+    --desktop-space:clamp(16px,1.8vw,28px);
+  }
+  .workspace-page #app .sidebar {
+    width:var(--desktop-rail);
+    padding:20px 15px 16px;
+    overscroll-behavior:contain;
+    scrollbar-gutter:stable;
+  }
+  .workspace-page #app .sidebar>.brand { margin-bottom:8px; }
+  .workspace-page #app .sidebar .workspace-title { margin:11px 10px 15px; }
+  .workspace-page #app .sidebar .nav-caption { margin:14px 12px 7px; }
+  .workspace-page #app .sidebar .nav-button {
+    min-height:42px;
+    padding:8px 11px;
+    margin:2px 0;
+    transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease;
+  }
+  .workspace-page #app .sidebar .workspace-links { padding-top:10px; }
+  .workspace-page #app .main {
+    margin-left:var(--desktop-rail);
+    width:calc(100% - var(--desktop-rail));
+    min-width:0;
+  }
+  .workspace-page #app .topbar {
+    display:flex;
+    align-items:center;
+    gap:clamp(10px,1.5vw,22px);
+    padding:0 var(--desktop-space);
+    flex:0 0 66px;
+    height:66px;
+    min-width:0;
+  }
+  .workspace-page #app .topbar .breadcrumb {
+    flex:0 1 auto;
+    min-width:0;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+  .workspace-page #app .topbar .breadcrumb strong {
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .workspace-page #app .topbar-right {
+    display:flex;
+    align-items:center;
+    flex:0 0 auto;
+    gap:7px;
+    min-width:0;
+  }
+  .workspace-page #app .workspace-search {
+    width:auto;
+    flex:1 1 240px;
+    min-width:0;
+    max-width:400px;
+    min-height:48px;
+    height:48px;
+    padding:2px 3px 2px 14px;
+    gap:8px;
+    overflow:hidden;
+    box-shadow:0 1px 3px color-mix(in srgb,var(--ink) 4%,transparent);
+    transition:border-color 180ms ease,box-shadow 180ms ease;
+  }
+  .workspace-page #app .workspace-search>svg { flex:0 0 18px;width:18px;height:18px; }
+  .workspace-page #app .workspace-search input {
+    display:block;
+    width:0;
+    min-width:0;
+    flex:1 1 auto;
+    border:0;
+    padding:10px 0;
+    background:transparent;
+    box-shadow:none;
+    outline:0!important;
+    font-size:13px;
+    line-height:1.4;
+    text-overflow:ellipsis;
+  }
+  .workspace-page #app .workspace-search button[type="submit"] {
+    flex:0 0 42px;
+    width:42px;
+    min-width:42px;
+    min-height:42px;
+    height:42px;
+    padding:0;
+    border:0;
+    border-radius:10px;
+    display:grid;
+    place-items:center;
+    background:var(--selection);
+    color:var(--accent);
+    transition:background-color 180ms ease,color 180ms ease,transform 130ms ease;
+  }
+  .workspace-page #app .workspace-search button[type="submit"]:hover {
+    background:var(--accent);color:var(--surface);
+  }
+  .workspace-page #app .workspace-search button[type="submit"]:active { transform:scale(.96); }
+  /* These views have a dedicated search or input workflow. */
+  .workspace-page[data-active-view="lookup"] #app .workspace-search,
+  .workspace-page[data-active-view="feature-price"] #app .workspace-search,
+  .workspace-page[data-active-view="disease-predict"] #app .workspace-search { display:none!important; }
+  .workspace-page #app .content {
+    padding:16px var(--desktop-space) 13px;
+    width:100%;
+    max-width:1680px;
+    overflow-y:auto;
+    overflow-x:clip;
+    scrollbar-width:thin;
+  }
+  .workspace-page #app .page-head {
+    min-height:91px;
+    padding:13px 21px!important;
+    gap:14px;
+    margin:0 0 10px!important;
+    border-radius:15px;
+  }
+  .workspace-page #app .page-head .eyebrow {
+    font-size:9px;
+    line-height:1.35;
+    margin:0 0 4px;
+  }
+  .workspace-page #app .page-head h1 {
+    margin:0 0 3px;
+    line-height:1.16;
+    font-size:clamp(24px,2.1vw,31px);
+    text-wrap:pretty;
+    letter-spacing:-.025em;
+  }
+  .workspace-page #app .page-head p {
+    font-size:12px;line-height:1.45;max-width:78ch;
+    margin:0;
+  }
+  .workspace-page #app .status-strip {
+    min-height:20px;
+    margin:0 0 7px;
+    padding:3px 1px;
+  }
+  .workspace-page #app .ws-head-actions { gap:7px; }
+  .workspace-page #app .ws-action { min-height:42px; padding:9px 12px; }
+  .workspace-page #app .filters {
+    border-radius:13px;
+    padding:6px;
+    gap:7px;
+  }
+  .workspace-page #app #filters .search-field,
+  .workspace-page #app .ph-filter-trigger { min-height:46px;height:46px;border-radius:10px; }
+  .workspace-page #app #filters .search-field input {
+    height:44px;min-height:44px;
+    font-size:14px;line-height:1.35;
+  }
+  .workspace-page #app #filters #reset { min-height:46px;height:auto; }
+  .workspace-page #app .ph-filter-trigger {
+    max-width:100%;min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .workspace-page #app .filter-context { margin:6px 0 9px; }
+  .workspace-page #app .metrics {
+    gap:10px;
+    margin:8px 0 12px;
+  }
+  .workspace-page #app .metric {
+    min-height:94px;
+    padding:11px 14px;
+    gap:4px;
+  }
+  .workspace-page #app .metric-value {
+    font-size:clamp(23px,2vw,29px);
+    margin:5px 0 2px;
+  }
+  .workspace-page #app .metric-note {
+    font-size:11px;
+    line-height:1.35;
+  }
+  .workspace-page #app .focus-deck { margin:5px 0 10px; }
+  .workspace-page #app .focus-toolbar {
+    position:relative;
+    top:auto;
+    z-index:35;
+    padding:8px 10px;
+    margin:0 0 9px;
+    border-radius:12px;
+    gap:10px;
+    box-shadow:none;
+  }
+  .workspace-page #app .focus-page {
+    max-height:none!important;
+    overflow:visible!important;
+    padding-right:0;
+    scrollbar-width:auto;
+  }
+  .workspace-page #app :is(.panel,.depth-panel,.explore-panel,.fp-panel,.dp-card) {
+    padding:clamp(16px,1.6vw,23px);
+  }
+  .workspace-page #app .page-footer {
+    min-height:0;
+    margin:10px 0 0;
+    padding:7px 0;
+  }
+  /* Search task has its own query and filtering. Never display a second query
+     from the aggregated chart dashboard inside this workspace. */
+  .workspace-page[data-active-view="lookup"] #app #filters { display:none!important; }
+  .workspace-page[data-active-view="lookup"] #app .lookup-intro { display:none; }
+  .workspace-page[data-active-view="lookup"] #app .page-head { min-height:84px; }
+  .workspace-page #app #lookup-panel .lookup-search-form {
+    margin:1px 0 9px;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:9px;
+  }
+  .workspace-page #app .lookup-search-box {
+    min-height:48px;
+    height:48px;
+    padding:0 13px;
+    gap:9px;
+    min-width:0;
+    overflow:hidden;
+  }
+  .workspace-page #app .lookup-search-box input {
+    width:0;flex:1 1 auto;min-width:0;
+    padding:10px 0;
+    background:transparent;
+    line-height:1.4;
+  }
+  .workspace-page #app .lookup-search-box kbd { margin-left:auto; }
+  .workspace-page #app .lookup-submit {
+    height:48px;min-height:48px;
+    padding:0 17px;
+  }
+  .workspace-page #app .lookup-toolbar {
+    gap:9px;
+    margin:0 0 9px;
+    align-items:center;
+  }
+  .workspace-page #app .lookup-tabs button { min-height:39px; padding:7px 12px; }
+  .workspace-page #app .lookup-current-toggle,
+  .workspace-page #app .lookup-eda-link { min-height:39px; }
+  .workspace-page #app .lookup-message {
+    margin:0;
+    padding:6px 0 10px;
+    line-height:1.4;
+  }
+  .workspace-page #app #lookup-panel .lookup-layout {
+    display:grid;
+    grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);
+    gap:12px;
+    align-items:stretch;
+  }
+  .workspace-page #app .lookup-results-column,
+  .workspace-page #app .lookup-detail-panel {
+    min-width:0;
+    min-height:0;
+    border-radius:13px;
+  }
+  .workspace-page #app .lookup-results-heading { padding:12px 16px 10px; }
+  .workspace-page #app #lookup-panel .lookup-results {
+    min-height:180px;
+    max-height:clamp(205px,34dvh,390px);
+    overflow-y:auto;
+  }
+  .workspace-page #app .lookup-result-card { padding:14px 16px; }
+  .workspace-page #app .lookup-detail-panel {
+    position:sticky;top:0!important;
+    padding:17px;
+    max-height:clamp(300px,53dvh,570px);
+    overflow-y:auto;
+  }
+  .workspace-page #app .lookup-detail-empty { min-height:220px; }
+  .workspace-page #app .lookup-pagination { padding:9px 12px; }
+  .workspace-page #app .lookup-disclaimer { margin:9px 0 0;line-height:1.55; }
+  .workspace-page #app .dp-card textarea { min-height:145px; }
+  .workspace-page #app :is(.fp-form-grid,.dp-grid) { gap:13px; }
+  .workspace-page #app :is(.fp-panel,.dp-card,.market-article) { border-radius:14px; }
+}
+@media (min-width:761px) and (max-width:1199px) {
+  .workspace-page #app { --desktop-rail:220px;--desktop-space:17px; }
+  .workspace-page #app .topbar { gap:9px; }
+  .workspace-page #app .topbar .breadcrumb { display:none; }
+  .workspace-page #app .topbar .live-badge { display:none; }
+  .workspace-page #app .topbar-right { gap:5px; }
+  .workspace-page #app .workspace-search { max-width:none; }
+  .workspace-page #app .page-head { padding:12px 16px!important; }
+  .workspace-page #app .page-head h1 { font-size:clamp(23px,2.6vw,28px); }
+  .workspace-page #app .page-head .ws-head-actions { flex-wrap:wrap;justify-content:end; }
+  .workspace-page #app #lookup-panel .lookup-layout { grid-template-columns:minmax(0,1fr) minmax(285px,1fr); }
+}
+@media (min-width:761px) and (max-width:980px) {
+  .workspace-page #app .main {
+    margin-left:var(--desktop-rail)!important;
+    width:calc(100% - var(--desktop-rail))!important;
+  }
+  .workspace-page #app .topbar-right :is(#present,#refresh) { display:none; }
+  .workspace-page #app .topbar .workspace-search { display:none; }
+  .workspace-page #app .page-head { min-height:84px; }
+  .workspace-page #app .page-head .ws-head-actions { max-width:45%; }
+  .workspace-page #app #lookup-panel .lookup-layout { grid-template-columns:minmax(0,1fr); }
+  .workspace-page #app .lookup-detail-panel { position:static;max-height:none; }
+}
+@media (min-width:761px) and (max-height:740px) {
+  .workspace-page #app .content { padding-top:11px;padding-bottom:9px; }
+  .workspace-page #app .page-head { min-height:76px;padding-block:10px!important; }
+  .workspace-page #app .page-head h1 { font-size:clamp(23px,2vw,28px); }
+  .workspace-page #app .page-head p { line-height:1.35; }
+  .workspace-page #app .metric { padding:10px 12px; }
+  .workspace-page #app .lookup-results { max-height:40dvh; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .workspace-page #app .workspace-search,
+  .workspace-page #app .sidebar .nav-button,
+  .workspace-page #app .workspace-search button[type="submit"] { transition:none!important; }
+}
+
