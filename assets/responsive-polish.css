@@ -324,3 +324,36 @@ body.workspace-page:has(#app:not([hidden])){overflow:hidden}
 .workspace-page #app .fp-form-grid>label[for=feature-input-ingredient]{grid-column:1/-1}
 .workspace-page #app .fp-form-grid input{width:100%}
 @media(max-width:760px){.workspace-page #app .fp-form-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Search fields are one continuous control, with one focus ring on the shell. */
+.workspace-page #app .workspace-search{
+ gap:10px;min-height:48px;padding:4px 5px 4px 15px;
+ border:1px solid var(--border);border-radius:14px;
+ background:var(--surface-soft);outline:none;box-shadow:none;
+ transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease;
+}
+.workspace-page #app .workspace-search:focus-within{
+ outline:none;border-color:var(--accent);background:var(--surface);
+ box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 10%,transparent);
+}
+.workspace-page #app .workspace-search>svg{width:18px;height:18px;color:var(--muted)}
+.workspace-page #app .workspace-search input{
+ appearance:none;-webkit-appearance:none;flex:1 1 auto;width:0;min-width:0;
+ height:38px;min-height:38px;margin:0;padding:7px 0;
+ border:0!important;border-radius:0;background:transparent;
+ outline:none!important;box-shadow:none!important;font-size:14px;line-height:24px;
+}
+.workspace-page #app .workspace-search input::placeholder{color:var(--muted);opacity:.85}
+.workspace-page #app .workspace-search button[type="submit"]{
+ flex:0 0 44px;min-width:44px;width:44px;min-height:44px;height:44px;
+ margin:0;padding:0;border:0;border-radius:10px;
+ background:var(--accent);color:var(--surface);box-shadow:none;
+}
+.workspace-page #app .workspace-search button[type="submit"] svg{width:19px;height:19px;display:block;color:inherit}
+.workspace-page #app .workspace-search button[type="submit"]:hover{background:color-mix(in srgb,var(--accent) 88%,var(--ink))}
+.workspace-page #app .workspace-search button[type="submit"]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.workspace-page #app :is(.lookup-search-box,.search-field){outline:none!important}
+.workspace-page #app :is(.lookup-search-box,.search-field) input:focus,
+.workspace-page #app :is(.lookup-search-box,.search-field) input:focus-visible{
+ border:0!important;outline:none!important;box-shadow:none!important;
+}
