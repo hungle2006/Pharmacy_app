@@ -229,3 +229,74 @@
   const date=new Date();
   if($('back-top'))$('back-top').title='Về đầu trang';
 })();
+
+/* Size the app to its visible frame and the real safe-area navigation height. */
+(() => {
+ 'use strict';
+ const app=document.getElementById('app'),bar=document.getElementById('mobile-taskbar');
+ if(!app||!bar)return;
+ const phone=matchMedia('(max-width:760px)');
+ let queued=false;
+ function set(name,value){if(app.style.getPropertyValue(name)!==value)app.style.setProperty(name,value);}
+ function measure(){
+  queued=false;
+  const viewport=window.visualViewport;
+  set('--mobile-nav-height',(phone.matches?Math.ceil(bar.getBoundingClientRect().height):0)+'px');
+  set('--visual-height',Math.round(viewport?.height||innerHeight)+'px');
+  set('--visual-top',Math.round(viewport?.offsetTop||0)+'px');
+ }
+ function schedule(){if(!queued){queued=true;requestAnimationFrame(measure);}}
+ new ResizeObserver(schedule).observe(bar);
+ window.addEventListener('resize',schedule,{passive:true});
+ window.visualViewport?.addEventListener('resize',schedule,{passive:true});
+ window.visualViewport?.addEventListener('scroll',schedule,{passive:true});
+ new MutationObserver(schedule).observe(app,{attributes:true,attributeFilter:['hidden']});
+ phone.addEventListener('change',schedule);
+ schedule();
+})();
+
+/* Mobile forms use two selectable stages; switching keeps the real form nodes. */
+(() => {
+ 'use strict';
+ const phone=matchMedia('(max-width:760px)'),content=document.getElementById('content');
+ if(!content)return;
+ const stages=new Map();let queued=false;
+ function initialize(){
+  queued=false;
+  for(const [formId,resultId,gridClass,label] of [
+   ['dp-form','dp-result-panel','.dp-grid','Mô tả & kết quả'],
+   ['feature-price-form','feature-price-result','.fp-grid','Đặc trưng & kết quả']
+  ]){
+   const form=document.getElementById(formId),result=document.getElementById(resultId),grid=form?.closest(gridClass);
+   if(!grid||!result||stages.get(resultId)?.grid===grid)continue;
+   const inputPanel=form.closest('section'),nav=document.createElement('div');
+   nav.className='mobile-form-stages';nav.setAttribute('role','tablist');nav.setAttribute('aria-label',label);
+   inputPanel.id=formId+'-stage';
+   const panels=[inputPanel,result],original=panels.map(panel=>({role:panel.getAttribute('role'),label:panel.getAttribute('aria-labelledby')})),buttons=['Nhập dữ liệu','Kết quả'].map((text,i)=>{
+    const button=document.createElement('button');button.type='button';button.textContent=text;button.id=formId+'-tab-'+i;
+    button.setAttribute('role','tab');button.setAttribute('aria-controls',panels[i].id);nav.append(button);return button;
+   });
+   grid.before(nav);
+   let selected=0;
+   function show(index,focus=false){
+    selected=index;
+    panels.forEach((panel,i)=>{
+     panel.hidden=phone.matches&&i!==selected;
+     buttons[i].setAttribute('aria-selected',String(i===selected));buttons[i].tabIndex=i===selected?0:-1;
+     if(phone.matches){panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',buttons[i].id);}
+     else{for(const [key,value] of [['role',original[i].role],['aria-labelledby',original[i].label]]){if(value===null)panel.removeAttribute(key);else panel.setAttribute(key,value);}}
+    });
+    if(focus)buttons[index].focus({preventScroll:true});
+   }
+   buttons.forEach((button,i)=>button.addEventListener('click',()=>show(i)));
+   nav.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();show(e.key==='Home'?0:e.key==='End'?1:1-selected,true);}});
+   stages.set(resultId,{grid,show,refresh:()=>show(selected)});show(0);
+  }
+ }
+ new MutationObserver(()=>{if(!queued){queued=true;requestAnimationFrame(initialize);}}).observe(content,{childList:true,subtree:true});
+ phone.addEventListener('change',()=>{for(const stage of stages.values())stage.refresh();});
+ document.addEventListener('pharmabiz:result-ready',e=>{
+  const stage=stages.get(e.detail?.id);if(stage&&phone.matches)stage.show(1,true);
+ });
+ initialize();
+})();

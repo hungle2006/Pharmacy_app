@@ -89,258 +89,235 @@
  .workspace-page #cover .start-footer{min-height:43px;padding:7px 0 calc(7px + env(safe-area-inset-bottom))}
  .workspace-page #cover .start-sources span{font-size:10px}
 }
-/* WORKSPACE: keep hierarchy tight but never stack controls without breathing room. */
-.workspace-page #app .page-head .ws-head-actions{
- align-self:center;
- row-gap:9px;
+/* Workspace frame: one content scroller, sized to the actual navigation bar.
+   Short tasks fit naturally; long tasks and enlarged text remain reachable. */
+body.workspace-page:has(#app:not([hidden])){overflow:hidden}
+.workspace-page #app{--mobile-nav-height:0px;--frame-height:100dvh}
+.workspace-page #app .main{height:var(--frame-height);min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.workspace-page #app .topbar{position:relative;top:auto;flex:0 0 68px;height:68px;min-height:0;z-index:55}
+.workspace-page #app .content{
+ flex:1 1 auto;min-height:0;width:100%;max-width:1650px;margin-inline:auto;
+ overflow-y:auto;overflow-x:clip;overscroll-behavior-y:contain;
+ padding:24px clamp(18px,2.3vw,34px) 18px;scroll-padding-top:16px;
+ scrollbar-width:thin;
 }
-.workspace-page #app .page-head p{
- max-width:61ch;
-}
-.workspace-page #app .ws-action,
-.workspace-page #app .ws-back,
-.workspace-page #app .focus-navigation button{
- min-height:44px;
-}
-.workspace-page #app .ws-action:focus-visible,
-.workspace-page #app .focus-current:focus-visible{
- outline:2px solid var(--accent);outline-offset:3px;
-}
-.workspace-page #app .focus-toolbar{
- border-radius:14px;
- box-shadow:0 4px 18px color-mix(in srgb,var(--ink) 4%,transparent);
-}
-.workspace-page #app .focus-menu{
- box-shadow:0 18px 43px color-mix(in srgb,var(--ink) 14%,transparent);
-}
-.workspace-page #app .focus-menu-option{
- transition:background-color 155ms ease,border-color 155ms ease,color 155ms ease;
-}
-.workspace-page #app :is(.panel,.depth-panel,.explore-panel,.report-evidence){
- scroll-margin-top:95px;
-}
+.workspace-page #app :is(.page-head,.filters,.filter-options,.search-field,.lookup-search-form,.lookup-search-box,.focus-deck,.focus-toolbar,.fp-form-grid,.dp-grid){box-sizing:border-box;min-width:0;max-width:100%}
+.workspace-page #app :is(input,select,textarea){box-sizing:border-box;min-width:0;max-width:100%;color:var(--ink)}
+.workspace-page #app :is(input[type=search],input[type=text],textarea){scroll-margin-block:18px}
+.workspace-page #app .page-head{min-height:0;border:1px solid var(--border);border-radius:16px;gap:16px;padding:21px 24px!important;margin-bottom:14px!important}
+.workspace-page #app .page-head h1{font-size:clamp(25px,2.5vw,35px);line-height:1.2}
+.workspace-page #app .ws-head-actions{align-self:center;gap:8px}
+.workspace-page #app .ws-action{min-height:44px}
+.workspace-page #app #export::before{content:none!important}
+.workspace-page #app .workspace-search{flex:1 1 220px;min-width:120px;max-width:360px;display:flex;gap:4px;align-items:center;padding:3px 4px 3px 12px}
+.workspace-page #app .workspace-search input{flex:1 1 auto;width:0;padding-inline:6px}
+.workspace-page #app .workspace-search button[type="submit"]{display:grid;place-items:center;flex:0 0 44px;min-width:44px;width:44px;min-height:44px;height:44px;border:0;border-radius:9px;background:var(--surface-soft);color:var(--accent)}
+/* The global quick search is redundant when the task already has a search field. */
+.workspace-page[data-active-view=overview] #app .workspace-search,
+.workspace-page[data-active-view=pricing] #app .workspace-search,
+.workspace-page[data-active-view=competition] #app .workspace-search,
+.workspace-page[data-active-view=portfolio] #app .workspace-search,
+.workspace-page[data-active-view=quality] #app .workspace-search{display:none}
+.workspace-page #app #filters{display:grid;grid-template-columns:minmax(180px,1.5fr) repeat(4,minmax(100px,1fr)) 76px;gap:8px;align-items:stretch;isolation:isolate;z-index:40}
+.workspace-page #app #filters #filter-options{display:contents}
+.workspace-page #app #filters .search-field{position:relative;display:flex;align-items:center;grid-column:auto;grid-row:auto;border:1px solid var(--border);background:var(--surface);border-radius:12px;overflow:hidden}
+.workspace-page #app #filters .search-field>span{position:static;flex:0 0 20px;display:grid;place-items:center;margin-left:12px;font-size:22px;line-height:1;color:var(--accent)}
+.workspace-page #app #filters .search-field input{flex:1 1 auto;width:0;min-width:0;min-height:50px;height:50px;border:0;padding:10px 12px 10px 6px;font-size:15px;line-height:1.4;outline:0}
+.workspace-page #app :is(.search-field,.lookup-search-box):focus-within{border-color:var(--accent)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent)}
+.workspace-page #app #filters #reset{grid-column:auto;grid-row:auto;min-height:50px;height:auto}
+.workspace-page #app #filters #reset::before{content:none}
+.workspace-page #app #filters #reset{font-size:0}
+.workspace-page #app .ph-native-select{visibility:hidden}
+.workspace-page #app .ph-filter-trigger{height:50px;min-height:50px;border-radius:12px}
+.workspace-page #app .ph-filter-menu{display:flex;flex-direction:column;max-height:min(470px,65dvh);overflow:hidden}
+.workspace-page #app .ph-filter-options{min-height:0;flex:1 1 auto}
+.workspace-page #app .ph-filter-search-label{display:flex;gap:8px;align-items:center;flex:0 0 auto}
+.workspace-page #app .ph-filter-search-label>span{position:static;display:none}
+.workspace-page #app .ph-filter-search-label input{padding:10px 12px;font-size:16px}
+.workspace-page #app .ph-filter-selected{max-height:58px;overflow:auto;flex:0 0 auto}
+.workspace-page #app .focus-toolbar{position:relative;top:auto;z-index:35;grid-template-columns:minmax(0,1fr) auto;padding:10px 12px;margin-bottom:12px;border-radius:13px}
+.workspace-page #app .focus-current{min-width:0;min-height:44px}
+.workspace-page #app .focus-current-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-page #app .focus-navigation{gap:6px;justify-content:flex-end}
+.workspace-page #app .focus-navigation button{width:44px;min-height:44px}
+.workspace-page #app .focus-menu-search{display:flex;align-items:center;gap:9px;position:relative}
+.workspace-page #app .focus-menu-search svg{position:static;flex:0 0 18px}
+.workspace-page #app .focus-menu-search input{flex:1;width:0;padding:10px 0;font-size:16px}
+.workspace-page #app .metrics{gap:10px;margin:10px 0 14px}
+.workspace-page #app .metric{min-height:96px;padding:13px 15px}
+.workspace-page #app .metric-value{margin:7px 0 4px}
+.workspace-page #app .page-footer{margin:14px 0 0;padding:8px 0;min-height:0}
+.workspace-page #app #lookup-panel{margin-bottom:0}
+.workspace-page #app .lookup-search-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:stretch}
+.workspace-page #app .lookup-search-box{position:relative;display:flex;align-items:center;gap:8px;min-height:50px;width:auto;padding:0 12px;border-radius:12px}
+.workspace-page #app .lookup-search-box>span{position:static;flex:0 0 20px;line-height:1;font-size:23px}
+.workspace-page #app .lookup-search-box input{flex:1 1 auto;width:0;min-width:0;padding:11px 0;font-size:16px;border:0;outline:0}
+.workspace-page #app .lookup-search-box kbd{position:static;flex:0 0 auto}
+.workspace-page #app .lookup-submit{min-height:50px;width:auto;padding:10px 17px;white-space:nowrap;border-radius:12px}
+.workspace-page #app .lookup-retry{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 15px}
+.workspace-page #app .lookup-detail-panel{top:0!important}
+.workspace-page #app .lookup-pagination button{min-height:44px}
 .workspace-page #app .ws-sheet-body{scrollbar-gutter:stable}
-.workspace-page #app .ws-palette-results,
-.workspace-page #app .focus-menu-list{overscroll-behavior:contain}
-.workspace-page #app .nav-button .nav-arrow{opacity:.7}
-.workspace-page #app .nav-button.active .nav-arrow{opacity:1}
-/* Interactive panels and menus animate only compositor-friendly properties. */
-.workspace-page #app .ws-sheet{
- animation-duration:205ms;
+.workspace-page #app :is(.dp-results,.fp-panel,.lookup-results-column,.panel,.depth-panel){scroll-margin-top:16px}
+.workspace-page #app :is(.dp-results,.fp-result-panel){min-height:0}
+@media(min-width:761px) and (max-width:1250px){
+ .workspace-page #app #filters{grid-template-columns:repeat(4,minmax(0,1fr)) 76px}
+ .workspace-page #app #filters .search-field{grid-column:1/-1}
+ .workspace-page #app #filters #reset{grid-row:auto;grid-column:auto}
 }
-.workspace-page #app .ws-close:hover:not(:disabled){
- background:var(--selection);border-color:var(--accent);
-}
-.workspace-page #app .ws-close:active:not(:disabled){
- transform:scale(.975);
-}
-/* Fixed header and footer elements must not crowd the content on narrow phones. */
 @media(max-width:980px){
- .workspace-page #app .page-head{min-height:0}
- .workspace-page #app .focus-deck{min-width:0}
- .workspace-page #app :is(.dp-results,.fp-panel,.lookup-results-column){
-  scroll-margin-top:90px;
- }
+ .workspace-page #app .main{margin-left:0}
+ .workspace-page #app .workspace-search{display:none}
+ .workspace-page #app .dp-results{position:static}
 }
 @media(max-width:760px){
- .workspace-page #app .content{
-  padding:12px 13px calc(90px + env(safe-area-inset-bottom));
- }
- .workspace-page #app .topbar{min-height:60px;gap:8px}
+ .workspace-page #app{--mobile-nav-height:72px}
+ .workspace-page #app .main{height:calc(var(--frame-height) - var(--mobile-nav-height));border:0}
+ .workspace-page #app .topbar{flex-basis:58px;height:58px;min-height:58px;padding:0 13px;gap:8px;box-shadow:0 1px 0 var(--border)}
+ .workspace-page #app .workspace-brand{font-size:20px;gap:8px}
+ .workspace-page #app .workspace-brand .brand-symbol{width:29px;height:32px;font-size:21px}
  .workspace-page #app .topbar-right{gap:5px}
- .workspace-page #app .page-head{
-  gap:11px;
-  padding:17px 16px!important;
-  margin-bottom:12px!important;
- }
- .workspace-page #app .page-head h1{
-  font-size:clamp(24px,7.1vw,30px);
-  letter-spacing:-.033em;
-  line-height:1.22;
- }
- .workspace-page #app .page-head p{line-height:1.55}
- .workspace-page #app .ws-head-actions{
-  display:flex!important;
-  justify-content:flex-start!important;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:8px;
-  width:100%;
- }
- .workspace-page #app .ws-head-actions>.ws-action{width:auto;flex:1 1 auto}
- .workspace-page #app .ws-head-actions>.ws-source-action{min-width:98px}
- .workspace-page #app .ws-head-actions>#export:not([hidden]){
-  display:inline-grid;
-  place-items:center;
-  flex:0 0 44px;
-  width:44px!important;
-  min-width:44px;
-  max-width:44px;
-  min-height:44px;
-  padding:0!important;
-  grid-column:auto!important;
- }
- .workspace-page #app .ws-head-actions>#export .ws-export-label{display:none}
- .workspace-page #app .metric{
-  padding:13px;
-  min-height:111px;
-  gap:6px;
- }
- .workspace-page #app .metric-value{font-size:clamp(21px,6.1vw,29px)}
- .workspace-page #app .metric-note{line-height:1.35}
- .workspace-page #app .focus-toolbar{
-  top:61px;
-  padding:11px 12px;
-  margin-bottom:11px;
-  gap:8px;
- }
- .workspace-page #app .focus-current-text{
-  overflow-wrap:anywhere;
- }
- .workspace-page #app .focus-menu-option{
-  padding:9px 10px;
-  min-height:45px;
- }
- .workspace-page #app .focus-page{
-  overflow-wrap:anywhere;
- }
- .workspace-page #app .depth-panel{
-  padding:16px 14px;
- }
- .workspace-page #app .depth-svg-scroll{
-  max-width:100%;
-  overscroll-behavior-x:contain;
- }
- .workspace-page #app .lookup-results-column{
-  overflow:hidden;
- }
- .workspace-page #app #lookup-panel .lookup-item{
-  min-height:78px;
-  padding:12px;
- }
- .workspace-page #mobile-taskbar{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:5px;
-  padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));
-  border-top:1px solid var(--border);
-  background:var(--surface);
-  box-shadow:0 -8px 24px color-mix(in srgb,var(--ink) 5%,transparent);
- }
- .workspace-page #mobile-taskbar button{
-  min-height:51px;
-  width:100%;
-  min-width:0;
-  padding:7px 3px;
-  font-size:11px;
-  line-height:1.3;
-  border-radius:11px;
-  transition:background-color 170ms ease,color 170ms ease,transform 110ms ease;
- }
- .workspace-page #mobile-taskbar button:active{transform:scale(.97)}
- .workspace-page #mobile-taskbar button.active{
-  border:1px solid color-mix(in srgb,var(--accent) 19%,var(--border));
- }
+ .workspace-page #app .topbar-right :is(.icon-button,.theme-toggle,.workspace-logout){width:40px;min-width:40px;height:44px;min-height:44px;border-radius:11px}
+ .workspace-page #app .topbar :is(.breadcrumb,.workspace-search){display:none!important}
+ .workspace-page #app .content{padding:14px 14px 16px;scroll-padding-top:14px;scrollbar-gutter:auto}
+ .workspace-page #app .page-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:16px!important;margin:0 0 12px!important;background:var(--surface)!important;border-radius:14px;overflow:hidden}
+ .workspace-page #app .page-head:after{display:none}
+ .workspace-page #app .page-head>div:first-child{flex:none;width:auto;min-width:0}
+ .workspace-page #app .page-head .eyebrow{font-size:9px;letter-spacing:.1em;margin:0 0 6px}
+ .workspace-page #app .page-head h1{font-size:24px;line-height:1.22;margin:0 0 6px;text-wrap:pretty;letter-spacing:-.035em}
+ .workspace-page #app .page-head p{font-size:12px;line-height:1.55;margin:0}
+ .workspace-page #app .page-head .ws-head-actions{display:flex!important;flex-direction:column;align-self:center;flex:0 0 44px;width:44px;gap:7px}
+ .workspace-page #app .ws-head-actions:empty{display:none!important}
+ .workspace-page #app .ws-head-actions>.ws-action,
+ .workspace-page #app .ws-head-actions>#export:not([hidden]){display:grid!important;place-items:center;width:44px!important;min-width:44px;max-width:44px;min-height:44px;height:44px;flex:0 0 44px;padding:0!important;border-radius:11px}
+ .workspace-page #app .ws-head-actions>.ws-action[hidden]{display:none!important}
+ .workspace-page #app .ws-head-actions .ws-source-action>span,
+ .workspace-page #app #export .ws-export-label{display:none}
+ .workspace-page #app .ws-head-actions .ws-icon{width:19px;height:19px}
+ .workspace-page #app .status-strip{margin:0 0 9px;padding:0 1px;min-height:0;font-size:10px;line-height:1.55}
+ .workspace-page #app #filters{grid-template-columns:minmax(0,1fr) 48px!important;padding:0!important;gap:8px;margin:0 0 10px}
+ .workspace-page #app #filters .search-field{grid-column:1;grid-row:1;width:100%;min-width:0}
+ .workspace-page #app #filters .search-field input{height:48px;min-height:48px;font-size:16px}
+ .workspace-page #app #filters #filter-toggle{grid-column:2;grid-row:1;display:flex!important;align-items:center;justify-content:center;gap:0;width:48px!important;height:48px!important;min-height:48px!important;max-height:48px!important;padding:0!important;font-size:0;border-radius:12px}
+ .workspace-page #app #filter-toggle>span{display:none!important}
+ .workspace-page #app #filter-toggle>svg{margin:0;width:20px;height:20px}
+ .workspace-page #app #filter-toggle[aria-expanded=true]{background:var(--selection);border-color:var(--accent)}
+ .workspace-page #app #filters #filter-options{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px;border:1px solid var(--border);border-radius:13px;background:var(--surface-soft)}
+ .workspace-page #app #filters #filter-toggle[aria-expanded=false]+#filter-options{display:none!important}
+ .workspace-page #app #filters #reset{grid-column:1/-1;grid-row:auto;min-height:44px}
+ .workspace-page[data-active-view=lookup] #app #filters{grid-template-columns:minmax(0,1fr)!important}
+ .workspace-page[data-active-view=lookup] #app #filters #filter-toggle{grid-column:1;width:100%!important;font-size:12px;gap:8px;justify-content:space-between;padding:0 13px!important}
+ .workspace-page #app .ph-filter-trigger{height:51px;min-height:51px;padding:7px 30px 7px 10px}
+ .workspace-page #app .ph-filter-menu{position:fixed;inset:calc(var(--visual-top,0px) + 66px) 12px auto;width:auto;max-width:none;max-height:calc(var(--visual-height,100dvh) - 150px);padding:12px;z-index:90;border:1px solid var(--accent);box-shadow:0 18px 70px #072b3940}
+ .workspace-page #app .ph-filter-options{max-height:none;overscroll-behavior:contain}
+ .workspace-page #app .ph-filter-option{min-height:46px}
+ .workspace-page #app .metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 12px}
+ .workspace-page #app .metric{min-height:86px;padding:11px 12px;gap:0;border-radius:12px}
+ .workspace-page #app .metric-top{font-size:10px;line-height:1.4}
+ .workspace-page #app .metric-value{font-size:24px;line-height:1.1;margin:7px 0 5px}
+ .workspace-page #app .metric-note{font-size:10px;line-height:1.4}
+ .workspace-page #app .filter-context{font-size:10px;line-height:1.5;margin:7px 0}
+ .workspace-page #app .focus-deck{margin:10px 0 12px}
+ .workspace-page #app .focus-toolbar{position:relative;top:auto;grid-template-columns:minmax(0,1fr) auto;gap:7px;padding:8px;margin:0 0 10px;box-shadow:none}
+ .workspace-page #app .focus-picker-caption{display:none}
+ .workspace-page #app .focus-current{padding:7px 9px;gap:7px;min-height:44px}
+ .workspace-page #app .focus-current-step{font-size:10px;min-width:0;white-space:nowrap}
+ .workspace-page #app .focus-current-text{font-size:12px;line-height:1.4}
+ .workspace-page #app .focus-navigation{gap:4px;justify-content:flex-end}
+ .workspace-page #app .focus-navigation button{min-width:40px;width:40px;min-height:44px}
+ .workspace-page #app .focus-navigation .ws-open-source{width:40px;min-width:40px}
+ .workspace-page #app .focus-navigation .ws-open-source>span{display:none}
+ .workspace-page #app .focus-counter{display:none}
+ .workspace-page #app .focus-menu{max-width:calc(100vw - 44px);width:min(420px,calc(100vw - 44px));z-index:95}
+ .workspace-page #app .focus-menu-option{min-height:46px;padding:9px}
+ .workspace-page #app .focus-page{padding:0;max-height:none;overflow:visible}
+ .workspace-page #app :is(.depth-panel,.explore-panel,.report-evidence){padding:15px 13px;border-radius:13px}
+ .workspace-page #app .depth-panel .panel-head{margin-bottom:10px;padding-bottom:10px}
+ .workspace-page #app .depth-panel .panel-head h2{font-size:17px!important;line-height:1.4}
+ .workspace-page #app .depth-controls{gap:5px}
+ .workspace-page #app .depth-controls>button{min-height:40px;font-size:11px;padding:8px}
+ .workspace-page #app #lookup-panel .lookup-search-form{grid-template-columns:minmax(0,1fr) 48px;gap:8px;margin:0 0 10px}
+ .workspace-page #app .lookup-search-box{min-height:50px;padding:0 10px;gap:5px}
+ .workspace-page #app .lookup-search-box kbd{display:none}
+ .workspace-page #app .lookup-submit{width:48px;min-width:48px;padding:0;font-size:0;display:grid;place-items:center;gap:0}
+ .workspace-page #app .lookup-submit span{display:grid;place-items:center}
+ .workspace-page #app .lookup-submit svg{height:20px;width:20px}
+ .workspace-page #app #lookup-task-story{margin:0 0 10px}
+ .workspace-page #app .lookup-guide>summary{min-height:44px;padding:10px 12px;font-size:12px}
+ .workspace-page #app .lookup-toolbar{margin:0 0 10px;min-height:0;gap:8px}
+ .workspace-page #app .lookup-message{font-size:11px;line-height:1.5;margin:8px 0 10px}
+ .workspace-page #app #lookup-panel .lookup-results{min-height:0;max-height:none;overflow:visible;padding:8px}
+ .workspace-page #app #lookup-panel .lookup-item{min-height:78px;padding:12px;margin-bottom:8px;gap:6px}
+ .workspace-page #app .lookup-item-name{font-size:15px}
+ .workspace-page #app .lookup-results-heading{padding:13px!important}
+ .workspace-page #app .lookup-results-heading h3{font-size:15px}
+ .workspace-page #app .lookup-pagination{padding:10px 12px;font-size:12px}
+ .workspace-page #app .lookup-disclaimer{font-size:11px}
+ .workspace-page #app .dp-grid,.workspace-page #app .fp-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+ .workspace-page #app :is(.dp-card,.fp-panel){padding:16px;border-radius:13px}
+ .workspace-page #app .dp-card textarea{min-height:140px;padding:12px;font-size:16px}
+ .workspace-page #app .dp-results{min-height:0;position:static;gap:10px}
+ .workspace-page #app .dp-flash-card{min-height:0;max-height:none;overflow:visible;padding:17px;gap:12px}
+ .workspace-page #app :is(.dp-actions,.fp-actions){gap:8px;flex-wrap:wrap}
+ .workspace-page #app .fp-form-grid{gap:12px}
+ .workspace-page #app :is(.fp-form-grid,.fp-selector,.report-controls,.report-options) :is(input,select){font-size:16px}
+ .workspace-page #app .page-footer{font-size:10px;line-height:1.5;gap:8px;padding:6px 0;margin:12px 0 0}
+ .workspace-page #app .page-footer>span:last-of-type{display:none}
+ .workspace-page #app .page-footer #back-top{min-width:40px;min-height:44px}
+ .workspace-page #mobile-taskbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border);box-shadow:0 -4px 18px #06373708}
+ .workspace-page #mobile-taskbar button{width:100%;min-width:0;min-height:50px;padding:6px 3px;font-size:11px;line-height:1.3;border-radius:11px;gap:5px}
+ .workspace-page #mobile-taskbar button.active{background:var(--selection);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 18%,var(--border))}
+ .workspace-page #app .ws-sheet{height:var(--visual-height,100dvh);top:var(--visual-top,0px);bottom:auto;width:100vw}
+ .workspace-page #app .ws-palette{padding-top:calc(var(--visual-top,0px) + 12px);height:var(--visual-height,100dvh)}
+ .workspace-page #app .ws-palette-dialog{max-height:calc(var(--visual-height,100dvh) - 28px)}
 }
 @media(max-width:370px){
- .workspace-page #app .topbar{padding:0 9px}
  .workspace-page #app .content{padding-inline:10px}
- .workspace-page #app .page-head{padding:15px 13px!important}
- .workspace-page #app .focus-toolbar{padding:9px}
- .workspace-page #app .focus-navigation{gap:4px}
- .workspace-page #app .focus-navigation .focus-counter{font-size:11px}
- .workspace-page #app .metric{padding:11px;min-height:108px}
+ .workspace-page #app .page-head{padding:14px 12px!important;gap:8px}
+ .workspace-page #app .page-head h1{font-size:22px}
+ .workspace-page #app .focus-navigation .ws-open-source{display:none}
  .workspace-page #app .metric-value{font-size:22px}
- .workspace-page #mobile-taskbar{gap:3px;padding-inline:6px}
- .workspace-page #mobile-taskbar button{font-size:10.5px}
 }
 @media(prefers-reduced-motion:reduce){
- .workspace-page #cover.start-focus.entering{animation:none}
- .workspace-page #cover .start-btn,
- .workspace-page #cover .start-btn span,
- .workspace-page #cover .start-btn svg,
- .workspace-page #cover .start-btn:after,
- .workspace-page #app .focus-menu-option,
- .workspace-page #mobile-taskbar button{
-  animation:none!important;transition:none!important;
- }
+ .workspace-page #app *, .workspace-page #mobile-taskbar button{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
-
-
-/* Audit: correct tiny search/retry controls, mobile filter height and lookup vertical rhythm. */
-.workspace-page #app .workspace-search button[type="submit"]{
- display:grid;place-items:center;
- min-width:44px;width:44px;
- min-height:44px;height:44px;
- border:0;border-radius:10px;
- flex:0 0 44px;
- font-size:16px;
- color:var(--accent);
- background:var(--surface-soft);
-}
-.workspace-page #app .workspace-search button[type="submit"]:hover{
- background:var(--selection);
-}
-.workspace-page #app .lookup-retry{
- display:inline-flex;align-items:center;justify-content:center;
- min-height:44px;
- padding:9px 15px;
- border-radius:10px;
+@media print{
+ body.workspace-page:has(#app:not([hidden])){overflow:visible}
+ .workspace-page #app .main{height:auto;display:block;overflow:visible}
+ .workspace-page #app .content{overflow:visible;max-width:none}
 }
 @media(max-width:760px){
- .workspace-page #app #filters{
-  grid-template-columns:minmax(0,1fr)!important;
-  min-height:0;
-  padding:0!important;
-  margin-bottom:10px;
-  gap:9px;
- }
- .workspace-page #app #filters #filter-toggle{
-  grid-column:1/-1;
-  width:100%!important;
- }
- .workspace-page #app #filters #filter-toggle{
-  box-sizing:border-box;
-  display:flex!important;
-  flex-direction:row;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  height:46px!important;
-  min-height:46px!important;
-  max-height:46px!important;
-  padding:10px 13px!important;
-  line-height:1.3;
-  font-size:13px;
-  border-radius:11px;
-  white-space:nowrap;
- }
- .workspace-page #app #filters #filter-toggle>span{
-  display:none!important;
- }
- .workspace-page #app #filters #filter-toggle>svg{
-  margin-left:auto;
-  height:18px;width:18px;
-  transition:transform 160ms ease;
- }
- .workspace-page #app #lookup-task-story{
-  margin:0 0 10px;
- }
- .workspace-page #app .lookup-guide>summary{
-  min-height:44px;
-  padding:10px 13px;
-  line-height:1.45;
-  font-size:12px;
- }
- .workspace-page #app .lookup-toolbar{
-  min-height:44px;
-  margin:0 0 10px;
- }
- .workspace-page #app .lookup-message{
-  margin:8px 0 10px;
- }
- .workspace-page #app .lookup-search-form{
-  margin:0 0 10px;
-  gap:7px;
- }
+ .workspace-page #app .focus-navigation .focus-counter{display:block;margin:0;min-width:30px;font-size:11px}
+ .workspace-page #app .focus-navigation .ws-open-source{display:none}
+ .workspace-page #app .focus-current-step{display:none}
+ .workspace-page #app .ws-head-actions #export{font-size:0!important}
+}
+.workspace-page #app .ph-filter-menu{padding-top:12px}
+.workspace-page #app .ph-filter-search-label{padding-right:46px}
+.workspace-page #app .ph-filter-close{position:absolute;right:12px;top:12px;display:grid;place-items:center;width:40px;height:44px;min-height:44px;border:1px solid var(--border);border-radius:9px;background:var(--surface-soft);color:var(--ink);font-size:24px;line-height:1}
+.workspace-page #app .mobile-form-stages{display:none}
+@media(max-width:760px){
+ .workspace-page #app .mobile-form-stages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:5px;border:1px solid var(--border);border-radius:13px;background:var(--surface-soft);margin:0 0 12px}
+ .workspace-page #app .mobile-form-stages button{min-height:44px;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--muted);font-size:13px;font-weight:650}
+ .workspace-page #app .mobile-form-stages button[aria-selected=true]{border-color:var(--border);background:var(--surface);color:var(--accent);box-shadow:0 2px 5px #0a45360a}
+ .workspace-page #app .dp-grid:has(>[hidden]),.workspace-page #app .fp-grid:has(>[hidden]){display:block}
+}
+.workspace-page #app .content:has(#market-forecast-panel:not([hidden]))>.page-head{display:flex}
+.workspace-page #app .dp-workspace .focus-fold>summary::before{content:none}
+@media(max-width:760px){
+ .workspace-page #app .page-head .ws-head-actions:not(:has(>:not([hidden]))){display:none!important}
+ .workspace-page #app .page-head:not(:has(.ws-head-actions>:not([hidden]))){grid-template-columns:minmax(0,1fr)}
+ .workspace-page #app .content:has(#market-forecast-panel:not([hidden]))>.page-head{display:grid}
+ .workspace-page #app #market-forecast-panel .market-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .workspace-page #app #market-forecast-panel .market-stat:last-child{grid-column:1/-1}
+ .workspace-page #app #market-forecast-panel .market-stat{padding:13px;min-width:0}
+ .workspace-page #app #market-forecast-panel .market-stat strong{font-size:23px;line-height:1.4}
+ .workspace-page #app #market-forecast-panel .market-stat>span{font-size:11px;line-height:1.4}
+}
+.workspace-page #app .study-opening-body .fp-intro{padding:14px 0 0;margin:14px 0 0;border-top:1px solid var(--border)}
+@media(max-width:760px){
+ .workspace-page #app #feature-price-panel>.study-opening{margin-top:0;margin-bottom:12px}
+ .workspace-page #app .study-opening-body .fp-intro{display:block}
+ .workspace-page #app .study-opening-body .fp-intro h2{font-size:18px}
+ .workspace-page #app .focus-fold>summary,.workspace-page #app .study-opening>summary{min-height:46px;padding:11px 13px}
 }

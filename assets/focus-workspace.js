@@ -171,6 +171,8 @@
     document.addEventListener('keydown',e=>{
       if(e.key==='Escape'&&!menu.hidden){e.preventDefault();closeMenu(true);}
     });
+    document.addEventListener('pharmabiz:filter-menu-open',()=>closeMenu());
+    document.addEventListener('pharmabiz:workspace-before-view',()=>closeMenu());
     document.addEventListener('pharmabiz:focus-menu-open',e=>{
       if(e.detail?.source!==menu)closeMenu();
     });
@@ -190,6 +192,9 @@
   }
   function sync(){
     scheduled=false;
+    const feature=document.getElementById('feature-price-panel');
+    const featureIntro=feature?.querySelector(':scope > .fp-intro'),featureGuide=feature?.querySelector(':scope > .study-opening .study-opening-body');
+    if(featureIntro&&featureGuide)featureGuide.append(featureIntro);
     const analysis=document.getElementById('depth-analytical')||document.getElementById('visuals');
     makeDeck(analysis);makeDeck(document.getElementById('market-explore'));compactForm();
     const records=document.getElementById('records-panel');

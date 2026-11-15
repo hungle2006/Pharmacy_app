@@ -138,7 +138,7 @@ test('mobile lookup collapsed filter has one full-width row and no tiny 40px ret
  const content=read('assets/presentation.js');
  assert.ok(css.includes('grid-template-columns:minmax(0,1fr)!important'));
  assert.ok(css.includes('#filter-toggle'));
- assert.ok(css.includes('max-height:46px!important'));
+ assert.ok(css.includes('min-height:48px!important'));
  assert.ok(css.includes('.lookup-retry'));
  assert.ok(css.includes('min-height:44px'));
  assert.ok(content.includes('title="Hồ sơ → Cấu hình → Giá → Bằng chứng">Cách đọc kết quả</summary>'));
