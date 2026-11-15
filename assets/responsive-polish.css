@@ -321,3 +321,6 @@ body.workspace-page:has(#app:not([hidden])){overflow:hidden}
  .workspace-page #app .study-opening-body .fp-intro h2{font-size:18px}
  .workspace-page #app .focus-fold>summary,.workspace-page #app .study-opening>summary{min-height:46px;padding:11px 13px}
 }
+.workspace-page #app .fp-form-grid>label[for=feature-input-ingredient]{grid-column:1/-1}
+.workspace-page #app .fp-form-grid input{width:100%}
+@media(max-width:760px){.workspace-page #app .fp-form-grid{grid-template-columns:minmax(0,1fr)}}
