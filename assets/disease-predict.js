@@ -103,6 +103,7 @@ async function predict(e){
  try{
   const d=await get('/api/disease-predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,top_k:5})},c);if(requests.predict!==c)return;
   predictions=d.predictions;modelRun=d.model_run;renderRanking();
+  document.dispatchEvent(new CustomEvent('pharmabiz:result-ready',{detail:{id:'dp-result-panel'}}));
   status($('dp-text').value.trim()===text?'Đã xếp hạng. Sử dụng mũi tên để chuyển thẻ, chọn “Đối chiếu mã ICD” khi cần.':'Mô tả đã thay đổi trong khi chờ. Kết quả thuộc nội dung đã gửi trước đó; hãy phân tích lại.');
   if(matchMedia('(max-width:1000px)').matches)requestAnimationFrame(()=>$('dp-result-panel')?.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}));
  }catch(e){if(requests.predict!==c)return;predictions=[];$('dp-ranking').innerHTML='<div class="dp-status">Chưa có dự đoán. Không hiển thị kết quả mô phỏng.</div>';status(e.name==='AbortError'?'Yêu cầu hết thời gian chờ. Bạn có thể thử lại.':e.message);}

@@ -51,6 +51,7 @@
   native.parentNode.insertBefore(wrap,native);
   wrap.append(native,trigger,popup);
   native.classList.add('ph-native-select');native.tabIndex=-1;
+  const close=document.createElement('button');close.type='button';close.className='ph-filter-close';close.setAttribute('aria-label','Đóng danh sách bộ lọc');close.textContent='×';popup.append(close);close.addEventListener('click',()=>closeMenu(true));
   const input=popup.querySelector('input');
   const list=popup.querySelector('.ph-filter-options');
   const count=popup.querySelector('.ph-filter-foot');
@@ -78,6 +79,7 @@
    if(openMenu?.popup===popup){closeMenu(true);return;}
    closeMenu();
    openMenu={popup,trigger};
+   document.dispatchEvent(new CustomEvent('pharmabiz:filter-menu-open'));
    popup.hidden=false;trigger.setAttribute('aria-expanded','true');
    input.value='';draw();input.focus({preventScroll:true});
   });
@@ -104,6 +106,9 @@
   sync();
  }
  document.addEventListener('pharmabiz:filters-sync',syncAll);
+ document.addEventListener('pharmabiz:focus-menu-open',()=>closeMenu());
+ document.addEventListener('pharmabiz:workspace-before-view',()=>closeMenu());
+ document.getElementById('filter-toggle')?.addEventListener('click',()=>closeMenu());
  document.addEventListener('click',e=>{if(openMenu&&!openMenu.popup.parentElement.contains(e.target))closeMenu();},true);
  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
  document.addEventListener('pharmabiz:lookup-view',e=>{
