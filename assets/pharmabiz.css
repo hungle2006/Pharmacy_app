@@ -1236,3 +1236,17 @@
   border-top-color:#cee6e4;
 }
 [data-theme="light"] .workspace-page .mobile-taskbar button:not(.active) { color:#35616b }
+
+.workspace-page :is(#app .sidebar,#app .topbar,#cover) :is(.brand,.workspace-brand) {
+  display:inline-flex;
+  align-items:center;
+  gap:.55rem;
+  font-weight:750;
+  letter-spacing:-.035em;
+}
+.workspace-page :is(#app .sidebar,#app .topbar,#cover) img.brand-mark {
+  width:2.15rem;
+  height:2.15rem;
+  flex:0 0 2.15rem;
+}
+.workspace-page :is(#app .sidebar,#app .topbar) :is(.brand,.workspace-brand) .accent { color:inherit }
