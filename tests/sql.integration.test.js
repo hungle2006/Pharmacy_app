@@ -29,5 +29,13 @@ test('PostgreSQL aggregation handles multiple prices, missing prices, filters an
   q=buildQuery({q:"'); DROP TABLE dav_product; --"});r=(await db.query(q.text,q.params)).rows[0];assert.equal(Number(r.summary.products),0);assert.equal(Number((await db.query('SELECT COUNT(*) AS n FROM dav_product')).rows[0].n),3);
   q=buildQuery({page:2});r=(await db.query(q.text,q.params)).rows[0];assert.equal(r.records.length,0);assert.equal(Number(r.summary.products),3);
   q=buildQuery({unit:'Tablet',kind:'declared'});r=(await db.query(q.text,q.params)).rows[0];assert.equal(Number(r.summary.products),2);
+  q=buildQuery({group:'ingredients',country:'Việt Nam'});r=(await db.query(q.text,q.params)).rows[0];
+  assert.equal(Number(r.total),1);assert.equal(Number(r.rows[0].value),2);assert.equal(Number(r.rows[0].secondary),2);
+  q=buildQuery({group:'manufacturers',page:2});r=(await db.query(q.text,q.params)).rows[0];
+  assert.equal(Number(r.total),3);assert.deepEqual(r.rows,[]);
+  q=buildQuery({group:'comparable'});r=(await db.query(q.text,q.params)).rows[0];
+  assert.equal(Number(r.total),1);assert.equal(Number(r.rows[0].median),2000);
+  q=buildQuery({history:'d1'});r=(await db.query(q.text,q.params)).rows[0];
+  assert.deepEqual(r.rows.map(row=>[row.date,Number(row.median)]),[['2026-01-02',1000],['2026-02-02',2000]]);
  }finally{await db.close();}
 });

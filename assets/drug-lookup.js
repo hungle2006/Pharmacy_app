@@ -133,6 +133,44 @@
     $('lookup-prev').disabled=true;$('lookup-next').disabled=true;
   }
   const field=(label,value)=>'<div class="lookup-field"><dt>'+esc(label)+'</dt><dd>'+esc(text(value))+'</dd></div>';
+  const dateLabels={dav_filing_date:'Ngày kê khai',dav_publication_date:'Ngày công bố'};
+  async function loadPriceHistory(section){
+    const output=section.querySelector('.lookup-price-series');
+    output.textContent='Đang tải lịch sử giá…';
+    try{
+      const response=await fetch('/api/analytics?'+new URLSearchParams({history:section.dataset.priceHistory}),{cache:'no-store'});
+      const data=await response.json();if(!response.ok||!Array.isArray(data.rows))throw Error('unavailable');
+      const series=new Map();
+      for(const row of data.rows){
+        const key=JSON.stringify([row.price_type,row.unit,row.source_date_basis]);
+        if(!series.has(key))series.set(key,[]);
+        series.get(key).push(row);
+      }
+      const entries=[...series.values()];
+      if(!entries.length){ output.textContent='Không có giá VND kèm ngày, loại giá và đơn vị.';return; }
+      const renderSeries=rows=>{
+        const times=rows.map(row=>Date.parse(row.date)),values=rows.map(row=>Number(row.median));
+        const from=times[0],range=Math.max(86400000,times.at(-1)-from),lo=Math.min(...values),span=Math.max(1,Math.max(...values)-lo);
+        const points=values.map((value,i)=>[80+(times[i]-from)/range*347,132-(value-lo)/span*104]);
+        const marks=points.map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="3" fill="var(--accent)"><title>'+esc(rows[i].date)+' · '+esc(price(values[i]))+'</title></circle>').join('');
+        section.querySelector('.lookup-price-plot').innerHTML=
+          (rows.length<2?'<p>Chỉ có một ngày có giá trong nhóm này.</p>':
+          '<svg class="lookup-price-chart" viewBox="0 0 456 160" role="img" aria-label="Giá trung vị theo ngày trong cùng loại giá và đơn vị">'+
+          '<path d="M80 20v112h347" fill="none" stroke="var(--border)"/>'+
+          '<g fill="var(--muted)" font-size="11"><text x="76" y="34" text-anchor="end">'+esc(price(Math.max(...values)))+
+          '</text><text x="76" y="132" text-anchor="end">'+esc(price(lo))+
+          '</text><text x="80" y="151">'+esc(rows[0].date)+'</text><text x="427" y="151" text-anchor="end">'+esc(rows.at(-1).date)+
+          '</text></g><polyline points="'+points.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="var(--accent)" stroke-width="2"/>'+marks+'</svg>')+
+          '<div class="table-scroll"><table><thead><tr><th scope="col">Ngày hồ sơ</th><th scope="col">Giá trung vị</th><th scope="col">Quan sát</th></tr></thead><tbody>'+
+          rows.map(row=>'<tr><td>'+esc(row.date)+'</td><td>'+esc(price(row.median))+'</td><td>'+esc(fmt(row.observations))+'</td></tr>').join('')+'</tbody></table></div>';
+      };
+      output.innerHTML='<label>Loại giá, đơn vị và mốc ngày <select>'+entries.map(([r],i)=>'<option value="'+i+'">'+
+        esc([r.price_type,r.unit,dateLabels[r.source_date_basis]||'Ngày hồ sơ chưa xác minh'].join(' · '))+'</option>').join('')+
+        '</select></label><div class="lookup-price-plot"></div>';
+      output.querySelector('select').addEventListener('change',event=>renderSeries(entries[Number(event.target.value)]));
+      renderSeries(entries[0]);
+    }catch{ output.textContent='Chưa tải được lịch sử giá. Đóng và mở lại để thử.'; }
+  }
   function renderDavDetail(d,raw,auto=false) {
     const p=d.product;
     const accepted=Number(p.accepted_for_serving)===1;
@@ -159,6 +197,13 @@
       (p.ingredient_component_total!==null&&p.ingredient_component_total!==undefined?'<p class="lookup-coverage">Ứng viên hoạt chất: '+fmt(p.ingredient_component_matched)+' / '+fmt(p.ingredient_component_total)+' thành phần</p>':'')+
       PharmaExplore.lookup(d)+'<h4>Chi tiết bằng chứng thành phần</h4>'+(components||'<p class="lookup-muted">Chưa có dòng bằng chứng thành phần từ Silver.</p>')+
       '<p class="lookup-warning">Mã ứng viên chưa được xác minh lâm sàng. Không sử dụng kết quả này để kê đơn hoặc tự điều trị.</p></section>';
+    if(/^[1-9][0-9]{0,17}$/.test(String(raw.id??''))){
+      details.insertAdjacentHTML('beforeend','<details class="lookup-price-history" data-price-history="'+esc(raw.id)+'"><summary>Lịch sử giá quan sát</summary><div class="lookup-price-series" aria-live="polite"></div></details>');
+      const history=details.querySelector('.lookup-price-history');
+      history.addEventListener('toggle',()=>{
+        if(history.open&&!history.querySelector('.lookup-price-series select'))loadPriceHistory(history);
+      });
+    }
     if(raw.catalog_duplicate_status&&raw.catalog_duplicate_status!=='LEGACY_UNRESOLVED')
       details.insertAdjacentHTML('beforeend','<p class="lookup-warning">Sản phẩm cũ đang được đánh dấu nghi trùng với bản Silver; dữ liệu giá và mapping lịch sử chưa bị xóa.</p>');
     details._mlRow=null;

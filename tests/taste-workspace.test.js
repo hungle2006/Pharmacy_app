@@ -50,7 +50,7 @@ test('new chart families are rendered from real data and an uncertainty interval
  const explore=read('assets/data-exploration.js');
  const feature=read('assets/feature-price.js');
  assert.match(depth,/priceBandSeries\(d\.bins\)/);
- assert.match(depth,/function mix\(rows,total\)/);
+ assert.match(depth,/ranking\(groupOther\(forms,6\),\{total:s\.products,limit:6,share:true,ordered:true\}\)/);
  assert.match(explore,/function funnel\(rows,total,unit/);
  assert.match(explore,/values\.some\(\(v,i\)=>i>0&&v>values\[i-1\]\)/);
  assert.match(feature,/intervalVisual\(d\)/);

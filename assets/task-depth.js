@@ -37,7 +37,14 @@ let active=null;
 const tip=(a,b)=>'tabindex="0" data-tip="'+esc(a)+'" data-value="'+esc(b)+'"';
 const note=t=>'<p class="depth-reading">'+esc(t)+'</p>';
 const grid=(a,b)=>'<div class="depth-grid">'+a+b+'</div>';
-const panel=(id,title,sub,body,read='')=>'<section class="panel depth-panel" data-viz="'+esc(({ 'overview-time':'time','overview-country':'ring','overview-ingredient':'rank','pricing-bands':'lollipop','pricing-ranges':'range','pricing-comparable':'table','pricing-time':'time','competition-scatter':'scatter','competition-rank':'rank','competition-coverage':'rank','portfolio-mix':'mosaic','portfolio-forms':'rank','portfolio-countries':'rank','portfolio-ingredients':'table','quality-fields':'quality','quality-status':'rank','quality-flags':'quality','quality-actions':'table','forecast-history':'range' }[id]||'data'))+'" id="chart-'+id+'"><div class="panel-head"><div><h2>'+esc(title)+'</h2><p>'+esc(sub)+'</p></div></div>'+body+(read?note(read):'')+'</section>';
+const groupedPanels={
+ 'overview-country':'country','overview-ingredient':'ingredients','portfolio-mix':'forms',
+ 'portfolio-forms':'forms','portfolio-countries':'country','portfolio-ingredients':'ingredients',
+ 'competition-scatter':'manufacturers','competition-rank':'manufacturers','competition-detail':'manufacturers',
+ 'pricing-ranges':'comparable','pricing-comparable':'comparable',
+};
+const groupDisclosure=id=>groupedPanels[id]?'<details class="depth-source full-groups" data-full-group="'+groupedPanels[id]+'"><summary>Xem toàn bộ nhóm trong bộ lọc</summary><div class="full-group-results" aria-live="polite"></div></details>':'';
+const panel=(id,title,sub,body,read='')=>'<section class="panel depth-panel" data-viz="'+esc(({ 'overview-time':'time','overview-country':'rank','overview-ingredient':'rank','pricing-bands':'lollipop','pricing-ranges':'range','pricing-comparable':'table','pricing-time':'time','competition-scatter':'scatter','competition-rank':'rank','competition-coverage':'rank','portfolio-mix':'rank','portfolio-forms':'rank','portfolio-countries':'rank','portfolio-ingredients':'table','quality-fields':'quality','quality-status':'rank','quality-flags':'quality','quality-actions':'table','forecast-history':'range' }[id]||'data'))+'" id="chart-'+id+'"><div class="panel-head"><div><h2>'+esc(title)+'</h2><p>'+esc(sub)+'</p></div></div>'+body+groupDisclosure(id)+(read?note(read):'')+'</section>';
 const table=(headers,rows)=>'<div class="table-scroll"><table><thead><tr>'+headers.map(t=>'<th scope="col">'+esc(t)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(t=>'<td>'+esc(t)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 const source=(headers,rows,scope)=>'<details class="depth-source"><summary>Số liệu và cách tính</summary><p>'+esc(scope)+'</p>'+table(headers,rows)+'</details>';
 const controls=(key,items,value)=>'<div class="depth-controls" role="group" aria-label="'+esc(key)+'">'+items.map(([v,l])=>'<button data-depth-key="'+key+'" data-depth-value="'+v+'" aria-pressed="'+(String(value)===String(v))+'">'+esc(l)+'</button>').join('')+'</div>';
@@ -49,17 +56,6 @@ function ranking(rows,{unit='sản phẩm',total=null,filter=null,limit=state.li
  share=share&&n(total)>0;
  const max=share?100:Math.max(1,...a.map(r=>r.value));
  return '<div class="depth-axis"><span>'+esc(share?'Tỷ lệ trên mẫu số đã ghi':'Số '+unit)+'</span><span>0 → '+num(max)+(share?'%':'')+'</span></div>'+a.map((r,i)=>{const v=share?r.value/n(total)*100:r.value;return '<div class="depth-rank"><span class="depth-order">'+(i+1)+'</span>'+(filter&&!r.other?'<button class="depth-name" data-key="'+filter+'" data-filter="'+esc(r.name)+'">'+esc(r.name)+'</button>':'<span class="depth-name">'+esc(r.name)+'</span>')+'<div class="depth-bar-track" '+tip(r.name,num(r.value)+' '+unit+(n(total)?' · '+pct(r.value,total):''))+'><i style="width:'+Math.min(100,Math.max(0,v/max*100))+'%;'+(r.other?'background:var(--chart-other)':'')+'"></i></div><strong>'+num(r.value)+(n(total)?'<small>'+pct(r.value,total)+'</small>':'')+'</strong></div>';}).join('')+source(['Nhóm',unit,'Tỷ lệ'],a.map(r=>[r.name,num(r.value),total===null?'Không áp dụng':pct(r.value,total)]),'Thang bắt đầu từ 0. '+(total===null?'Tập xếp hạng, không phải toàn bộ tổng thể.':'Mẫu số: '+num(total)+' '+unit+'.'));
-}
-
-function mix(rows,total){
- const a=groupOther(rows,6),sum=a.reduce((s,r)=>s+r.value,0);
- if(!sum)return note('Không có dữ liệu để tính cơ cấu.');
- const pieces=a.map((r,i)=>{
-  const share=r.value/sum*100;
-  const color=r.other?'var(--chart-other)':C.color(r.name,i);
-  return '<div class="taste-mosaic-piece" style="flex-basis:'+share+'%;background:'+color+'" '+tip(r.name,num(r.value)+' / '+num(total??sum)+' · '+pct(r.value,total??sum))+' aria-label="'+esc(r.name+': '+pct(r.value,total??sum))+'"></div>';
- }).join('');
- return '<div class="taste-mosaic" role="group" aria-label="Cơ cấu tỷ trọng dạng bào chế; kích thước mỗi ô theo tỷ lệ sản phẩm">'+pieces+'</div><div class="depth-legend taste-mosaic-legend">'+a.map((r,i)=>'<span><i style="background:'+(r.other?'var(--chart-other)':C.color(r.name,i))+'"></i>'+esc(r.name)+' <b>'+pct(r.value,total??sum)+'</b></span>').join('')+'</div>'+source(['Nhóm','Số sản phẩm','Tỷ lệ'],a.map(r=>[r.name,num(r.value),pct(r.value,total??sum)]),'Nhóm loại trừ nhau; kích thước ô tính trên tổng các nhóm đã hiển thị. Nhóm khác cộng các nhãn còn lại. Tổng '+num(sum)+' trên mẫu số '+num(total??sum)+'.');
 }
 
 function timeChart(d){
@@ -151,19 +147,10 @@ function flagBars(m){return [['Chấp nhận phục vụ',m.accepted],['Cần r�
 function rankControls(){return controls('limit',[[6,'6 nhóm'],[10,'10 nhóm'],['all','Tối đa 50']],state.limit)+controls('share',[['false','Số lượng'],['true','Tỷ lệ %']],String(state.share));}
 function nextActions(rows){return '<div class="depth-next">'+rows.map(([view,title,sub])=>'<button data-view="'+view+'"><b>'+esc(title)+' ↗</b><span>'+esc(sub)+'</span></button>').join('')+'</div>';}
 
-function countryRing(rows,total){
- const count=n(total);if(!count)return note('Không có sản phẩm trong phạm vi lọc.');
- const top=(rows||[]).map(r=>({...r,value:n(r.value)})).sort((a,b)=>b.value-a.value).slice(0,5);
- const remainder=Math.max(0,count-top.reduce((sum,r)=>sum+r.value,0));
- const groups=remainder?[...top,{name:'Các nhãn khác',value:remainder,other:true}]:top;
- let offset=0;
- const marks=groups.map((r,i)=>{const share=r.value/count*100,color=r.other?'var(--chart-other)':C.color(r.name,i);const mark='<circle cx="100" cy="100" r="73" fill="none" stroke="'+color+'" stroke-width="25" pathLength="100" stroke-dasharray="'+share+' '+(100-share)+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 100 100)" '+tip(r.name,num(r.value)+' sản phẩm · '+pct(r.value,count))+'><title>'+esc(r.name)+': '+pct(r.value,count)+'</title></circle>';offset+=share;return mark;}).join('');
- return '<div class="workspace-ring"><svg viewBox="0 0 200 200" role="img" aria-label="Cơ cấu nhãn quốc gia trên '+num(count)+' sản phẩm">'+marks+'<text class="ring-total" x="100" y="98" text-anchor="middle">'+num(count)+'</text><text class="ring-caption" x="100" y="119" text-anchor="middle">sản phẩm</text></svg><div class="ring-legend">'+groups.map((r,i)=>'<div><i style="background:'+(r.other?'var(--chart-other)':C.color(r.name,i))+'"></i><span>'+esc(r.name)+'</span><b>'+pct(r.value,count)+'</b></div>').join('')+'</div></div>'+source(['Nhãn quốc gia','Sản phẩm','Tỷ lệ'],groups.map(r=>[r.name,num(r.value),pct(r.value,count)]),'Mẫu số: '+num(count)+' sản phẩm DAV phân biệt. Giữ nhãn quốc gia gốc; India và Ấn Độ chưa gộp.');
-}
 function overview(d){
  const s=d.summary,lead=d.ingredients?.[0];
  return '<div class="overview-primary">'+panel('overview-time','Nhịp ghi nhận dữ liệu giá','Số quan sát theo tháng kê khai · bộ lọc hiện tại',timeChart(d),'Số quan sát phản ánh dữ liệu thu thập, không đại diện doanh số.')+
- panel('overview-country','Cơ cấu nguồn cung','Theo nhãn quốc gia gốc',countryRing(d.countries,s.products),'Tên quốc gia giữ theo nguồn; cần quy đổi trước khi gộp nhãn tương đương.')+'</div>'+
+ panel('overview-country','Cơ cấu nguồn cung','Theo nhãn quốc gia gốc',ranking(groupOther(d.countries,6),{total:s.products,filter:'country',limit:6,share:true,ordered:true}),'Tên quốc gia giữ theo nguồn; cần quy đổi trước khi gộp nhãn tương đương.')+'</div>'+
  '<div class="overview-secondary">'+panel('overview-ingredient','Hoạt chất nổi bật','Top 8 theo số sản phẩm · bấm tên để lọc',ranking(d.ingredients,{total:s.products,filter:'ingredient',limit:8}),lead?lead.name+' có '+num(lead.makers)+' nhà sản xuất. Tên hoạt chất giữ theo nguồn.':'')+
  '<section class="panel overview-quick"><div class="overview-quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></div><h2>Từ một tên thuốc,<br>mở thêm nhiều góc nhìn.</h2><p>Đối chiếu hoạt chất, giá kê khai và bằng chứng liên kết RxNorm từ dữ liệu nguồn.</p><button type="button" data-view="lookup">Tra cứu thuốc <span aria-hidden="true">↗</span></button></section></div>'+
  nextActions([['pricing','Đọc chênh lệch giá','Phân vị trong nhóm cùng cấu hình'],['competition','Đọc cấu trúc nguồn cung','Danh mục rộng hay tập trung'],['quality','Kiểm tra độ tin cậy','Trường thiếu và liên kết cần rà soát']]);
@@ -190,7 +177,7 @@ function competition(d){
 function portfolio(d){
  const forms=d.forms||[],countries=d.countries||[],s=d.summary,lead=forms[0],total=forms.reduce((a,r)=>a+n(r.value),0);
  return findings([['DẠNG PHỔ BIẾN',lead?.name||'—',num(lead?.value)+' sản phẩm · '+pct(lead?.value,total)],['NHÃN QUỐC GIA',num(countries.length),'Có thể nhiều cách ghi cho cùng một quốc gia.'],['TÊN HOẠT CHẤT',num(s.ingredients),'Tên phân biệt; chưa gộp mọi cách viết tương đương.']])+
- panel('portfolio-mix','Cơ cấu dạng bào chế','Top 5 dạng và phần còn lại · sản phẩm trong bộ lọc',mix(forms,s.products),'Cần nhu cầu, doanh số và cạnh tranh để đánh giá cơ hội kinh doanh.')+
+ panel('portfolio-mix','Cơ cấu dạng bào chế','Top 5 dạng và phần còn lại · sản phẩm trong bộ lọc',ranking(groupOther(forms,6),{total:s.products,limit:6,share:true,ordered:true}),'Cần nhu cầu, doanh số và cạnh tranh để đánh giá cơ hội kinh doanh.')+
  grid(panel('portfolio-forms','Chi tiết dạng bào chế','Đổi số nhóm và thang số lượng / tỷ lệ',rankControls()+ranking(forms,{total:s.products,limit:state.limit}),'“Chưa xác định” giữ riêng, không gộp để che dữ liệu thiếu.'),
  panel('portfolio-countries','Chi tiết nhãn quốc gia nguồn','Bấm nhãn để lọc dashboard',ranking(countries,{total:s.products,filter:'country',limit:state.limit}),'Không tự gộp India / Ấn Độ hoặc Germany / Đức khi chưa có quy đổi đã kiểm tra.'))+
  panel('portfolio-ingredients','Độ phủ trong từng hoạt chất','Top 8 hoạt chất theo số sản phẩm',table(['Hoạt chất','Sản phẩm','Nhà SX','Sản phẩm / Nhà SX'],(d.ingredients||[]).map(r=>[r.name,num(r.value),num(r.makers),n(r.makers)?num(n(r.value)/n(r.makers),2):'—'])),'Cùng hoạt chất có nhiều hàm lượng, dạng và quy cách. Mở Phân tích giá để so cấu hình tương đồng.')+
@@ -240,6 +227,41 @@ function forecastIntervals(report){
 document.addEventListener('pharmabiz:market-report',event=>{const host=document.getElementById('market-history-ranges');if(host&&event.detail?.kind==='dav-market-price-trend')host.innerHTML=PharmaExplore.forecast(event.detail)+forecastIntervals(event.detail)+PharmaStudy.interpretation('market-forecast',{market:event.detail});});
 
 function render(view,d){active={view,d};const fn={overview,pricing,competition,portfolio,quality}[view];return fn?(fn(d)+PharmaExplore.analytical(view,d))+PharmaStudy.interpretation(view,{data:d}):'';}
+const groupColumns={
+ country:[['Nhãn quốc gia','name'],['Sản phẩm','value']],
+ forms:[['Dạng bào chế','name'],['Sản phẩm','value']],
+ ingredients:[['Hoạt chất','name'],['Sản phẩm','value'],['Nhà sản xuất','secondary']],
+ manufacturers:[['Nhà sản xuất','name'],['Sản phẩm','value'],['Hoạt chất','secondary']],
+ comparable:[['Hoạt chất','name'],['Hàm lượng','strength'],['Dạng bào chế','dosage_form'],['Đơn vị','unit'],['Loại giá','price_type'],['Quan sát','value'],['Sản phẩm','secondary'],['P10 (₫)','p10'],['Trung vị (₫)','median'],['P90 (₫)','p90']],
+};
+async function loadGroups(details,page){
+ const name=details.dataset.fullGroup,host=details.querySelector('.full-group-results');
+ const params=new URLSearchParams({group:name,page});
+ for(const [key,id] of [['q','search'],['ingredient','ingredient'],['country','country'],['kind','kind'],['unit','unit']]){
+   const value=document.getElementById(id)?.value.trim();if(value)params.set(key,value);
+ }
+ host.innerHTML='<p>Đang tải nhóm dữ liệu…</p>';
+ try{
+   const response=await fetch('/api/analytics?'+params,{cache:'no-store'});
+   const data=await response.json();if(!response.ok||!Array.isArray(data.rows))throw new Error('unavailable');
+   const columns=groupColumns[name],pages=Math.max(1,Math.ceil(Number(data.total)/Number(data.pageSize)));
+   const rows=data.rows.map(row=>columns.map(([,key])=>['value','secondary','p10','median','p90'].includes(key)?num(row[key]):row[key]??'—'));
+   host.innerHTML=rows.length?'<p>'+num(data.total)+' nhóm · Trang '+page+' / '+pages+' · '+num(data.products)+' sản phẩm trong bộ lọc</p>'+
+     table(columns.map(([label])=>label),rows)+'<div class="depth-controls">'+
+     '<button type="button" data-group-page="'+(page-1)+'"'+(page<=1?' disabled':'')+'>Trang trước</button>'+
+     '<button type="button" data-group-page="'+(page+1)+'"'+(page>=pages?' disabled':'')+'>Trang sau</button></div>':'<p>Không có nhóm trong phạm vi lọc.</p>';
+ }catch{
+   host.innerHTML='<p>Chưa tải được dữ liệu nhóm.</p><button type="button" data-group-page="'+page+'">Thử lại</button>';
+ }
+}
+document.addEventListener('toggle',event=>{
+ const details=event.target;
+ if(details.matches?.('details[data-full-group]')&&details.open&&!details.querySelector('.full-group-results').hasChildNodes())loadGroups(details,1);
+},true);
+document.addEventListener('click',event=>{
+ const button=event.target.closest('[data-group-page]');
+ if(button)loadGroups(button.closest('[data-full-group]'),Number(button.dataset.groupPage));
+});
 document.addEventListener('click',event=>{
  const button=event.target.closest('[data-depth-key]');if(!button||!active)return;
  const key=button.dataset.depthKey,val=button.dataset.depthValue;if(!Object.hasOwn(state,key))return;

@@ -11,19 +11,52 @@ function buildQuery(query = {}) {
   for (const [key, column] of [['ingredient','d.active_ingredient_raw'],['country','d.country'],['kind','p.price_type'],['unit',"COALESCE(NULLIF(p.unit,''),NULLIF(d.unit,''))"]]) {
     if (query[key]) clauses.push(`${column} = ${bind(query[key])}`);
   }
+  if (query.history) clauses.push(`d.dav_row_id = ${bind(query.history)}`);
   const page = number(query.page), offset = (page - 1) * 12;
-  const text = `WITH base AS MATERIALIZED (
+  const base = `WITH base AS MATERIALIZED (
     SELECT d.dav_row_id AS id, d.registration_number AS registration_no, d.drug_name,
       NULLIF(d.active_ingredient_raw,'') AS ingredient, NULLIF(d.strength_raw,'') AS strength,
       NULLIF(d.dosage_form_raw,'') AS dosage_form, NULLIF(d.manufacturer,'') AS manufacturer,
       NULLIF(d.country,'') AS country, p.price_id,
       CASE WHEN p.price_vnd >= 0 AND (p.currency = 'VND' OR p.currency IS NULL OR p.currency = '') THEN p.price_vnd ELSE NULL END AS price_vnd,
       NULLIF(p.price_type,'') AS price_type, p.declaration_date AS snapshot_date,
+      COALESCE(to_jsonb(p)->>'source_date_basis','LEGACY_UNVERIFIED') AS source_date_basis,
       COALESCE(NULLIF(p.unit,''),NULLIF(d.unit,'')) AS unit, COALESCE(NULLIF(p.package,''),NULLIF(d.package,'')) AS package
     FROM public.dav_product d LEFT JOIN public.price_record p ON p.dav_row_id = d.dav_row_id AND ${compatiblePriceSource()}
     ${clauses.length ? 'WHERE ' + clauses.join(' AND ') : ''}
   ), unique_products AS (SELECT DISTINCT ON (id) * FROM base ORDER BY id, snapshot_date DESC NULLS LAST, price_id),
-  summary AS (SELECT COUNT(*) AS observations, COUNT(DISTINCT id) AS products,
+  `;
+  const pageSize=25, groupOffset=(page-1)*pageSize;
+  const groups={
+    country:"SELECT COALESCE(country,'Chưa xác định') AS name,COUNT(*) AS value FROM unique_products GROUP BY 1",
+    forms:"SELECT COALESCE(dosage_form,'Chưa xác định') AS name,COUNT(*) AS value FROM unique_products GROUP BY 1",
+    ingredients:"SELECT ingredient AS name,COUNT(*) AS value,COUNT(DISTINCT manufacturer) AS secondary FROM unique_products WHERE ingredient IS NOT NULL GROUP BY 1",
+    manufacturers:"SELECT manufacturer AS name,COUNT(*) AS value,COUNT(DISTINCT ingredient) AS secondary FROM unique_products WHERE manufacturer IS NOT NULL GROUP BY 1",
+    comparable:`SELECT ingredient AS name,strength,dosage_form,unit,price_type,COUNT(*) AS value,
+      COUNT(DISTINCT id) AS secondary,percentile_cont(.1) WITHIN GROUP (ORDER BY price_vnd) AS p10,
+      percentile_cont(.5) WITHIN GROUP (ORDER BY price_vnd) AS median,
+      percentile_cont(.9) WITHIN GROUP (ORDER BY price_vnd) AS p90
+      FROM base WHERE price_vnd IS NOT NULL AND ingredient IS NOT NULL AND strength IS NOT NULL
+        AND dosage_form IS NOT NULL AND unit IS NOT NULL AND price_type IS NOT NULL
+      GROUP BY 1,2,3,4,5 HAVING COUNT(DISTINCT id)>=2`,
+  };
+  if(query.group && Object.hasOwn(groups,query.group)){
+    const order=query.group==='comparable'?'value DESC,name,strength,dosage_form,unit,price_type':'value DESC,name';
+    return {text:base+`grouped AS (${groups[query.group]}), paged AS (
+      SELECT * FROM grouped ORDER BY ${order} LIMIT ${pageSize} OFFSET ${groupOffset}
+    ) SELECT (SELECT COUNT(*) FROM grouped) AS total,
+    (SELECT COUNT(*) FROM unique_products) AS products,
+    COALESCE((SELECT json_agg(p ORDER BY ${order}) FROM paged p),'[]') AS rows`,params,page,pageSize};
+  }
+  if(query.history){
+    return {text:base+`history AS (
+      SELECT snapshot_date::date AS date,unit,price_type,source_date_basis,COUNT(*) AS observations,
+        percentile_cont(.5) WITHIN GROUP (ORDER BY price_vnd) AS median
+      FROM base WHERE snapshot_date IS NOT NULL AND price_vnd IS NOT NULL AND unit IS NOT NULL AND price_type IS NOT NULL
+      GROUP BY 1,2,3,4
+    ) SELECT COALESCE((SELECT json_agg(h ORDER BY date,unit,price_type,source_date_basis) FROM history h),'[]') AS rows`,params,page};
+  }
+  const text=base+`summary AS (SELECT COUNT(*) AS observations, COUNT(DISTINCT id) AS products,
     COUNT(DISTINCT ingredient) AS ingredients, COUNT(DISTINCT manufacturer) AS manufacturers,
     COUNT(DISTINCT country) AS countries, COUNT(price_vnd) AS priced,
     percentile_cont(0.5) WITHIN GROUP (ORDER BY price_vnd) AS median,
@@ -79,8 +112,18 @@ async function handler(req, res) {
   res.setHeader('Cache-Control','no-store');
   if (req.method !== 'GET') return res.status(405).json({error:'METHOD_NOT_ALLOWED'});
   if (!process.env.DATABASE_URL) return res.status(503).json({mode:'unavailable',reason:'DATABASE_URL_MISSING',notice:'Nguồn dữ liệu chưa được kết nối.'});
+  if(req.query?.history && !/^[1-9][0-9]{0,17}$/.test(String(req.query.history))) {
+    return res.status(400).json({error:'INVALID_PRODUCT_ID'});
+  }
+  if(req.query?.group && !['country','forms','ingredients','manufacturers','comparable'].includes(req.query.group)) {
+    return res.status(400).json({error:'INVALID_GROUP'});
+  }
   try {
     const sql = neon(process.env.DATABASE_URL), query = buildQuery(req.query);
+    if(req.query?.group || req.query?.history){
+      const [result]=await sql.query(query.text,query.params);
+      return res.status(200).json({mode:'database',page:query.page,pageSize:query.pageSize,...result});
+    }
     const [result, options, mapping] = await Promise.all([
       sql.query(query.text, query.params),
       (req.query?.options==='0' ? Promise.resolve([{options:null}]) : sql.query(`SELECT json_build_object(

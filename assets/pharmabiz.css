@@ -1250,3 +1250,14 @@
   flex:0 0 2.15rem;
 }
 .workspace-page :is(#app .sidebar,#app .topbar) :is(.brand,.workspace-brand) .accent { color:inherit }
+
+.workspace-page #app .full-group-results .depth-controls { margin-top:.7rem }
+.workspace-page #app .lookup-price-history {
+  margin-block:1rem;
+  padding:.75rem;
+  border:1px solid var(--border);
+  border-radius:.75rem;
+}
+.workspace-page #app .lookup-price-history summary { cursor:pointer;color:var(--accent);font-weight:650 }
+.workspace-page #app .lookup-price-series select { display:block;width:100%;margin:.35rem 0 }
+.workspace-page #app .lookup-price-chart { display:block;width:100%;height:auto }
