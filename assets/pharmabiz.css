@@ -546,3 +546,32 @@
     grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr));
   }
 }
+
+.workspace-page #app .focus-toolbar .focus-current {
+  grid-template-columns:minmax(0,1fr) 1.15rem;
+  padding-inline:.8rem;
+}
+.workspace-page #app .focus-toolbar .focus-current-text {
+  display:block;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.workspace-page #app :is(.market-actions,.market-card-heading,.report-controls,.depth-key) {
+  min-width:0;
+  gap:.55rem;
+  flex-wrap:wrap;
+}
+.workspace-page #app .market-actions { display:flex;justify-content:flex-end;margin-bottom:.55rem }
+.workspace-page #app .market-actions .market-refresh {
+  min-height:44px;
+  max-width:100%;
+  background:var(--surface);
+  color:var(--accent);
+  border:1px solid var(--border);
+}
+.workspace-page #app :is(#task-reading-intro,#market-task-story,.depth-next,.study-bridge) { margin-block:1rem }
+.workspace-page #app .depth-next button { overflow-wrap:anywhere }
+@media(max-width:760px) {
+  .workspace-page #app .depth-next { grid-template-columns:minmax(0,1fr) }
+  .workspace-page #app .market-actions { justify-content:flex-start }
+}

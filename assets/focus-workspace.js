@@ -18,8 +18,8 @@
     return node.dataset.focusLabel||text(node.querySelector('h2,h3'))||({'depth-next':'Khám phá các tác vụ liên quan','study-bridge':'Tiếp tục nghiên cứu'}[node.className])||'Chi tiết dữ liệu';
   }
   function meaningful(node){
-    if(node.matches('.study-opening,.task-kpis,.depth-findings,.depth-step,.task-scope,.task-tabs,.report-controls,.report-options,.task-reading,.focus-fold,.focus-deck'))return false;
-    return node.matches('section,article,div')&&(node.querySelector('h2,h3')||node.matches('.depth-next,.study-bridge')||node.dataset.focusLabel);
+    if(node.matches('.study-opening,.task-kpis,.depth-findings,.depth-step,.task-scope,.task-tabs,.report-controls,.report-options,.task-reading,.depth-next,.study-bridge,.focus-fold,.focus-deck'))return false;
+    return node.matches('section,article,div')&&(node.querySelector('h2,h3')||node.dataset.focusLabel);
   }
   function makeDeck(root){
     if(!root||root.querySelector(':scope > .focus-deck'))return;
@@ -39,16 +39,13 @@
     const deck=document.createElement('div');deck.className='focus-deck';deck.dataset.focusState=name;
     const toolbar=document.createElement('div');toolbar.className='focus-toolbar';
     const picker=document.createElement('div');picker.className='focus-picker';
-    const pickerCaption=document.createElement('span');pickerCaption.className='focus-picker-caption';
-    pickerCaption.textContent=root.id==='market-explore'?'KHÁM PHÁ BÁO CÁO':'GÓC NHÌN HIỆN TẠI';
-    picker.append(pickerCaption);
     // Keep the original select as a hidden state mirror for existing research/chart modules.
     const select=document.createElement('select');select.className='focus-native-select';
     select.setAttribute('aria-hidden','true');select.tabIndex=-1;picker.append(select);
     const trigger=document.createElement('button');trigger.type='button';trigger.className='focus-current';
     trigger.setAttribute('aria-haspopup','menu');trigger.setAttribute('aria-expanded','false');
     trigger.setAttribute('aria-label','Mở danh sách các góc nhìn');
-    trigger.innerHTML='<span class="focus-current-step"></span><span class="focus-current-text"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+    trigger.innerHTML='<span class="focus-current-text"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
     const menu=document.createElement('div');menu.className='focus-menu';menu.hidden=true;
     menu.id='focus-menu-'+(++serial);
     trigger.setAttribute('aria-controls',menu.id);
@@ -93,7 +90,6 @@
       const name=trigger.querySelector('.focus-current-text');
       if(name.textContent!==selectedTitle)name.textContent=selectedTitle;
       name.title=selectedTitle;
-      trigger.querySelector('.focus-current-step').textContent=String(index+1).padStart(2,'0')+' / '+String(pages.length).padStart(2,'0');
       trigger.title=selectedTitle;
     }
     function closeMenu(restoreFocus=false){

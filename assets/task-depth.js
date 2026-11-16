@@ -243,7 +243,7 @@ function forecastIntervals(report){
 }
 document.addEventListener('pharmabiz:market-report',event=>{const host=document.getElementById('market-history-ranges');if(host&&event.detail?.kind==='dav-market-price-trend')host.innerHTML=PharmaExplore.forecast(event.detail)+forecastIntervals(event.detail)+PharmaStudy.interpretation('market-forecast',{market:event.detail});});
 
-function render(view,d){active={view,d};const fn={overview,pricing,competition,portfolio,quality}[view];return fn?(view==='overview'?fn(d)+PharmaExplore.analytical(view,d):PharmaExplore.analytical(view,d)+fn(d))+PharmaStudy.interpretation(view,{data:d}):'';}
+function render(view,d){active={view,d};const fn={overview,pricing,competition,portfolio,quality}[view];return fn?(fn(d)+PharmaExplore.analytical(view,d))+PharmaStudy.interpretation(view,{data:d}):'';}
 document.addEventListener('click',event=>{
  const button=event.target.closest('[data-depth-key]');if(!button||!active)return;
  const key=button.dataset.depthKey,val=button.dataset.depthValue;if(!Object.hasOwn(state,key))return;
