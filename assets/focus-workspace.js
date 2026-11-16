@@ -25,6 +25,7 @@
     if(!root||root.querySelector(':scope > .focus-deck'))return;
     const entries=[];let pending=[];
     for(const node of [...root.children]){
+      if(view()==='overview'&&node.classList.contains('overview-primary'))continue;
       if(node.classList.contains('depth-findings')){fold(node,'Điểm nổi bật và giới hạn');continue;}
       if(node.classList.contains('depth-step')){pending.push(node);continue;}
       if(!meaningful(node))continue;

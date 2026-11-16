@@ -42,7 +42,13 @@
   const empty=t=>'<div class="empty">'+esc(t||'Không có dữ liệu trong phạm vi bộ lọc.')+'</div>';
   function table(headers,rows){return '<div class="table-scroll"><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map((x,i)=>'<td>'+(i===0?'<strong>'+esc(x)+'</strong>':esc(x))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';}
   function card(n,title,body){return '<article class="story-card"><div class="eyebrow">'+esc(n)+'</div><h3>'+esc(title)+'</h3><p>'+esc(body)+'</p></article>';}
-  function metric(label,value,detail,icon){return '<article class="metric"><div class="metric-top"><span>'+esc(label)+'</span><span class="metric-icon">'+icon+'</span></div><div class="metric-value">'+esc(value)+'</div><div class="metric-note">'+esc(detail)+'</div></article>';}
+  const metricIconPaths={
+    '◫':'m12 3 9 5v8l-9 5-9-5V8l9-5Zm-9 5 9 5 9-5m-9 5v8',
+    '◇':'M9 3h6m-5 0v7l-5 8a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-8V3M8 15h8',
+    '▥':'M3 21V10l6 3V8l6 4V3h5v18zM7 17h.01m5 0h.01m5 0h.01',
+    '↗':'M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9z M7.5 7.5h.01',
+  };
+  function metric(label,value,detail,icon){return '<article class="metric"><div class="metric-top"><span>'+esc(label)+'</span><span class="metric-icon">'+(metricIconPaths[icon]?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+metricIconPaths[icon]+'"/></svg>':'')+'</span></div><div class="metric-value">'+esc(value)+'</div><div class="metric-note">'+esc(detail)+'</div></article>';}
   function bars(items,key,unit='sản phẩm'){if(!items?.length)return empty();let max=Math.max(...items.map(i=>Number(i.value)),1);return items.map((r,i)=>'<div class="bar-row"><button class="bar-label" title="'+esc(r.name)+'" '+(key?'data-filter="'+esc(r.name)+'" data-key="'+key+'"':'')+'>'+esc(r.name)+'</button><div class="bar-track" '+tip(r.name,fmt(r.value)+' '+unit)+'><div class="bar-fill" style="width:'+Math.max(0,Number(r.value)/max*100)+'%;animation-delay:'+i*.04+'s"></div></div><b>'+fmt(r.value)+'</b></div>').join('');}
   function donut(input,key,label){
     if(!input?.length)return empty();

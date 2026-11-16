@@ -1100,3 +1100,100 @@
   .workspace-page #cover .start-art { height:clamp(12rem,35svh,19rem) }
   .workspace-page #cover .start-guide { grid-template-columns:1fr;gap:.8rem }
 }
+
+/* Deep teal navigation, raised segmented controls, and a light analytics canvas. */
+.workspace-page #app .sidebar {
+  --nav-fg:#edf9fc;
+  --nav-muted:#a6dfdb;
+  background:
+    radial-gradient(ellipse at 0% 100%,#086365 0,transparent 35%),
+    linear-gradient(160deg,#0c303f,#081f2c 73%);
+  border-inline-end:1px solid #27505d;
+  scrollbar-color:#44636c transparent;
+}
+.workspace-page #app .sidebar :is(.brand,.brand .accent,.nav-button,.workspace-links a,.database-status strong) { color:var(--nav-fg) }
+.workspace-page #app .sidebar :is(.workspace-title b,.task-nav-group .nav-caption,.workspace-links > span,.sidebar-note,.database-status small) { color:var(--nav-muted) }
+.workspace-page #app .sidebar .database-status,
+.workspace-page #app .sidebar .sidebar-close {
+  background:#123844;
+  border-color:#315361;
+  color:var(--nav-fg);
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button {
+  border:1px solid transparent;
+  border-radius:.68rem;
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button > span:first-child > span:first-child {
+  background:transparent;
+  color:#b2ebe2;
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button:hover { background:#17424c;color:var(--nav-fg) }
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button.active {
+  background:linear-gradient(145deg,#0a8b89,#09646c);
+  color:#fff;
+  box-shadow:inset 0 1px 0 #a7fff841,0 3px 8px #0004;
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button.active > span:first-child > span:first-child {
+  background:transparent;
+  color:#fff;
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button:focus-visible { outline-color:#a5fbef }
+.workspace-page #app :is(.sidebar,.workspace-brand) img.brand-mark,
+.workspace-page #cover img.brand-mark { background:transparent;border-radius:0;object-fit:contain }
+.workspace-page #app .page-head,
+.workspace-page[data-active-view="lookup"] #app .page-head {
+  --masthead-ink:var(--ink);
+  --masthead-muted:var(--muted);
+  background:transparent!important;
+  border:0;
+  padding-inline:.45rem!important;
+}
+.workspace-page #app .page-head .task-heading-icon { background:var(--task-wash);color:var(--task-ink) }
+.workspace-page #app .page-head .ws-head-actions .ws-action { color:var(--ink);background:var(--surface);border-color:var(--border) }
+.workspace-page #app .page-head #export {
+  color:var(--surface);background:var(--accent);border-color:var(--accent);
+}
+.workspace-page #app .metrics .metric-top { flex-wrap:wrap;gap:.5rem }
+.workspace-page #app .metric-top .metric-icon:has(svg) {
+  display:inline-grid;place-items:center;order:-1;
+  width:1.75rem;height:1.75rem;flex:none;color:var(--accent)
+}
+.workspace-page #app .metric-top .metric-icon svg { width:1.45rem;height:1.45rem }
+.workspace-page[data-active-view="overview"] #app .workspace-overview-row { display:block }
+.workspace-page[data-active-view="overview"] #app .overview-primary {
+  display:grid;
+  grid-template-columns:minmax(0,2.2fr) minmax(0,1fr);
+  gap:.85rem;
+  align-items:stretch;
+}
+.workspace-page[data-active-view="overview"] #app .overview-primary > .panel {
+  margin:0;min-width:0;background:var(--surface);
+}
+.workspace-page #app .chart-controls .segmented button[aria-pressed="true"] {
+  background:var(--accent);color:var(--surface);
+  box-shadow:inset 0 1px 0 #ffffff42,0 2px 4px #102a3526;
+}
+.workspace-page .mobile-taskbar {
+  background:linear-gradient(150deg,#0c303f,#082532);
+  border-top-color:#27505d;
+}
+.workspace-page .mobile-taskbar button { color:#bde7e6 }
+.workspace-page .mobile-taskbar button.active {
+  color:#fff;background:linear-gradient(150deg,#139a94,#08636b);
+  box-shadow:inset 0 1px 0 #a7fff859,0 3px 7px #0006;
+}
+@media(prefers-reduced-motion:no-preference) {
+  .workspace-page .mobile-taskbar button { transition:background-color .18s ease,color .18s ease,transform .18s ease }
+  .workspace-page .mobile-taskbar button:active { transform:translateY(1px) }
+}
+@media(max-width:1099px) {
+  .workspace-page[data-active-view="overview"] #app .overview-primary { grid-template-columns:minmax(0,1fr) }
+}
+@media(max-width:760px) {
+  .workspace-page #app .sidebar .task-nav-tiles .astryx-button { border-color:#315361 }
+  .workspace-page #app .metric-top .metric-icon:has(svg) { width:1.3rem;height:1.3rem }
+  .workspace-page #app .metric-top .metric-icon svg { width:1.2rem;height:1.2rem }
+}
+@media(min-width:1100px) {
+  .workspace-page[data-active-view="overview"] #app .workspace-overview-row .overview-shortcuts { display:none }
+}

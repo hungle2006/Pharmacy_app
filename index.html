@@ -4,8 +4,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#06323b">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" type="image/svg+xml" href="/assets/icons/pharmabiz-mark.svg">
-<link rel="apple-touch-icon" href="/assets/icons/pharmabiz-brand-192.png">
+<link rel="icon" type="image/svg+xml" href="/assets/icons/pharmabiz-mark.svg?v=2">
+<link rel="apple-touch-icon" href="/assets/icons/pharmabiz-brand-192.png?v=2">
 <meta name="description" content="PharmaBiz — Nền tảng Business Intelligence cho giá thuốc, danh mục và dữ liệu thị trường dược Việt Nam.">
 <title>PharmaBiz — Pharmaceutical Market Intelligence</title>
 <script>try{const t=localStorage.getItem('pharmabiz-theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}catch{document.documentElement.dataset.theme='light';}</script>
@@ -31,12 +31,12 @@
 <link rel="stylesheet" href="/assets/desktop-workspace.css?v=20261115a">
 <link rel="stylesheet" href="/assets/disease-desktop.css?v=20261115a">
 <link rel="stylesheet" href="/assets/astryx-ui.css">
-<link rel="stylesheet" href="/assets/pharmabiz.css?v=15">
+<link rel="stylesheet" href="/assets/pharmabiz.css?v=16">
 </head>
 <body class="workspace-page">
 <section class="cover start-focus" id="cover" aria-label="Giới thiệu PharmaBiz">
   <header class="start-header">
-    <a class="brand" href="/" aria-label="PharmaBiz"><img class="brand-symbol brand-mark" src="/assets/icons/pharmabiz-mark.svg" width="36" height="36" alt=""><span>PharmaBiz</span></a>
+    <a class="brand" href="/" aria-label="PharmaBiz"><img class="brand-symbol brand-mark" src="/assets/icons/pharmabiz-mark.svg?v=2" width="36" height="36" alt=""><span>PharmaBiz</span></a>
     <a class="start-help-link" href="#huong-dan">Hướng dẫn</a>
   </header>
   <div class="start-main">
@@ -64,7 +64,7 @@
 <div class="app" id="app" hidden>
   <div class="mobile-backdrop" id="backdrop" hidden></div>
   <aside class="sidebar" id="sidebar">
-    <a class="brand" href="/" aria-label="PharmaBiz trang mở đầu"><img class="brand-symbol brand-mark" src="/assets/icons/pharmabiz-mark.svg" width="36" height="36" alt=""><span>Pharma<span class="accent">Biz</span></span></a>
+    <a class="brand" href="/" aria-label="PharmaBiz trang mở đầu"><img class="brand-symbol brand-mark" src="/assets/icons/pharmabiz-mark.svg?v=2" width="36" height="36" alt=""><span>Pharma<span class="accent">Biz</span></span></a>
     <button type="button" id="sidebar-close" class="sidebar-close" aria-label="Đóng menu">×</button>
     <div class="workspace-title"><b>Dữ liệu dược Việt Nam</b></div>
     <nav id="nav" aria-label="Tác vụ PharmaBiz">
@@ -75,7 +75,7 @@
     <div class="workspace-links"><span>TRA CỨU &amp; NGHIÊN CỨU</span><a href="/disease-lookup.html">Tra cứu bệnh <span>↗</span></a></div><div class="sidebar-bottom"><div class="database-status"><span class="signal" id="db-dot"></span><div><strong id="db-status">Đang kết nối dữ liệu</strong><small>Neon · PostgreSQL</small></div><span>↗</span></div><div class="sidebar-note">DAV · RxNorm · ICD · MEDI<br>Dữ liệu có nguồn, kết quả có căn cứ.</div></div>
   </aside>
   <div class="main">
-    <header class="topbar"><a class="workspace-brand" href="/" aria-label="PharmaBiz trang Start"><img class="brand-symbol brand-mark" src="/assets/icons/pharmabiz-mark.svg" width="36" height="36" alt=""><span>Pharma<span class="accent">Biz</span></span></a><div class="breadcrumb"><span>Phân tích</span><span class="slash">/</span><strong id="crumb">Tổng quan</strong></div><form id="workspace-search" class="workspace-search" role="search" aria-label="Tra cứu thuốc nhanh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="workspace-query" type="search" aria-label="Tìm thuốc nhanh" placeholder="Tên thuốc, hoạt chất, số đăng ký…"><button type="submit" aria-label="Tìm thuốc nhanh" title="Tìm thuốc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></form><div class="topbar-right"><button class="icon-button mobile-toggle" id="menu" aria-label="Mở menu" aria-expanded="false">☰</button><span class="live-badge" id="connection">ĐANG KẾT NỐI</span><button class="theme-toggle" data-theme-toggle aria-label="Chuyển giao diện sáng/tối"><span data-theme-icon aria-hidden="true">☾</span><span data-theme-label>Tối</span></button><button class="icon-button" id="refresh" title="Làm mới dữ liệu" aria-label="Làm mới dữ liệu">↻</button><button id="logout" class="workspace-logout" type="button" title="Thoát về trang mở đầu" aria-label="Về trang mở đầu"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M10 4H4v16h6 M9 12h12 M16 7l5 5-5 5"/></svg><span>Trang đầu</span></button><button id="present" class="icon-button" title="Toàn màn hình" aria-label="Toàn màn hình">⛶</button></div></header>
+    <header class="topbar"><a class="workspace-brand" href="/" aria-label="PharmaBiz trang Start"><img class="brand-symbol brand-mark" src="/assets/icons/pharmabiz-mark.svg?v=2" width="36" height="36" alt=""><span>Pharma<span class="accent">Biz</span></span></a><div class="breadcrumb"><span>Phân tích</span><span class="slash">/</span><strong id="crumb">Tổng quan</strong></div><form id="workspace-search" class="workspace-search" role="search" aria-label="Tra cứu thuốc nhanh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="workspace-query" type="search" aria-label="Tìm thuốc nhanh" placeholder="Tên thuốc, hoạt chất, số đăng ký…"><button type="submit" aria-label="Tìm thuốc nhanh" title="Tìm thuốc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></form><div class="topbar-right"><button class="icon-button mobile-toggle" id="menu" aria-label="Mở menu" aria-expanded="false">☰</button><span class="live-badge" id="connection">ĐANG KẾT NỐI</span><button class="theme-toggle" data-theme-toggle aria-label="Chuyển giao diện sáng/tối"><span data-theme-icon aria-hidden="true">☾</span><span data-theme-label>Tối</span></button><button class="icon-button" id="refresh" title="Làm mới dữ liệu" aria-label="Làm mới dữ liệu">↻</button><button id="logout" class="workspace-logout" type="button" title="Thoát về trang mở đầu" aria-label="Về trang mở đầu"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M10 4H4v16h6 M9 12h12 M16 7l5 5-5 5"/></svg><span>Trang đầu</span></button><button id="present" class="icon-button" title="Toàn màn hình" aria-label="Toàn màn hình">⛶</button></div></header>
     <main class="content" id="content">
       <div class="page-head"><div class="task-heading"><span class="task-heading-icon" id="page-icon" aria-hidden="true"></span><div class="task-heading-copy"><p id="page-kicker">Thị trường</p><!-- astryx:workspace-title -->
 <h1 class="astryx-heading x1tgivj0 xcg7oai xfmsba7 x1v68xuy x1lliihq xh015us" data-level="1" data-color="primary" id="page-title" tabindex="-1">Tổng quan thị trường</h1>
@@ -163,7 +163,7 @@
 </nav>
 <div class="chart-tooltip" id="tooltip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
-<script src="/assets/chart-system.js" defer></script><script src="/assets/drug-lookup.js" defer></script><script src="/assets/market-forecast.js?v=20261116p" defer></script><script src="/assets/reports.js" defer></script><script src="/assets/feature-price.js" defer></script><script src="/assets/disease-predict.js" defer></script><script src="/assets/data-exploration.js" defer></script><script src="/assets/motion-mobile.js?v=20261116p" defer></script><script src="/assets/task-depth.js?v=20261116k" defer></script><script src="/assets/research-study.js" defer></script><script src="/assets/task-narratives.js" defer></script><script src="/assets/presentation.js?v=20261116p" defer></script><script src="/assets/focus-workspace.js?v=20261116j" defer></script><script src="/assets/premium-ui.js?v=20261116d" defer></script><script src="/assets/workspace-shell.js?v=20261116f" defer></script>
+<script src="/assets/chart-system.js" defer></script><script src="/assets/drug-lookup.js" defer></script><script src="/assets/market-forecast.js?v=20261116p" defer></script><script src="/assets/reports.js" defer></script><script src="/assets/feature-price.js" defer></script><script src="/assets/disease-predict.js" defer></script><script src="/assets/data-exploration.js" defer></script><script src="/assets/motion-mobile.js?v=20261116p" defer></script><script src="/assets/task-depth.js?v=20261116k" defer></script><script src="/assets/research-study.js" defer></script><script src="/assets/task-narratives.js" defer></script><script src="/assets/presentation.js?v=20261116q" defer></script><script src="/assets/focus-workspace.js?v=20261116q" defer></script><script src="/assets/premium-ui.js?v=20261116d" defer></script><script src="/assets/workspace-shell.js?v=20261116f" defer></script>
 <script src="/assets/app-entry.js?v=2" data-scene-src="/assets/scene3d.js" defer></script>
 </body></html>
 
