@@ -480,3 +480,69 @@
     grid-row:2;
   }
 }
+
+/* Workspaces share the same rhythm for section controls and data rows. */
+.workspace-page #app :is(.depth-axis,.task-scale,.task-tabs,.chart-controls,.report-meta) {
+  flex-wrap:wrap;
+  gap:.45rem .8rem;
+}
+.workspace-page #app :is(.depth-grid,.depth-findings,.task-kpis,.task-story-grid,.market-details,.market-stats,.market-qa-grid) > * {
+  min-width:0;
+}
+.workspace-page #app :is(.depth-rank,.depth-range-row,.depth-quality,.task-bar-row,.task-gain-row,.market-timeline-row) > :not([class$="-track"]),
+.workspace-page #app :is(.depth-findings,.task-kpis,.market-horizon-grid,.focus-menu-title) {
+  overflow-wrap:anywhere;
+}
+.workspace-page #app :is(.depth-rank,.depth-range-row,.depth-quality,.task-bar-row,.task-gain-row) {
+  padding-block:.35rem;
+  border-bottom:1px solid var(--border);
+}
+.workspace-page #app :is(.task-tabs,.chart-controls) button {
+  max-width:100%;
+  white-space:normal;
+}
+.workspace-page #app :is(.table-scroll,.depth-svg-scroll,.report-time-scroll,.fp-scroll,.market-chart-scroll) {
+  min-width:0;
+  max-width:100%;
+  overscroll-behavior-inline:contain;
+}
+@media (max-width:760px) {
+  .workspace-page #app .focus-toolbar {
+    grid-template-columns:minmax(0,1fr);
+    align-items:stretch;
+    gap:.4rem;
+  }
+  .workspace-page #app .focus-toolbar .focus-navigation {
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  .workspace-page #app :is(.depth-range-row,.depth-quality,.task-bar-row,.task-gain-row) {
+    grid-template-columns:minmax(0,1fr) minmax(0,38%);
+    gap:.4rem .65rem;
+    align-items:center;
+  }
+  .workspace-page #app .depth-rank {
+    grid-template-columns:1.2rem minmax(0,1fr) minmax(0,35%);
+    gap:.4rem .55rem;
+  }
+  .workspace-page #app :is(.depth-rank,.depth-range-row,.depth-quality,.task-bar-row,.task-gain-row) > :last-child {
+    grid-column:-2;
+    grid-row:1;
+    text-align:right;
+  }
+  .workspace-page #app :is(.depth-bar-track,.depth-range-track,.depth-quality-track,.task-track,.task-gain-track) {
+    grid-column:1/-1;
+    grid-row:2;
+    margin-inline:.2rem;
+  }
+  .workspace-page #app .market-timeline-row {
+    grid-template-columns:auto minmax(0,1fr) minmax(0,38%);
+    gap:.35rem .6rem;
+  }
+  .workspace-page #app .market-timeline-row > strong { grid-column:2;grid-row:1;text-align:right }
+  .workspace-page #app .market-timeline-row > small { grid-column:3;grid-row:1;text-align:right }
+  .workspace-page #app .market-timeline-track { grid-column:1/-1;grid-row:2 }
+  .workspace-page #app .market-horizon-grid {
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr));
+  }
+}
