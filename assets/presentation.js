@@ -8,21 +8,21 @@
   const displayName=v=>({'EXPECTED_WHOLESALE_PRICE_VAT':'Giá bán buôn dự kiến (VAT)','VERIFIED_SCD':'Đã xác minh SCD','UNMAPPED':'Chưa liên kết','INGREDIENT_SET_ONLY':'Khớp tập hoạt chất','SCD_MATCH_REVIEW_REQUIRED':'SCD cần kiểm tra','PARTIAL_INGREDIENT_MAPPING':'Khớp một phần hoạt chất','INGREDIENT_STRENGTH_FORM_CONFLICT':'Xung đột cấu hình','NO_SCD_FOR_INGREDIENT_SET':'Chưa có SCD phù hợp','AMBIGUOUS_SCD':'Nhiều SCD ứng viên'}[v]||v);
   const C=window.PharmaCharts;
   const views=[
-    ['overview','◫','Tổng quan thị trường','THE BIG PICTURE','Góc nhìn toàn cảnh từ dữ liệu dược Việt Nam.'],
-    ['lookup','⌕','Tra cứu thuốc','DRUG DISCOVERY','Tìm thuốc DAV, tra cứu hoạt chất, giá và bằng chứng RxNorm trực tiếp từ Neon Gold.'],
-    ['disease-predict','⌁','Dự đoán bệnh từ mô tả','DISEASE LABELS & DRUG EVIDENCE','Đọc mô tả, đối chiếu tên bệnh với ICD và khám phá dữ liệu thuốc có nguồn; công cụ nghiên cứu.'],
-    ['market-forecast','↗','Dự báo thị trường thuốc','DAV MARKET OUTLOOK','Biến động giá toàn thị trường theo 3, 6 và 12 tháng; kiểm định và thống kê lịch sử.'],
-    ['feature-price','⌁','Dự đoán giá theo đặc trưng','FEATURE-BASED PRICE ESTIMATION','Ước tính giá kê khai từ cấu hình thuốc, cùng sai số và phạm vi đã kiểm định.'],
-    ['pricing','▤','Phân tích giá thuốc','PRICING INTELLIGENCE','Phân bố giá, nhóm so sánh và các quan sát theo thời gian.'],
-    ['competition','▥','Phân tích cạnh tranh','COMPETITIVE LANDSCAPE','Nhà sản xuất, độ phủ hoạt chất và quy mô danh mục.'],
-    ['portfolio','◇','Danh mục sản phẩm','PORTFOLIO ANALYTICS','Khám phá cơ cấu quốc gia, hoạt chất và dạng bào chế.'],
-    ['quality','✓','Chất lượng dữ liệu','TRUST THE DATA','Độ đầy đủ, trạng thái mapping và khả năng sử dụng dữ liệu.'],
-    ['business','◎','Đề tài & mục tiêu nghiên cứu','FROM DATA TO DECISIONS','Bài toán tích hợp dữ liệu dược, mục tiêu ứng dụng và tiêu chí đánh giá nghiên cứu.'],
-    ['workflow','⬡','Nguồn dữ liệu & tích hợp','CONNECTED DATA','Vai trò DAV, RxNorm, ICD và MEDI; đơn vị bản ghi và luồng Bronze → Silver → Gold.'],
-    ['reports','▧','Phân tích thống kê dữ liệu','STATISTICAL DATA ANALYSIS','Khảo sát cấu trúc, độ đầy đủ và phân bố trên 9 bảng Gold; đọc kết quả cùng đơn vị và nguồn.'],
-    ['eda','◷','EDA dữ liệu','EXPLORE THE DATA','Khám phá DAV, RxNorm, ICD-10 và MEDI: nhìn phân bố trước khi kết luận.'],
-    ['preparation','⚒','Làm sạch dữ liệu','DATA PREPARATION','Giữ nguồn, chuẩn hóa, kiểm tra thiếu và trùng, theo dõi phần cần rà soát.'],
-    ['modeling','⌁','Mô hình hóa & đánh giá','MODELS & EVIDENCE','Thuật toán, chia dữ liệu theo thời gian, sai số và quality gate của mô hình đang chạy.']
+    ['overview','◫','Tổng quan thị trường','THE BIG PICTURE',''],
+    ['lookup','⌕','Tra cứu thuốc','DRUG DISCOVERY','Tìm thuốc theo tên, hoạt chất hoặc số đăng ký.'],
+    ['disease-predict','⌁','Dự đoán bệnh từ mô tả','DISEASE LABELS & DRUG EVIDENCE','Đối chiếu mô tả với mã ICD. Dùng cho nghiên cứu.'],
+    ['market-forecast','↗','Dự báo thị trường thuốc','DAV MARKET OUTLOOK','Xu hướng giá theo kỳ 3, 6 hoặc 12 tháng.'],
+    ['feature-price','⌁','Dự đoán giá theo đặc trưng','FEATURE-BASED PRICE ESTIMATION','Ước tính giá kê khai theo cấu hình thuốc.'],
+    ['pricing','▤','Phân tích giá thuốc','PRICING INTELLIGENCE','Phân bố và biến động giá kê khai.'],
+    ['competition','▥','Phân tích cạnh tranh','COMPETITIVE LANDSCAPE','So sánh nhà sản xuất và danh mục.'],
+    ['portfolio','◇','Danh mục sản phẩm','PORTFOLIO ANALYTICS','Cơ cấu theo quốc gia, hoạt chất và dạng bào chế.'],
+    ['quality','✓','Chất lượng dữ liệu','TRUST THE DATA','Kiểm tra độ đầy đủ và liên kết DAV–RxNorm.'],
+    ['business','◎','Đề tài & mục tiêu nghiên cứu','FROM DATA TO DECISIONS','Mục tiêu và tiêu chí đánh giá.'],
+    ['workflow','⬡','Nguồn dữ liệu & tích hợp','CONNECTED DATA','Nguồn dữ liệu và quy trình tích hợp.'],
+    ['reports','▧','Phân tích thống kê dữ liệu','STATISTICAL DATA ANALYSIS','Cấu trúc và phân bố của 9 bảng Gold.'],
+    ['eda','◷','EDA dữ liệu','EXPLORE THE DATA','Khám phá DAV, RxNorm, ICD-10 và MEDI.'],
+    ['preparation','⚒','Làm sạch dữ liệu','DATA PREPARATION','Kiểm tra dữ liệu thiếu, trùng và cần rà soát.'],
+    ['modeling','⌁','Mô hình hóa & đánh giá','MODELS & EVIDENCE','Hiệu năng và phạm vi kiểm định của mô hình.']
   ];
   let data=null,inventory=null,page=1,view='overview',controller=null,seq=0,timeout=null,toastTimer,optionsLoaded=false,trendRange='all',trendMode=null;
   const theory=()=>['business','workflow','eda','preparation','modeling','reports'].includes(view);
@@ -120,7 +120,7 @@
     if(theory()){$('status').hidden=true;$('visuals').innerHTML=PharmaTasks.render(view);return;}
     if(featurePriceView()||diseasePredictView()){$('visuals').innerHTML='';return;}
     if(lookupView()||marketForecastView()){$('lookup-task-story').innerHTML=lookupView()?'<details class="lookup-guide"><summary title="Hồ sơ → Cấu hình → Giá → Bằng chứng">Cách đọc kết quả</summary><div class="lookup-guide-content">'+PharmaTasks.intro(view)+PharmaDepth.lookupGuide()+'</div></details>':'';$('market-task-story').innerHTML=marketForecastView()?PharmaTasks.intro(view):'';$('visuals').innerHTML='';return;}
-    if(!data){$('metrics').innerHTML=[['Sản phẩm','◫'],['Hoạt chất','◇'],['Nhà sản xuất','▥'],['Giá trung vị','↗']].map(([l,i])=>metric(l,'—','Đang chờ dữ liệu nguồn',i)).join('');$('visuals').innerHTML=panel('Kết nối dữ liệu phân tích','Không sử dụng số liệu mô phỏng','<div class="empty"><strong>Đang chờ dữ liệu từ Neon</strong>Nhấn làm mới để thử lại nếu kết nối chưa sẵn sàng.</div>');$('records').innerHTML='<tr><td colspan="5">Chưa có dữ liệu nguồn.</td></tr>';$('records-count').textContent='—';$('range').textContent='Chưa có bản ghi';$('pageinfo').textContent='—';$('prev').disabled=true;$('next').disabled=true;return;}
+    if(!data){$('metrics').innerHTML=[['Sản phẩm','◫'],['Hoạt chất','◇'],['Nhà sản xuất','▥'],['Giá trung vị','↗']].map(([l,i])=>metric(l,'—','Đang chờ dữ liệu nguồn',i)).join('');$('visuals').innerHTML=panel('Dữ liệu thị trường','','<div class="empty"><strong>Chưa có dữ liệu để hiển thị</strong>Nhấn Làm mới để thử lại.</div>');$('records').innerHTML='<tr><td colspan="5">Chưa có dữ liệu nguồn.</td></tr>';$('records-count').textContent='—';$('range').textContent='Chưa có bản ghi';$('pageinfo').textContent='—';$('prev').disabled=true;$('next').disabled=true;return;}
     const s=data.summary||{};renderFilterContext();
     $('metrics').innerHTML=view==='pricing'?metric('Giá P10',money(s.p10),'Phân vị 10% · VND','↓')+metric('Giá trung vị',money(s.median),'Phân vị 50% · VND','◫')+metric('Giá P90',money(s.p90),'Phân vị 90% · VND','↑')+metric('Quan sát có giá',fmt(s.priced),'Giá không âm · VND','▤'):metric('Sản phẩm phân biệt',fmt(s.products),'ID sản phẩm DAV trong bộ lọc','◫')+metric('Tên hoạt chất nguồn',fmt(s.ingredients),'Tên phân biệt từ dữ liệu nguồn','◇')+metric('Nhà sản xuất',fmt(s.manufacturers),'Tên nhà sản xuất phân biệt','▥')+metric('Giá trung vị',money(s.median),fmt(s.priced)+' quan sát giá VND','↗');
     $('visuals').innerHTML='<div id="depth-analytical">'+PharmaDepth.render(view,data)+'</div>';
@@ -131,7 +131,7 @@
   function setStatus(error,text){$('status').classList.toggle('error',error);$('status').innerHTML='<span class="signal"></span><span>'+esc(text)+'</span>';$('connection').classList.toggle('error',error);$('connection').textContent=error?'KẾT NỐI GIÁN ĐOẠN':'NEON CONNECTED';$('db-status').textContent=error?'Nguồn chưa sẵn sàng':'Dữ liệu đang kết nối';$('db-dot').style.background=error?'#c29862':'';}
   async function load(){
     controller?.abort();controller=new AbortController();const activeController=controller;const current=++seq;$('content').classList.add('loading');$('content').setAttribute('aria-busy','true');$('status').innerHTML='<span class="signal"></span><span>Đang cập nhật phân tích từ database…</span>';const abortTimer=setTimeout(()=>activeController.abort(),45000);
-    try{const response=await fetch('/api/analytics?'+filters(),{signal:activeController.signal,cache:'no-store'});const result=await response.json();if(!response.ok||result.mode!=='database')throw new Error(result.notice||'Không thể đọc nguồn dữ liệu.');if(current!==seq)return;data=result;if(data.options){options(data.options);optionsLoaded=true;}setStatus(false,'Neon Gold · Cập nhật '+new Date(data.refreshedAt).toLocaleString('vi-VN')+' · Số liệu theo bộ lọc hiện tại.');render();}
+    try{const response=await fetch('/api/analytics?'+filters(),{signal:activeController.signal,cache:'no-store'});const result=await response.json();if(!response.ok||result.mode!=='database')throw new Error(result.notice||'Không thể đọc nguồn dữ liệu.');if(current!==seq)return;data=result;if(data.options){options(data.options);optionsLoaded=true;}setStatus(false,'Cập nhật '+new Date(data.refreshedAt).toLocaleString('vi-VN'));render();}
     catch(e){if(current!==seq)return;if(e.name==='AbortError'&&activeController.signal.aborted){data=null;setStatus(true,'Kết nối quá thời gian chờ. Nhấn làm mới để thử lại.');}else{data=null;setStatus(true,e.message||'Không thể kết nối dữ liệu. Nhấn làm mới để thử lại.');}render();}
     finally{clearTimeout(abortTimer);if(current===seq){$('content').classList.remove('loading');$('content').setAttribute('aria-busy','false');}}
   }
@@ -229,7 +229,7 @@
     let element=$('filter-context');if(!element){element=document.createElement('div');element.id='filter-context';element.className='filter-context';$('filters').after(element);}
     element.hidden=theory();const labels={search:'Tìm kiếm',ingredient:'Hoạt chất',country:'Quốc gia',kind:'Loại giá',unit:'Đơn vị'};
     const active=Object.entries(labels).filter(([id])=>$(id).value);
-    const filterCount=active.filter(([id])=>id!=='search').length;$('filter-count').textContent=filterCount?filterCount+' bộ lọc đang dùng':'Hoạt chất, quốc gia, loại giá, đơn vị';
+    const filterCount=active.filter(([id])=>id!=='search').length;$('filter-count').textContent=filterCount?filterCount+' bộ lọc đang dùng':'';
     element.innerHTML='<span>'+(active.length?'Phạm vi đang lọc:':'Toàn bộ danh mục')+'</span>'+active.map(([id,l])=>'<button data-remove-filter="'+id+'" aria-label="Bỏ lọc '+esc(l)+'">'+l+': '+esc(displayName($(id).value))+' ×</button>').join('')+'<span>· '+fmt(data.summary.products)+' sản phẩm · '+esc(data.summary.date_from||'—')+' → '+esc(data.summary.date_to||'—')+'</span>';
   }
 

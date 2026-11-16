@@ -334,3 +334,95 @@
   .workspace-page #app .ws-head-actions:has(.ws-source-action:not([hidden]))>#export:not([hidden]) { display:none!important }
   .workspace-page #app .ws-sheet-footer:has(#export) > span { display:none }
 }
+
+/* A consistent reading order: title, controls, results and supporting material. */
+.workspace-page #app .page-head {
+  background:var(--surface);
+  border-inline-start:.24rem solid var(--accent);
+}
+.workspace-page #app #page-desc:empty,
+.workspace-page #app #filter-count:empty { display:none!important }
+.workspace-page #app :is(.panel,.metric,.lookup-detail-panel,.dp-card,.fp-card) :is(h2,h3,dt,dd),
+.workspace-page #app .metric-value { overflow-wrap:anywhere }
+.workspace-page #app .overview-shortcuts {
+  margin-block:.75rem 1rem;
+}
+.workspace-page #app .overview-shortcuts button {
+  white-space:normal;
+  line-height:1.25;
+  gap:.65rem;
+  padding-inline:.85rem;
+}
+.workspace-page #app .overview-shortcuts button > span:not(.shortcut-icon) { min-width:0;white-space:normal }
+.workspace-page #app :is(#lookup-task-story,.dp-grid + .focus-fold,#feature-price-panel > .study-opening:last-child) {
+  margin-block:1rem;
+}
+.workspace-page #app #lookup-task-story:empty { display:none }
+.workspace-page #app .lookup-guide > summary {
+  justify-content:flex-start;
+  gap:.55rem;
+}
+.workspace-page #app .table-scroll {
+  max-width:100%;
+  overscroll-behavior-inline:contain;
+}
+.workspace-page #app .metric {
+  min-width:0;
+  font-variant-numeric:tabular-nums;
+}
+.workspace-page #app .footer a,
+.workspace-page #app .page-footer span { overflow-wrap:anywhere }
+@media (min-width:761px) {
+  .workspace-page #app .page-head { min-height:auto;padding-block:.85rem!important }
+  .workspace-page #app .sidebar { scrollbar-color:var(--border) var(--nav) }
+  .workspace-page #app .sidebar::-webkit-scrollbar-track { background:var(--nav) }
+  .workspace-page #app .sidebar::-webkit-scrollbar-thumb { background:var(--border) }
+}
+@media (max-width:760px) {
+  .workspace-page #app .page-head,
+  .workspace-page #app #lookup-panel .lookup-intro {
+    padding:.3rem 0 .65rem!important;
+    margin:0 0 .6rem!important;
+    border:0;
+    border-bottom:1px solid var(--border);
+    border-radius:0;
+    background:transparent!important;
+  }
+  .workspace-page #app #page-title { font-size:clamp(1.2rem,5.65vw,1.55rem);line-height:1.2 }
+  .workspace-page #app #page-desc { font-size:.78rem;line-height:1.45 }
+  .workspace-page #app .overview-shortcuts { gap:.5rem }
+  .workspace-page #app .overview-shortcuts button {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:.32rem;
+    min-height:3.5rem;
+    text-align:center;
+    padding:.38rem;
+    font-size:.73rem;
+  }
+  .workspace-page #app .overview-shortcuts .shortcut-icon { width:1.65rem;height:1.65rem }
+  .workspace-page #app .metric { padding:.7rem .72rem;min-height:0 }
+  .workspace-page #app .metric-value { font-size:clamp(1.2rem,5.8vw,1.65rem);line-height:1.18 }
+  .workspace-page #app .metric :is(.metric-label,.metric-foot) { line-height:1.4 }
+  .workspace-page #app :is(.lookup-item,.report-controls,.dp-card,.fp-card) {
+    max-width:100%;
+    box-sizing:border-box;
+  }
+  .workspace-page #app .focus-toolbar .focus-current { gap:.4rem;padding-inline:.55rem }
+  .workspace-page #app .focus-current .focus-current-text { white-space:normal;overflow-wrap:anywhere }
+  .workspace-page #app .ws-sheet-footer { flex-wrap:wrap;gap:.5rem }
+  .workspace-page #app .ws-sheet-footer > button { max-width:100% }
+}
+
+.workspace-page #app #visuals > .study-opening:last-child { margin-block:1rem }
+@media (max-width:760px) {
+  .disease-page .hero { padding-top:1.25rem }
+  .disease-page .hero h1 { font-size:clamp(1.65rem,6vw,2.15rem);line-height:1.12 }
+  .disease-page .hero p { font-size:.88rem;line-height:1.55 }
+  .disease-page .layout > .panel { min-width:0 }
+  .disease-page :is(.detail, .disease, .suggestion) { overflow-wrap:anywhere }
+  .report-page :is(.report-step,.report-step h2,.report-step h3) { overflow-wrap:anywhere }
+  .report-page .table-wrap { max-width:100%;overflow-x:auto }
+}

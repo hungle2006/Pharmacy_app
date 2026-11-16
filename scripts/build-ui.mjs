@@ -29,8 +29,8 @@ function guideLinks() {
 function workspaceShortcuts() {
   return [
     ['lookup', 'Tra cứu thuốc', 'M16 16l5 5m-3-11a7 7 0 1 1-14 0 7 7 0 0 1 14 0'],
-    ['market-forecast', 'Dự báo thị trường', 'm3 17 6-6 4 3 8-10m-5 0h5v5'],
-    ['reports', 'Thống kê dữ liệu', 'M5 3h14v18H5z M8 16v-3m4 3V8m4 8v-5'],
+    ['market-forecast', 'Dự báo', 'm3 17 6-6 4 3 8-10m-5 0h5v5'],
+    ['reports', 'Thống kê', 'M5 3h14v18H5z M8 16v-3m4 3V8m4 8v-5'],
   ].map(([view, label, path]) => h(Button, {
     key: view, label, variant: 'secondary', size: 'lg', width: '100%', 'data-view': view,
     icon: h(Text, { 'aria-hidden': true, className: 'shortcut-icon' }, icon(path)),

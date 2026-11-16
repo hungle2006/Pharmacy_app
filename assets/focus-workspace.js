@@ -203,7 +203,12 @@
     const featureIntro=feature?.querySelector(':scope > .fp-intro'),featureGuide=feature?.querySelector(':scope > .study-opening .study-opening-body');
     if(featureIntro&&featureGuide)featureGuide.append(featureIntro);
     const analysis=document.getElementById('depth-analytical')||document.getElementById('visuals');
-    makeDeck(analysis);makeDeck(document.getElementById('market-explore'));compactForm();
+    makeDeck(analysis);
+    if(document.body.dataset.activeView==='reports'){
+      const reportGuide=analysis.querySelector(':scope > .study-opening');
+      if(reportGuide&&reportGuide!==analysis.lastElementChild)analysis.append(reportGuide);
+    }
+    makeDeck(document.getElementById('market-explore'));compactForm();
     const records=document.getElementById('records-panel');
     const disclosure=records?.closest('.ws-sheet-body')?null:fold(records,'Khám phá bản ghi nguồn','records-disclosure');
     if(disclosure){if(disclosure.hidden!==records.hidden)disclosure.hidden=records.hidden;
@@ -211,7 +216,18 @@
       const countText=text(document.getElementById('records-count'));if(count.textContent!==countText)count.textContent=countText;
     }
     const disease=document.getElementById('disease-predict-panel');
-    const intro=disease?.querySelector(':scope > .dp-card:first-child');if(intro?.querySelector('.dp-steps'))fold(intro,'Cách dùng và quy trình đối chiếu');
+    const intro=disease?.querySelector(':scope > .dp-card:first-child');
+    if(intro?.querySelector('.dp-steps')){
+      const guide=fold(intro,'Cách sử dụng');
+      disease.append(guide);
+    }
+    const featureHelp=feature?.querySelector(':scope > .study-opening');
+    if(featureHelp&&featureHelp!==feature.lastElementChild)feature.append(featureHelp);
+    const lookupGuide=document.getElementById('lookup-task-story');
+    const lookupLayout=document.querySelector('#lookup-panel > .lookup-layout');
+    if(lookupGuide&&lookupLayout&&lookupLayout.nextElementSibling!==lookupGuide){
+      lookupLayout.after(lookupGuide);
+    }
     const model=document.getElementById('dp-model-summary')?.parentElement;if(model?.classList.contains('dp-card'))fold(model,'Phạm vi và chất lượng mô hình');
     for(const deck of content.querySelectorAll('.focus-deck')){
       const pages=[...deck.querySelectorAll(':scope > .focus-page')],options=deck.querySelector('select').options;
