@@ -575,3 +575,33 @@
   .workspace-page #app .depth-next { grid-template-columns:minmax(0,1fr) }
   .workspace-page #app .market-actions { justify-content:flex-start }
 }
+
+.workspace-page #app #chart-portfolio-mix .taste-mosaic {
+  height:1.65rem;
+  margin-block:.65rem 1rem;
+  border-radius:.5rem;
+}
+.workspace-page #app #chart-portfolio-mix .taste-mosaic-piece { padding:0;min-width:0 }
+.workspace-page #app #chart-portfolio-mix .taste-mosaic-legend > span {
+  padding:.45rem .6rem;
+  background:var(--surface-soft);
+  border-radius:.45rem;
+}
+.workspace-page #app #chart-portfolio-mix .taste-mosaic-legend i { flex:none }
+.workspace-page #app #chart-competition-scatter .depth-svg {
+  display:block;
+  width:100%;
+  max-width:58rem;
+  margin-inline:auto;
+}
+.workspace-page #app #chart-quality-fields .depth-quality {
+  grid-template-columns:minmax(7rem,12rem) minmax(0,1fr) minmax(6rem,max-content);
+  gap:.55rem .9rem;
+  margin:0;
+  padding:.55rem 0;
+}
+@media(max-width:760px) {
+  .workspace-page #app #chart-quality-fields .depth-quality {
+    grid-template-columns:minmax(0,1fr) minmax(0,45%);
+  }
+}

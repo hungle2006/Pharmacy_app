@@ -57,7 +57,7 @@ function mix(rows,total){
  const pieces=a.map((r,i)=>{
   const share=r.value/sum*100;
   const color=r.other?'var(--chart-other)':C.color(r.name,i);
-  return '<div class="taste-mosaic-piece" style="flex-basis:'+share+'%;background:'+color+'" '+tip(r.name,num(r.value)+' / '+num(total??sum)+' · '+pct(r.value,total??sum))+' aria-label="'+esc(r.name+': '+pct(r.value,total??sum))+'">'+(share>=17?'<span>'+esc(r.name)+'</span><b>'+num(share,1)+'%</b>':'')+'</div>';
+  return '<div class="taste-mosaic-piece" style="flex-basis:'+share+'%;background:'+color+'" '+tip(r.name,num(r.value)+' / '+num(total??sum)+' · '+pct(r.value,total??sum))+' aria-label="'+esc(r.name+': '+pct(r.value,total??sum))+'"></div>';
  }).join('');
  return '<div class="taste-mosaic" role="group" aria-label="Cơ cấu tỷ trọng dạng bào chế; kích thước mỗi ô theo tỷ lệ sản phẩm">'+pieces+'</div><div class="depth-legend taste-mosaic-legend">'+a.map((r,i)=>'<span><i style="background:'+(r.other?'var(--chart-other)':C.color(r.name,i))+'"></i>'+esc(r.name)+' <b>'+pct(r.value,total??sum)+'</b></span>').join('')+'</div>'+source(['Nhóm','Số sản phẩm','Tỷ lệ'],a.map(r=>[r.name,num(r.value),pct(r.value,total??sum)]),'Nhóm loại trừ nhau; kích thước ô tính trên tổng các nhóm đã hiển thị. Nhóm khác cộng các nhãn còn lại. Tổng '+num(sum)+' trên mẫu số '+num(total??sum)+'.');
 }
@@ -137,12 +137,11 @@ function makerScatter(rows){
  const a=(rows||[]).filter(r=>finite(r.ingredients)&&finite(r.value));if(!a.length)return note('Không có nhà sản xuất đủ dữ liệu để vẽ.');
  const maxX=Math.max(1,...a.map(r=>n(r.ingredients))),maxY=Math.max(1,...a.map(r=>n(r.value))),left=80,right=775,top=35,bottom=295;
  let marks='';for(let t=0;t<=4;t++){const xx=left+(right-left)*t/4,yy=bottom-(bottom-top)*t/4;marks+='<line x1="'+left+'" x2="'+right+'" y1="'+yy+'" y2="'+yy+'" class="depth-gridline"/><text x="65" y="'+(yy+5)+'" text-anchor="end">'+num(maxY*t/4)+'</text><text x="'+xx+'" y="322" text-anchor="middle">'+num(maxX*t/4)+'</text>';}
- const points=a.map(r=>({x:left+n(r.ingredients)/maxX*(right-left),y:bottom-n(r.value)/maxY*(bottom-top)})),placed=[];
- a.forEach((r,i)=>{const {x,y}=points[i];const offsets=[[12,-14],[14,19],[-28,-12],[-30,19],[25,-3],[-39,-3],[12,-28]];
- const [dx,dy]=offsets.find(([dx,dy])=>{const px=x+dx,py=y+dy;return !placed.some(p=>Math.abs(p.x-px)<23&&Math.abs(p.y-py)<17)&&!points.some((p,j)=>j!==i&&Math.abs(p.x-(px+7))<16&&Math.abs(p.y-(py-5))<14);})||offsets.at(-1);
- placed.push({x:x+dx,y:y+dy});
- marks+='<circle cx="'+x+'" cy="'+y+'" r="6" class="depth-dot" '+tip(r.name,num(r.ingredients)+' hoạt chất · '+num(r.value)+' sản phẩm')+'/><text x="'+(x+dx)+'" y="'+(y+dy)+'" class="depth-point-label">'+(i+1)+'</text>';});
- return '<div class="depth-axis"><span>Trục dọc: số sản phẩm</span><span>Mỗi chấm: một nhà sản xuất</span></div><div class="depth-svg-scroll"><svg viewBox="0 0 850 365" class="depth-svg" role="img" aria-label="Số hoạt chất và sản phẩm trong top nhà sản xuất">'+marks+'<text x="430" y="355" text-anchor="middle">Trục ngang: số tên hoạt chất phân biệt</text></svg></div>'+source(['Chấm','Nhà sản xuất','Sản phẩm','Hoạt chất'],a.map((r,i)=>[i+1,r.name,num(r.value),num(r.ingredients)]),'Chỉ top '+a.length+' nhà sản xuất theo số sản phẩm. Không đại diện toàn bộ thị trường, không kết luận nhân quả.');
+ a.forEach(r=>{
+  const x=left+n(r.ingredients)/maxX*(right-left),y=bottom-n(r.value)/maxY*(bottom-top);
+  marks+='<circle cx="'+x+'" cy="'+y+'" r="6" class="depth-dot" '+tip(r.name,num(r.ingredients)+' hoạt chất · '+num(r.value)+' sản phẩm')+'/>';
+ });
+ return '<div class="depth-axis"><span>Trục dọc: số sản phẩm</span><span>Mỗi chấm: một nhà sản xuất</span></div><div class="depth-svg-scroll"><svg viewBox="0 0 850 365" class="depth-svg" role="img" aria-label="Số hoạt chất và sản phẩm trong top nhà sản xuất">'+marks+'<text x="430" y="355" text-anchor="middle">Trục ngang: số tên hoạt chất phân biệt</text></svg></div>'+source(['Nhà sản xuất','Sản phẩm','Hoạt chất'],a.map(r=>[r.name,num(r.value),num(r.ingredients)]),'Chỉ top '+a.length+' nhà sản xuất theo số sản phẩm. Không đại diện toàn bộ thị trường, không kết luận nhân quả.');
 }
 function qualityBars(q){
  if(!n(q?.total))return note('Không có sản phẩm trong bộ lọc.');
@@ -183,8 +182,7 @@ function pricing(d){
 function competition(d){
  const makers=d.manufacturers||[],s=d.summary,top=makers[0],sum=makers.reduce((v,r)=>v+n(r.value),0),field=state.manufacturer==='ingredients'?'ingredients':'value';
  return findings([['NHÀ SẢN XUẤT DẪN ĐẦU',num(top?.value)+' sản phẩm',top?.name||'Chưa có dữ liệu'],['TOP '+makers.length+' TRONG DANH MỤC',pct(sum,s.products),num(sum)+' / '+num(s.products)+' sản phẩm theo tên nhà sản xuất nguồn.'],['CÁCH ĐỌC CẠNH TRANH','Độ phủ danh mục','Chưa có doanh số để tính thị phần doanh thu.']])+
- step('01','Phân biệt danh mục lớn với danh mục rộng','Sản phẩm đo quy mô; hoạt chất đo độ rộng. Chấm cao và lệch phải thể hiện cả hai trong tập đang hiển thị.')+
- panel('competition-scatter','Quy mô sản phẩm và độ rộng hoạt chất','Top '+makers.length+' nhà sản xuất theo số sản phẩm',makerScatter(makers),'Chấm cùng kích thước; số bên chấm đối chiếu với bảng nguồn. Không tính tương quan từ tập top đã chọn để suy toàn thị trường.')+
+ panel('competition-scatter','Quy mô sản phẩm và độ rộng hoạt chất','Top '+makers.length+' nhà sản xuất theo số sản phẩm',makerScatter(makers),'Chọn một điểm để xem nhà sản xuất và số liệu. Phạm vi chỉ gồm nhóm hiển thị.')+
  grid(panel('competition-rank','Xếp hạng danh mục nhà sản xuất','Đổi thước đo trong cùng tập top '+makers.length,controls('manufacturer',[['products','Sản phẩm'],['ingredients','Hoạt chất']],state.manufacturer)+ranking(makers.map(r=>({name:r.name,value:r[field]})),{unit:field==='value'?'sản phẩm':'hoạt chất',total:field==='value'?s.products:null,limit:10}),'Đổi thước đo sắp xếp lại tập top theo sản phẩm; không tạo top toàn thị trường theo hoạt chất.'),
  panel('competition-coverage','Nhà sản xuất theo hoạt chất nổi bật','Hoạt chất được chọn theo số sản phẩm',ranking((d.ingredients||[]).map(r=>({name:r.name,value:r.makers})),{unit:'nhà sản xuất',filter:'ingredient',limit:8,share:false}),'Một nhà sản xuất tham gia nhiều hoạt chất; không cộng các hàng thành tổng nhà sản xuất.'))+
  panel('competition-detail','Độ tập trung trong danh mục','Tỷ số sản phẩm trên tên hoạt chất của cùng nhà sản xuất',table(['Nhà sản xuất','Sản phẩm','Hoạt chất','Sản phẩm / hoạt chất'],makers.map(r=>[r.name,num(r.value),num(r.ingredients),n(r.ingredients)?num(n(r.value)/n(r.ingredients),2):'—'])),'Tỷ số cao gợi ý nhiều sản phẩm trên một nhóm tên hoạt chất, chưa chứng minh chất lượng hoặc cạnh tranh giá.');
@@ -192,7 +190,6 @@ function competition(d){
 function portfolio(d){
  const forms=d.forms||[],countries=d.countries||[],s=d.summary,lead=forms[0],total=forms.reduce((a,r)=>a+n(r.value),0);
  return findings([['DẠNG PHỔ BIẾN',lead?.name||'—',num(lead?.value)+' sản phẩm · '+pct(lead?.value,total)],['NHÃN QUỐC GIA',num(countries.length),'Có thể nhiều cách ghi cho cùng một quốc gia.'],['TÊN HOẠT CHẤT',num(s.ingredients),'Tên phân biệt; chưa gộp mọi cách viết tương đương.']])+
- step('01','Danh mục tập trung vào dạng bào chế nào?','Cơ cấu trả lời tỷ trọng; xếp hạng giúp đọc chính xác nhóm lớn và thông tin còn thiếu.')+
  panel('portfolio-mix','Cơ cấu dạng bào chế','Top 5 dạng và phần còn lại · sản phẩm trong bộ lọc',mix(forms,s.products),'Cần nhu cầu, doanh số và cạnh tranh để đánh giá cơ hội kinh doanh.')+
  grid(panel('portfolio-forms','Chi tiết dạng bào chế','Đổi số nhóm và thang số lượng / tỷ lệ',rankControls()+ranking(forms,{total:s.products,limit:state.limit}),'“Chưa xác định” giữ riêng, không gộp để che dữ liệu thiếu.'),
  panel('portfolio-countries','Chi tiết nhãn quốc gia nguồn','Bấm nhãn để lọc dashboard',ranking(countries,{total:s.products,filter:'country',limit:state.limit}),'Không tự gộp India / Ấn Độ hoặc Germany / Đức khi chưa có quy đổi đã kiểm tra.'))+
@@ -203,7 +200,6 @@ const statusLabels={UNMATCHED_REVIEW:'Chưa khớp · cần rà soát',VERIFIED_
 function quality(d){
  const q=d.quality||{},m=d.mapping||{},worst=completeness(q)[0],statuses=(m.statuses||[]).map(r=>({...r,name:statusLabels[r.name]||r.name}));
  return findings([['ƯU TIÊN BỔ SUNG',worst?.name||'—',num(worst?.missing)+' / '+num(q.total)+' sản phẩm thiếu.'],['MAPPING CHẤP NHẬN',m.unavailable?'—':pct(m.accepted,m.total),num(m.accepted)+' / '+num(m.total)+' dòng toàn bảng.'],['CẦN RÀ SOÁT',num(m.review),'Cờ review độc lập với kiểm tra khóa; không cộng các cờ.']])+
- step('01','Kiểm tra khả năng dùng theo mục đích','Thiếu dạng hoặc hàm lượng ảnh hưởng so giá và mapping. Đủ tên vẫn chưa chứng minh tên đã chuẩn hóa đúng.')+
  panel('quality-fields','Độ đầy đủ theo trường DAV','Bộ lọc sản phẩm hiện tại · xếp theo số thiếu giảm dần',qualityBars(q),'Đơn vị có thể từ quan sát giá hoặc hồ sơ DAV. Phép đo này khác hồ sơ thô của từng bảng trong Phân tích thống kê dữ liệu.')+
  step('02','Tách trạng thái liên kết khỏi các cờ','Trạng thái loại trừ nhau; accepted / review / khóa hợp lệ là các phép kiểm tra độc lập.')+
  grid(panel('quality-status','Trạng thái DAV ↔ RxNorm','Toàn bảng mapping · độc lập bộ lọc sản phẩm',m.unavailable?note('Chưa đọc được bảng mapping.'):ranking(statuses,{unit:'dòng mapping',total:m.total,limit:10,share:false}),'Giữ riêng xung đột, ứng viên và chưa khớp để xác định cách xử lý.'),
