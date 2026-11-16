@@ -1,0 +1,257 @@
+/* Shared PharmaBiz theme. Chart colors retain their semantic roles across views. */
+:root, :root[data-theme="light"],
+.workspace-page #app, .disease-page, .report-page {
+  --bg:#f5f4fb;
+  --surface:#fff;
+  --paper:var(--surface);
+  --white:var(--surface);
+  --surface-soft:#f2effa;
+  --ink:#211b39;
+  --muted:#5e5973;
+  --subtle:#6d6685;
+  --accent:#5536ae;
+  --border:#dfd9ed;
+  --nav:var(--surface);
+  --selection:#ebe5fa;
+  --mint:#eee7fc;
+  --chart-grid:#e5e0ef;
+  --chart-primary:#6341c5;
+  --chart-primary-soft:#d7c9f6;
+  --chart-secondary:#087b74;
+  --chart-rose:#ae547a;
+  --chart-olive:#527746;
+  --chart-slate:#6c7691;
+  --shadow:0 4px 18px #35235e08;
+}
+:root[data-theme="dark"],
+[data-theme="dark"] .workspace-page #app,
+[data-theme="dark"] .disease-page,
+[data-theme="dark"] .report-page {
+  --bg:#161222;
+  --surface:#211a31;
+  --paper:var(--surface);
+  --white:var(--surface);
+  --surface-soft:#2a223d;
+  --ink:#f4efff;
+  --muted:#c2b8d6;
+  --subtle:#aa9fbe;
+  --accent:#c9b5ff;
+  --border:#403553;
+  --nav:var(--surface);
+  --selection:#3b2c62;
+  --mint:#382e51;
+  --chart-grid:#433753;
+  --chart-primary:#b99bf7;
+  --chart-primary-soft:#654e95;
+  --chart-secondary:#76d1bf;
+  --chart-rose:#e29ab9;
+  --chart-olive:#b2ce82;
+  --chart-slate:#a9b3d0;
+  --shadow:0 4px 18px #0a061522;
+}
+:root {
+  --hero:#1b1536;
+  --hero-ink:#faf7ff;
+  --hero-muted:#d1c8ea;
+  --hero-accent:#e0f39e;
+  --hero-line:#55496e;
+  --screen-pad:clamp(1rem,5.8vw,6rem);
+  --card-radius:1rem;
+}
+
+.workspace-page #cover.start-focus {
+  display:block;
+  height:auto;
+  min-height:100svh;
+  max-height:none;
+  overflow:clip;
+  padding-inline:max(var(--screen-pad),env(safe-area-inset-left));
+  padding-bottom:env(safe-area-inset-bottom);
+  background:var(--hero);
+  color:var(--hero-ink);
+}
+.workspace-page #cover.start-focus::after { display:none }
+.workspace-page #cover .start-header,
+.workspace-page #cover .start-main,
+.workspace-page #cover .start-guide,
+.workspace-page #cover .start-footer { width:100%;max-width:86rem;margin-inline:auto }
+.workspace-page #cover .start-header { min-height:5rem;border-color:var(--hero-line) }
+.workspace-page #cover .brand { color:var(--hero-ink);font-size:1.35rem;letter-spacing:-.03em }
+.workspace-page #cover .brand-symbol { background:var(--hero-accent);color:var(--hero) }
+.workspace-page #cover .start-help-link {
+  display:inline-flex;align-items:center;min-height:2.75rem;
+  color:var(--hero-ink);font-weight:650;text-decoration:none;
+}
+.workspace-page #cover .start-help-link:hover { text-decoration:underline;text-underline-offset:.3em }
+.workspace-page #cover .start-main {
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.94fr);
+  gap:clamp(1.25rem,5vw,5rem);min-height:0;padding-block:clamp(2.4rem,5.3vw,5rem);
+}
+.workspace-page #cover .start-copy { width:100%;max-width:none;min-width:0;padding:0 }
+.workspace-page #cover .start-intro {
+  color:var(--hero-accent);font-size:.72rem;font-weight:700;letter-spacing:.14em;
+  margin:0 0 1rem;
+}
+.workspace-page #cover h1 {
+  max-width:13ch;margin:0 0 1.1rem;font-size:clamp(2.55rem,5.45vw,5.7rem);
+  font-weight:730;line-height:1.045;letter-spacing:-.06em;text-wrap:initial;color:var(--hero-ink);
+}
+.workspace-page #cover h1 em { color:var(--hero-accent);font-style:normal }
+.workspace-page #cover .start-description {
+  max-width:35ch;margin:0 0 1.55rem;color:var(--hero-muted);
+  font-size:clamp(.98rem,1.3vw,1.15rem);line-height:1.62;
+}
+.workspace-page #cover .start-btn,
+.workspace-page #cover .start-btn:hover,
+.workspace-page #cover .start-btn.is-entering {
+  width:min(100%,13rem);min-height:3.4rem;padding:.65rem .95rem .65rem 1.15rem;
+  border:1px solid var(--hero-accent);border-radius:.8rem;box-shadow:none;
+  background:var(--hero-accent);color:var(--hero);font-weight:740;font-size:1rem;
+}
+.workspace-page #cover .start-btn:hover { filter:brightness(1.08) }
+.workspace-page #cover .start-btn span {
+  background:#1b153619;color:var(--hero);border:0;border-radius:.45rem;
+}
+.workspace-page #cover .start-art {
+  align-self:center;width:100%;height:clamp(21rem,37vw,35rem);
+  min-height:0;max-height:none;margin:0;overflow:hidden;border:1px solid var(--hero-line);
+  border-radius:clamp(1rem,2.2vw,2rem);
+  background:radial-gradient(ellipse at 50% 46%,#594078 0%,#30244d 52%,#211a3a 87%);
+}
+.workspace-page #cover .start-art::before, .workspace-page #cover .start-art::after { content:none }
+.workspace-page #cover #capsule-preview {
+  position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;
+}
+.workspace-page #cover .start-scene-note {
+  display:block;bottom:1rem;left:1rem;transform:none;color:var(--hero-muted);
+  font-size:.7rem;font-weight:650;letter-spacing:.03em
+}
+.workspace-page #cover .start-scene-note::before { display:none }
+.start-guide { position:relative;z-index:3;padding:clamp(1.65rem,4.2vw,3.4rem) 0;scroll-margin-top:1rem;border-top:1px solid var(--hero-line) }
+.start-guide-heading { margin-bottom:1.2rem }
+.start-guide-heading h2 { margin:0;color:var(--hero-ink);font-size:clamp(1.55rem,3.2vw,2.6rem);line-height:1.2;letter-spacing:-.04em }
+.start-guide-heading p { margin:.4rem 0 0;color:var(--hero-muted) }
+.start-guide-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.85rem;margin:0;padding:0;list-style:none }
+.start-guide-grid li { min-width:0 }
+.start-guide-grid .guide-card {
+  display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:.6rem;
+  min-height:100%;padding:1.15rem;border:1px solid var(--hero-line);border-radius:var(--card-radius);
+  background:#27203f;color:var(--hero-ink);text-align:left;text-decoration:none;white-space:normal;
+}
+.start-guide-grid .guide-card:hover { background:#382c54;border-color:var(--hero-accent);color:var(--hero-ink) }
+.guide-card > .astryx-text { display:flex;flex-direction:column;gap:inherit;color:inherit }
+.guide-card .guide-step, .guide-card b { color:var(--hero-accent);font-size:.82rem }
+.guide-card strong { display:flex;justify-content:space-between;gap:.5rem;font-size:1.02rem }
+.guide-card small { color:var(--hero-muted);font-size:.86rem;line-height:1.6 }
+.guide-install { margin-top:1rem;color:var(--hero-muted) }
+.guide-install summary { display:list-item;padding:.8rem 0;min-height:2.75rem;color:var(--hero-ink);cursor:pointer;font-weight:650 }
+.guide-install p { margin:.45rem 0;max-width:67ch;font-size:.9rem }
+.workspace-page #cover .start-footer {
+  min-height:4rem;justify-content:space-between;gap:1rem;padding:.75rem 0;
+  border-color:var(--hero-line);color:var(--hero-muted)
+}
+.workspace-page #cover .start-sources { width:auto;justify-content:flex-end;gap:clamp(.55rem,2vw,1.3rem) }
+.workspace-page #cover .start-sources span { color:var(--hero-muted);font-size:.73rem }
+
+.workspace-page #app .sidebar { background:var(--nav);border-color:var(--border) }
+.workspace-page #app .sidebar .brand-symbol,
+.workspace-page #app .workspace-brand .brand-symbol,
+:is(.disease-page,.report-page) .ui-mark { background:#38276b;color:var(--hero-ink) }
+.workspace-page #app .sidebar .nav-button.active {
+  background:var(--selection);color:var(--accent);
+  border-color:transparent;border-inline-start-color:var(--accent);
+}
+.workspace-page #app .sidebar .nav-button:hover { background:var(--surface-soft);color:var(--ink) }
+.workspace-page #app .sidebar :is(.nav-button, .workspace-links a, .brand, .brand .accent) { color:var(--ink) }
+.workspace-page #app .sidebar :is(.workspace-title b, .nav-caption, .workspace-links > span, .sidebar-note, .nav-arrow, .nav-icon) { color:var(--muted) }
+.workspace-page #app .sidebar .nav-button.active :is(.nav-icon, .nav-arrow) { color:var(--accent) }
+.workspace-page #app .sidebar .nav-button.active { box-shadow:inset 3px 0 0 var(--accent) }
+.workspace-page #app .sidebar :is(.database-status,.sidebar-close) { background:var(--surface-soft);border-color:var(--border);color:var(--ink) }
+.workspace-page #app .sidebar .database-status :is(strong,small) { color:var(--ink) }
+.workspace-page #app .sidebar .nav-button:focus-visible { outline-color:var(--accent) }
+.workspace-page #app .topbar { background:var(--surface);border-color:var(--border) }
+.workspace-page #app .workspace-search { background:var(--surface-soft);border-color:var(--border) }
+.workspace-page #app .page-head {
+  background:linear-gradient(112deg,var(--selection),var(--surface) 75%);
+  border:1px solid var(--border);border-radius:var(--card-radius);box-shadow:none;
+}
+.workspace-page #app #page-title { color:var(--ink);font-weight:740;letter-spacing:-.04em }
+.workspace-page #app #page-title span { display:none }
+.workspace-page #app .page-head :is(.eyebrow,p) { color:var(--muted) }
+.workspace-page #app .page-head .eyebrow { display:none }
+.workspace-page #app .content :is(.metrics > *, .chart-panel, .focus-deck, .study-opening, .lookup-detail-panel, .lookup-results-column, .dp-card, .fp-card, .market-card, .records-panel) {
+  border-color:var(--border);border-radius:var(--card-radius);box-shadow:var(--shadow)
+}
+.workspace-page #app .content :is(.metric, .focus-page, .study-opening, .lookup-results-column, .lookup-detail-panel, .dp-card, .fp-card, .market-card) {
+  background-color:var(--surface);color:var(--ink)
+}
+.workspace-page #app .content :is(.metric-value,.lookup-intro h2,.market-hero h2,.dp-intro h2,.fp-intro h2) { letter-spacing:-.035em;color:var(--ink) }
+.workspace-page #app .content :is(.lookup-submit, .dp-submit, .fp-submit) {
+  color:var(--surface);background:var(--accent);border-color:var(--accent)
+}
+.workspace-page #app .content :is(.lookup-tabs,.mobile-form-stages,.segmented) [aria-selected="true"],
+.workspace-page #app .content :is(.lookup-tabs,.mobile-form-stages,.segmented) [aria-pressed="true"] {
+  color:var(--accent);background:var(--selection);border-color:var(--border)
+}
+.workspace-page #app .content :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus-visible {
+  outline:2px solid var(--accent);outline-offset:2px
+}
+.overview-shortcuts {
+  display:none;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:.6rem;
+  margin:0 0 .7rem;
+}
+[data-active-view="overview"] .overview-shortcuts { display:grid }
+.workspace-page #app .overview-shortcuts button {
+  display:flex;align-items:center;gap:.6rem;
+  padding:.55rem .75rem;min-height:2.85rem;min-width:0;
+  border:1px solid var(--border);border-radius:.75rem;background:var(--surface);color:var(--ink);
+  font-size:.88rem;font-weight:650;text-align:left;cursor:pointer;
+}
+.workspace-page #app .overview-shortcuts button:hover { background:var(--selection);border-color:var(--accent) }
+.overview-shortcuts .shortcut-icon {
+  display:grid;place-items:center;flex:none;width:1.5rem;height:1.5rem;
+  border-radius:.45rem;background:var(--selection);color:var(--accent);font-size:1rem
+}
+.workspace-page .mobile-taskbar { background:var(--surface);border-top-color:var(--border) }
+.workspace-page .mobile-taskbar button.active { color:var(--accent);background:var(--selection);border-radius:.65rem }
+:is(.disease-page,.report-page) :is(.search-shell,.report-step,.panel) {
+  background:var(--surface);border-color:var(--border);border-radius:var(--card-radius);
+}
+.disease-page .hero { padding-bottom:1.25rem }
+.disease-page .hero h1 { letter-spacing:-.05em }
+.disease-page .primary { background:var(--accent);color:var(--surface) }
+.disease-page .top-links a { display:inline-flex;align-items:center;min-height:2.75rem }
+.disease-page .notice { color:var(--warning-ink);background:var(--warning-bg) }
+
+@media(max-width:760px) {
+  .workspace-page #cover .start-header { min-height:3.85rem;border-bottom:1px solid var(--hero-line) }
+  .workspace-page #cover .start-main { grid-template-columns:minmax(0,1fr);gap:1.25rem;padding-block:1.65rem }
+  .workspace-page #cover h1 { font-size:clamp(2.35rem,9.4vw,4rem);margin-bottom:.85rem }
+  .workspace-page #cover .start-intro { margin-bottom:.8rem }
+  .workspace-page #cover .start-description { margin-bottom:1rem }
+  .workspace-page #cover .start-btn { width:100%;min-height:3.15rem }
+  .workspace-page #cover .start-copy { order:0 }
+  .workspace-page #cover .start-art { order:1;height:clamp(13rem,57vw,22rem) }
+  .start-guide-grid { grid-template-columns:minmax(0,1fr);gap:.55rem }
+  .start-guide-grid .guide-card { padding:.85rem;gap:.3rem }
+  .workspace-page #app .overview-shortcuts { gap:.35rem }
+  .workspace-page #app .overview-shortcuts button {
+    display:grid;justify-items:start;gap:.25rem;min-height:3.6rem;padding:.42rem .45rem;
+    font-size:.72rem;line-height:1.22;
+  }
+  .workspace-page #app :is(.topbar, .sidebar) button:not(.nav-button),
+  .workspace-page #app .sidebar .nav-button { min-height:2.75rem }
+  .workspace-page #app :is(.lookup, .dp-grid, .fp-grid, .filters) :is(input:not([type=checkbox]):not([type=radio]),select,textarea),
+  .disease-page #query { font-size:1rem }
+  .disease-page .top-inner { padding-inline:max(1rem,env(safe-area-inset-left));height:auto;min-height:3.85rem }
+  .disease-page .top-links { flex-wrap:wrap;justify-content:flex-end }
+  .disease-page .search-shell { padding:1rem }
+}
+@media (display-mode:standalone) {
+  .workspace-page #cover .start-header { padding-top:env(safe-area-inset-top) }
+}
+@media print {
+  :root,:root[data-theme="dark"],[data-theme="dark"] .report-page { --bg:#fff;--surface:#fff;--paper:#fff;--ink:#211b39;--muted:#5e5973;--border:#dfd9ed;--surface-soft:#f2effa;--accent:#5536ae }
+}

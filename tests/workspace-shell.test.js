@@ -4,14 +4,16 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const read=name=>fs.readFileSync(path.join(__dirname,'..',name),'utf8');
-test('workspace shell loads after the existing product and never changes the Start canvas',()=>{
+test('workspace shell loads after the existing product and Start loads its scene on demand',()=>{
  const html=read('index.html');
- const positions=['assets/scene3d.js','assets/presentation.js','assets/focus-workspace.js','assets/premium-ui.js','assets/workspace-shell.js'].map(t=>html.indexOf(t));
+ const positions=['assets/presentation.js','assets/focus-workspace.js','assets/premium-ui.js','assets/workspace-shell.js'].map(t=>html.indexOf(t));
  assert.ok(positions.every(n=>n>=0), 'all live modules exist');
- assert.ok(positions.every((n,i)=>!i||n>positions[i-1]),'shell must run last');
+ assert.ok(positions.every((n,i)=>!i||n>positions[i-1]),'shell must follow its workspace modules');
  assert.ok(html.indexOf('assets/workspace-shell.css')>html.indexOf('assets/premium-ui.css'));
  assert.match(html,/<section class="cover start-focus" id="cover"/);
  assert.match(html,/<canvas id="scene"/);
+ assert.match(html, /data-scene-src="\/assets\/scene3d\.js"/);
+ assert.match(read('assets/app-entry.js'), /whenVisible\(stage,.*?script\.src = sceneSource/s);
  assert.match(html,/<button id="start" class="start-btn"/);
 });
 test('task switches restore detail before replacing the rendered page',()=>{
@@ -130,6 +132,8 @@ test('responsive element spacing covers compact phone heights without replacing 
  assert.match(css,/#mobile-taskbar button/);
  assert.ok(html.indexOf('assets/responsive-polish.css')>html.indexOf('assets/workspace-shell.css'));
  assert.match(html,/<canvas id="scene"/);
+ assert.match(html, /data-scene-src="\/assets\/scene3d\.js"/);
+ assert.match(read('assets/app-entry.js'), /whenVisible\(stage,.*?script\.src = sceneSource/s);
 });
 
 

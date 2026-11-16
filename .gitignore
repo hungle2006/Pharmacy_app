@@ -6,3 +6,5 @@ node_modules/
 
 assets/scene3d.js
 *.blend1
+
+assets/astryx-ui.css
