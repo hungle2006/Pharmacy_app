@@ -873,3 +873,62 @@
 @media(max-width:760px) {
   .workspace-page #app .lookup-submit.astryx-button > span:first-child > span:last-child { display:none }
 }
+
+/* Motion reinforces a change of context; active controls keep their hit areas. */
+@media(prefers-reduced-motion:no-preference) {
+  .workspace-page #cover .start-btn:is(:hover,:focus-visible) > span svg {
+    transform:translateX(.18rem);
+  }
+  .workspace-page #cover .start-btn > span svg {
+    transition:transform 180ms cubic-bezier(.22,1,.36,1);
+  }
+  .workspace-page #app .focus-page:not([hidden]),
+  .workspace-page #app :is(.ph-filter-menu,.focus-menu):not([hidden]) {
+    animation:pb-surface-in 220ms cubic-bezier(.22,1,.36,1);
+  }
+  .workspace-page #app .focus-page .depth-panel,
+  .workspace-page #app .focus-page .depth-step {
+    animation:none;
+  }
+  .workspace-page #app :is(.ws-shade,.ws-palette-shade) {
+    animation:pb-shade-in 220ms ease-out;
+  }
+  .workspace-page #app .ws-sheet {
+    animation:pb-drawer-in 300ms cubic-bezier(.22,1,.36,1);
+  }
+  .workspace-page #app .ws-palette-dialog,
+  .workspace-page .toast:not([hidden]) {
+    animation:pb-surface-in 230ms cubic-bezier(.22,1,.36,1);
+  }
+  .workspace-page .mobile-taskbar button .pb-control-icon {
+    transition:transform 200ms cubic-bezier(.22,1,.36,1);
+  }
+  .workspace-page .mobile-taskbar button.active .pb-control-icon { transform:translateY(-2px) }
+}
+@media(max-width:760px) and (prefers-reduced-motion:no-preference) {
+  .workspace-page #app .ws-sheet {
+    animation-name:pb-sheet-in;
+  }
+}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference) {
+  .workspace-page #app .overview-shortcuts button:hover {
+    transform:translateY(-2px);
+    box-shadow:0 .45rem 1rem color-mix(in srgb,var(--task-ink) 12%,transparent);
+  }
+}
+@keyframes pb-surface-in {
+  from { opacity:.55 }
+  to { opacity:1 }
+}
+@keyframes pb-shade-in {
+  from { opacity:0 }
+  to { opacity:1 }
+}
+@keyframes pb-drawer-in {
+  from { opacity:.65;transform:translateX(1.45rem) }
+  to { opacity:1;transform:translateX(0) }
+}
+@keyframes pb-sheet-in {
+  from { opacity:.65;transform:translateY(1rem) }
+  to { opacity:1;transform:translateY(0) }
+}
