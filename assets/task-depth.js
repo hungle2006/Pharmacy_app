@@ -172,8 +172,8 @@ function overview(d){
 function pricing(d){
  const s=d.summary,range=n(s.p10)>0?n(s.p90)/n(s.p10):null;
  return findings([['VỊ TRÍ GIỮA',num(s.median)+' ₫','Trung vị trên '+num(s.priced)+' quan sát VND; cần giữ ngữ cảnh đơn vị.'],['KHOẢNG P10–P90',num(s.p10)+' → '+num(s.p90)+' ₫','80% vị trí phân phối; không phải khoảng tin cậy.'],['ĐỘ RỘNG TỔNG HỢP',range===null?'—':num(range,1)+' lần','P90/P10 đang gộp cấu hình; không dùng xếp thuốc đắt/rẻ.']])+
- step('01','Nhìn phân bố trước khi đọc giá đại diện','Đọc tần suất theo khoảng cùng trung vị. Không so trực tiếp viên, hộp, ống hoặc các loại giá khác nhau.')+
- panel('pricing-bands','Số quan sát trong các khoảng giá','Biểu đồ dấu chấm · các khoảng giá có độ rộng khác nhau',priceBands(d),'Dấu chấm thể hiện số quan sát từng khoảng, không phải mật độ histogram. Lọc đơn vị và loại giá trước khi diễn giải.')+
+ step('01','Phân bố giá','Lọc cùng đơn vị và loại giá trước khi so sánh.')+
+ panel('pricing-bands','Số quan sát trong các khoảng giá','Số quan sát theo khoảng giá VND',priceBands(d),'Các khoảng giá có độ rộng khác nhau. So sánh theo số quan sát.')+
  step('02','Đưa các nhóm về cùng mốc trung vị','Giữ chung hoạt chất, hàm lượng, dạng, đơn vị và loại giá. Mốc 100 giúp so độ rộng tương đối.')+
  panel('pricing-ranges','Khoảng giá tương đối trong nhóm thuốc tương đồng','P10–P90 và trung vị chuẩn hóa = 100',relativeRanges(d.comparable),'Chưa chuẩn hóa đường dùng, quy cách và thời điểm. Đối chiếu hồ sơ trước khi dùng để mua sắm.')+
  panel('pricing-comparable','Đối chiếu mức tiền và cỡ mẫu từng nhóm','Tối đa 15 nhóm nhiều quan sát nhất · ít nhất 2 sản phẩm',table(['Hoạt chất / Hàm lượng','Dạng · Đơn vị · Loại giá','Sản phẩm / Quan sát','Nhà SX','P10 (₫)','Trung vị (₫)','P90 (₫)'],(d.comparable||[]).map(r=>[r.ingredient+' / '+r.strength,r.dosage_form+' · '+r.unit+' · '+(r.price_type==='EXPECTED_WHOLESALE_PRICE_VAT'?'Bán buôn dự kiến VAT':r.price_type),num(r.products)+' / '+num(r.observations),num(r.makers),num(r.p10),num(r.median),num(r.p90)])))+

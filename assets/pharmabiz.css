@@ -426,3 +426,57 @@
   .report-page :is(.report-step,.report-step h2,.report-step h3) { overflow-wrap:anywhere }
   .report-page .table-wrap { max-width:100%;overflow-x:auto }
 }
+
+/* Pricing: align each range, its mark and its count as one readable row. */
+.workspace-page[data-active-view="pricing"] #app .focus-page {
+  display:grid;
+  gap:.75rem;
+  min-width:0;
+  padding:0;
+  background:transparent;
+}
+.workspace-page[data-active-view="pricing"] #app :is(.depth-panel,.depth-step) {
+  min-width:0;
+  max-width:100%;
+  margin:0;
+}
+.workspace-page[data-active-view="pricing"] #app .depth-step {
+  padding:.65rem .85rem;
+  border-radius:.75rem;
+  background:var(--surface-soft);
+}
+.workspace-page[data-active-view="pricing"] #app .taste-lollipop-set {
+  gap:0;
+  margin-bottom:.7rem;
+}
+.workspace-page[data-active-view="pricing"] #app .taste-lollipop-row {
+  grid-template-columns:minmax(8rem,12rem) minmax(0,1fr) minmax(4rem,max-content);
+  gap:.85rem;
+  padding:.5rem .25rem;
+  border-bottom:1px solid var(--border);
+}
+.workspace-page[data-active-view="pricing"] #app .taste-lollipop-line {
+  margin-inline:.45rem;
+}
+.workspace-page[data-active-view="pricing"] #app :is(.depth-axis,.taste-lollipop-head) {
+  flex-wrap:wrap;
+  gap:.35rem 1rem;
+}
+.workspace-page[data-active-view="pricing"] #app .depth-grid {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr));
+}
+@media (max-width:760px) {
+  .workspace-page[data-active-view="pricing"] #app .taste-lollipop-row {
+    grid-template-columns:minmax(0,1fr) max-content;
+    gap:.3rem .65rem;
+    padding:.55rem .15rem;
+  }
+  .workspace-page[data-active-view="pricing"] #app .taste-lollipop-row strong {
+    grid-column:2;
+    grid-row:1;
+  }
+  .workspace-page[data-active-view="pricing"] #app .taste-lollipop-line {
+    grid-column:1/-1;
+    grid-row:2;
+  }
+}
