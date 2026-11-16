@@ -24,6 +24,9 @@
  };
  const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const clean=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('vi-VN');
+ const filterIcon=(path,css='')=>'<svg class="'+css+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+path+'"/></svg>';
+ const chevron=filterIcon('m6 9 6 6 6-6','ph-filter-chevron');
+ const check=filterIcon('m5 12 4 4L19 6');
  const menus=[];
  let openMenu=null;
  function closeMenu(focus=false){
@@ -51,7 +54,7 @@
   native.parentNode.insertBefore(wrap,native);
   wrap.append(native,trigger,popup);
   native.classList.add('ph-native-select');native.tabIndex=-1;
-  const close=document.createElement('button');close.type='button';close.className='ph-filter-close';close.setAttribute('aria-label','Đóng danh sách bộ lọc');close.textContent='×';popup.append(close);close.addEventListener('click',()=>closeMenu(true));
+  const close=document.createElement('button');close.type='button';close.className='ph-filter-close';close.setAttribute('aria-label','Đóng danh sách bộ lọc');close.innerHTML=filterIcon('m6 6 12 12M18 6 6 18');popup.append(close);close.addEventListener('click',()=>closeMenu(true));
   const input=popup.querySelector('input');
   const list=popup.querySelector('.ph-filter-options');
   const count=popup.querySelector('.ph-filter-foot');
@@ -59,7 +62,7 @@
   const getOptions=()=>[...native.options].map(o=>({value:o.value,text:o.textContent.trim()}));
   function sync(){
    const current=native.selectedOptions[0]?.textContent?.trim()||fallback;
-   trigger.innerHTML='<span class="ph-filter-label">'+escape(label)+'</span><span class="ph-filter-value" title="'+escape(current)+'">'+escape(current)+'</span><span class="ph-filter-chevron" aria-hidden="true">⌄</span>';
+   trigger.innerHTML='<span class="ph-filter-label">'+escape(label)+'</span><span class="ph-filter-value" title="'+escape(current)+'">'+escape(current)+'</span>'+chevron;
    if(!popup.hidden)draw();
   }
   function draw(){
@@ -67,7 +70,7 @@
    const matches=q?options.filter(o=>clean(o.text).includes(q)):options;
    const shown=matches.slice(0,60);
    selected.innerHTML=native.value?'Đang lọc: <strong title="'+escape(native.selectedOptions[0]?.textContent)+'">'+escape(native.selectedOptions[0]?.textContent)+'</strong>':'Không giới hạn '+escape(label.toLowerCase());
-   list.innerHTML=shown.map((o,i)=>'<button type="button" class="ph-filter-option" role="option" data-filter-index="'+i+'" data-value="'+escape(o.value)+'" aria-selected="'+(o.value===native.value)+'" title="'+escape(o.text)+'"><span class="ph-filter-check" aria-hidden="true">'+(o.value===native.value?'✓':'')+'</span><span>'+escape(o.text)+'</span></button>').join('')||'<p class="ph-filter-empty">Không tìm thấy giá trị phù hợp.</p>';
+   list.innerHTML=shown.map((o,i)=>'<button type="button" class="ph-filter-option" role="option" data-filter-index="'+i+'" data-value="'+escape(o.value)+'" aria-selected="'+(o.value===native.value)+'" title="'+escape(o.text)+'"><span class="ph-filter-check" aria-hidden="true">'+(o.value===native.value?check:'')+'</span><span>'+escape(o.text)+'</span></button>').join('')||'<p class="ph-filter-empty">Không tìm thấy giá trị phù hợp.</p>';
    count.textContent=matches.length>60?'Hiển thị 60 / '+matches.length+' mục. Nhập từ khóa để lọc danh sách.':matches.length+' lựa chọn · chọn một giá trị để áp dụng';
   }
   function choose(value){

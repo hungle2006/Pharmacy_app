@@ -6,6 +6,12 @@ import { Button } from '@astryxdesign/core/Button';
 import { Link } from '@astryxdesign/core/Link';
 import { Text } from '@astryxdesign/core/Text';
 
+const icon = path => h('svg', {
+  className: 'pb-control-icon', viewBox: '0 0 24 24', fill: 'none',
+  stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round',
+  strokeLinejoin: 'round', 'aria-hidden': true,
+}, h('path', { d: path }));
+
 const entries = [
   ['overview', 'Mở tổng quan', 'Xem chỉ số thị trường. Lọc theo hoạt chất, quốc gia, loại giá hoặc đơn vị.'],
   ['lookup', 'Tra cứu thuốc', 'Tìm theo tên, hoạt chất hoặc số đăng ký. Chạm kết quả để mở hồ sơ.'],
@@ -16,18 +22,18 @@ function guideLinks() {
   return entries.map(([view, label, description], index) => h('li', { key: view },
     h(Link, { href: '/?view=' + view, color: 'inherit', className: 'guide-card' },
       h(Text, { 'aria-hidden': true, className: 'guide-step' }, String(index + 1).padStart(2, '0')),
-      h('strong', null, label, h('b', { 'aria-hidden': true }, '↗')),
+      h('strong', null, label, icon('M5 12h14m-6-6 6 6-6 6')),
       h('small', null, description))));
 }
 
 function workspaceShortcuts() {
   return [
-    ['lookup', 'Tra cứu thuốc', '⌕'],
-    ['market-forecast', 'Dự báo thị trường', '↗'],
-    ['reports', 'Thống kê dữ liệu', '▤'],
-  ].map(([view, label, glyph]) => h(Button, {
+    ['lookup', 'Tra cứu thuốc', 'M16 16l5 5m-3-11a7 7 0 1 1-14 0 7 7 0 0 1 14 0'],
+    ['market-forecast', 'Dự báo thị trường', 'm3 17 6-6 4 3 8-10m-5 0h5v5'],
+    ['reports', 'Thống kê dữ liệu', 'M5 3h14v18H5z M8 16v-3m4 3V8m4 8v-5'],
+  ].map(([view, label, path]) => h(Button, {
     key: view, label, variant: 'secondary', size: 'lg', width: '100%', 'data-view': view,
-    icon: h(Text, { 'aria-hidden': true, className: 'shortcut-icon' }, glyph),
+    icon: h(Text, { 'aria-hidden': true, className: 'shortcut-icon' }, icon(path)),
   }));
 }
 

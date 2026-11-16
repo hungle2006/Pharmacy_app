@@ -256,3 +256,66 @@
 @media print {
   :root,:root[data-theme="dark"],[data-theme="dark"] .report-page { --bg:#fff;--surface:#fff;--paper:#fff;--ink:#211b39;--muted:#5e5973;--border:#dfd9ed;--surface-soft:#f2effa;--accent:#5536ae }
 }
+
+/* Keep every closed filter inside its own grid track at every workspace width. */
+.workspace-page #app #filters {
+  --filter-control-height: 3rem;
+  gap: .55rem;
+}
+.workspace-page #app #filters :is(.search-field, .ph-filter, .ph-filter-trigger, #reset) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+}
+.workspace-page #app #filters .ph-filter-trigger {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 1rem;
+  grid-template-rows: auto auto;
+  align-content: center;
+  align-items: center;
+  gap: .12rem .35rem;
+  padding: .38rem .65rem;
+  height: var(--filter-control-height);
+  min-height: var(--filter-control-height);
+}
+.workspace-page #app #filters :is(.ph-filter-label,.ph-filter-value) {
+  grid-column: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-page #app #filters .ph-filter-chevron {
+  position: static;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 1rem;
+  height: 1rem;
+}
+.workspace-page #app #filters .ph-filter-trigger[aria-expanded=true] .ph-filter-chevron { transform: rotate(180deg) }
+.workspace-page #app #filters .ph-filter-menu :is(.ph-filter-check,.ph-filter-close) svg,
+.workspace-page #app #filters .search-field svg,
+.pb-control-icon { width:1.1rem;height:1.1rem;flex:none }
+.workspace-page #app #filters .ph-filter-menu .ph-filter-check svg { width:.85rem;height:.85rem }
+.workspace-page #app #filters .ph-filter-menu .ph-filter-check { color:var(--surface) }
+.guide-card .pb-control-icon { color:var(--hero-accent) }
+.workspace-page #app .overview-shortcuts button { justify-content:flex-start;min-height:3rem }
+@media (min-width:761px) {
+  .workspace-page #app #filters {
+    grid-template-columns: minmax(0,1.55fr) repeat(4,minmax(0,1fr)) minmax(4rem,.55fr);
+  }
+  .workspace-page #app #filters .ph-filter:is([data-filter=kind],[data-filter=unit]) .ph-filter-menu {
+    left:auto;right:0;
+  }
+}
+@media (761px <= width <= 1140px) {
+  .workspace-page #app #filters { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .workspace-page #app #filters .search-field { grid-area:1 / 1 / 2 / 4; }
+  .workspace-page #app #filters #reset { grid-area:1 / 4 / 2 / 5; }
+}
+@media (max-width:760px) {
+  .workspace-page #app #filters #filter-options { min-width:0;width:100%;box-sizing:border-box }
+  .workspace-page #app #filters .ph-filter .ph-filter-menu { inset-inline:.75rem;width:auto;box-sizing:border-box }
+  .workspace-page #app .overview-shortcuts button { padding-inline:.35rem }
+}
