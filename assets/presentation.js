@@ -163,11 +163,17 @@
     navigate('lookup');$('lookup-search').value=query;$('lookup-form').requestSubmit();$('lookup-search').focus({preventScroll:true});
   });
   let entranceTimer;
+  let workspaceStarted=false;
+  function startWorkspaceData(){
+    if(workspaceStarted)return;
+    workspaceStarted=true;
+    load();fetchInventory();
+  }
   $('start').onclick=()=>{
     const button=$('start');
     if(button.disabled)return;
     button.disabled=true;button.classList.add('is-entering');button.setAttribute('aria-busy','true');
-    navigate(view);$('app').hidden=false;$('cover').classList.add('entering');
+    navigate(view);startWorkspaceData();$('app').hidden=false;$('cover').classList.add('entering');
     clearTimeout(entranceTimer);
     entranceTimer=setTimeout(()=>{
       $('cover').hidden=true;$('app').hidden=false;$('cover').classList.remove('entering');
@@ -203,10 +209,11 @@
   function updateTheme(){
     const dark=document.documentElement.dataset.theme==='dark';
     for(const b of document.querySelectorAll('[data-theme-toggle]')){b.setAttribute('aria-pressed',String(dark));b.setAttribute('aria-label',dark?'Chuyển sang giao diện sáng':'Chuyển sang giao diện tối');b.querySelector('[data-theme-icon]').textContent=dark?'☀':'☾';b.querySelector('[data-theme-label]').textContent=dark?'Sáng':'Tối';}
-    document.querySelector('meta[name="theme-color"]').content=dark?'#0d1b17':'#ecf4ed';
+    document.querySelector('meta[name="theme-color"]').content=dark||!$('cover').hidden?'#1b1536':'#f5f4fb';
   }
   for(const b of document.querySelectorAll('[data-theme-toggle]'))b.onclick=()=>{const theme=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=theme;try{localStorage.setItem('pharmabiz-theme',theme);}catch{}updateTheme();};
   updateTheme();
+  new MutationObserver(updateTheme).observe($('cover'),{attributes:true,attributeFilter:['hidden']});
   function trendControls(field){return '<div class="chart-controls"><div class="segmented" role="group" aria-label="Chỉ số biểu đồ thời gian">'+[['value','Số quan sát'],['median','Giá trung vị']].map(([v,l])=>'<button data-trend-mode="'+v+'" aria-pressed="'+(field===v)+'">'+l+'</button>').join('')+'</div><div class="segmented" role="group" aria-label="Khoảng thời gian">'+[['6','6 tháng'],['12','12 tháng'],['all','Tất cả']].map(([v,l])=>'<button data-trend-range="'+v+'" aria-pressed="'+(trendRange===v)+'">'+l+'</button>').join('')+'</div></div>';}
   function priceRange(){const s=data.summary;if(s.p10===null||s.p90===null)return '';return '<div class="price-range"><div class="range-track" aria-hidden="true"></div><div class="range-labels">'+[['P10',s.p10],['P50 · Trung vị',s.median],['P90',s.p90]].map(([l,v])=>'<span>'+l+'<strong>'+money(v)+'</strong></span>').join('')+'</div></div>'+note('P10–P90 bao quát 80% vị trí trong phân phối giá. Các giá trị phân vị có thể được nội suy giữa hai quan sát.');}
   function analysisBrief(){
@@ -226,6 +233,6 @@
     element.innerHTML='<span>'+(active.length?'Phạm vi đang lọc:':'Toàn bộ danh mục')+'</span>'+active.map(([id,l])=>'<button data-remove-filter="'+id+'" aria-label="Bỏ lọc '+esc(l)+'">'+l+': '+esc(displayName($(id).value))+' ×</button>').join('')+'<span>· '+fmt(data.summary.products)+' sản phẩm · '+esc(data.summary.date_from||'—')+' → '+esc(data.summary.date_to||'—')+'</span>';
   }
 
-  const requested=new URLSearchParams(location.search).get('view'),direct=views.some(v=>v[0]===requested);navigate(direct?requested:'overview',direct);if(direct){$('cover').hidden=true;$('app').hidden=false;}load();fetchInventory();
+  const requested=new URLSearchParams(location.search).get('view'),direct=views.some(v=>v[0]===requested);if(direct){$('cover').hidden=true;$('app').hidden=false;navigate(requested,true);startWorkspaceData();}
 })();
 

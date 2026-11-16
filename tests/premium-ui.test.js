@@ -16,7 +16,7 @@ test('lookup filters use parameterized product conditions rather than cosmetic s
  assert.match(q.countSql,/d\.source = 'SILVER_R2'/);
  assert.deepEqual(q.countParams.filter(v=>!String(v).startsWith('%')),['Acetaminophen','Việt Nam','PRICE','viên']);
 });
-test('Start and pill scene remain untouched with the same IDs and original JS bundle',()=>{
+test('Start and pill scene preserve the same interaction hooks and load the Three.js bundle',()=>{
  const html=read('index.html');
  assert.match(html,/<section class="cover start-focus" id="cover"/);
  assert.match(html,/<canvas id="scene"/);

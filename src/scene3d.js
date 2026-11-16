@@ -4,15 +4,17 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const cover = document.getElementById('cover');
 const canvas = document.getElementById('scene');
+const preview = document.getElementById('capsule-preview');
 const visualStage = cover.querySelector('.start-art') || cover;
 const reduced = matchMedia('(prefers-reduced-motion:reduce)');
-let renderer, model, frame = 0, previous = 0, running = false, elapsed = 0, fallbackActive = false;
+let renderer, model, frame = 0, previous = 0, running = false, elapsed = 0, fallbackActive = false, inViewport = true;
 const pointer = {x:0,y:0};
 const eased = {x:0,y:0};
 
 function fallback() {
   if(fallbackActive)return;
   fallbackActive=true;running=false;cancelAnimationFrame(frame);renderer?.dispose();
+  if (preview) preview.hidden = true;
   canvas.hidden=true;canvas.dataset.renderer='blender-poster';cover.dataset.fallback='poster';
   const backdrop=document.createElement('div');backdrop.className='blender-fallback';backdrop.setAttribute('aria-hidden','true');
   backdrop.innerHTML='<div class="blender-stage"><div class="blender-orbit"></div><div class="blender-orbit two"></div><img src="/assets/models/capsule-poster.png" alt="" width="800" height="800"></div>';
@@ -29,7 +31,7 @@ function fallback() {
 
 try {
   renderer = new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, matchMedia('(pointer:coarse)').matches ? 1.25 : 1.5));
   renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.2;
@@ -63,7 +65,7 @@ try {
     group.scale.setScalar(visualStage===cover?(w<760?.68:Math.min(1.08,h/850)):(innerWidth<760?.83:1.04));draw();
   }
   function draw() {
-    if(fallbackActive)return;
+    if(fallbackActive||!inViewport||cover.hidden||document.hidden)return;
     if(model){model.rotation.set(.18+eased.y*.15,elapsed*.13+eased.x*.22,-.38);model.position.y=Math.sin(elapsed*.7)*.09;}
     orbit.rotation.y=elapsed*.045;renderer.render(scene,camera);
   }
@@ -74,14 +76,22 @@ try {
     frame=requestAnimationFrame(tick);
   }
   function stop(){running=false;cancelAnimationFrame(frame);}
-  function start(){if(fallbackActive||running||cover.hidden||document.hidden)return;if(reduced.matches){draw();return;}running=true;previous=performance.now();frame=requestAnimationFrame(tick);}
+  function start(){if(fallbackActive||running||!model||!inViewport||cover.hidden||document.hidden)return;if(reduced.matches){draw();return;}running=true;previous=performance.now();frame=requestAnimationFrame(tick);}
   new GLTFLoader().load('/assets/models/pharmabiz-capsule.glb',gltf=>{
-    model=gltf.scene;group.add(model);canvas.dataset.renderer='blender-webgl';size();start();
+    model=gltf.scene;group.add(model);canvas.dataset.renderer='blender-webgl';
+    if (preview) preview.hidden = true;
+    size();start();
   },undefined,fallback);
   visualStage.addEventListener('pointermove',e=>{const bounds=visualStage.getBoundingClientRect();pointer.x=(e.clientX-bounds.left)/bounds.width-.5;pointer.y=(e.clientY-bounds.top)/bounds.height-.5;});
   cover.addEventListener('pointerleave',()=>{pointer.x=0;pointer.y=0;});
   window.addEventListener('resize',size,{passive:true});
   if(visualStage!==cover)new ResizeObserver(size).observe(visualStage);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      inViewport = entry.isIntersecting;
+      if (inViewport) { size();start(); } else stop();
+    }).observe(visualStage);
+  }
   document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
   new MutationObserver(()=>{if(cover.hidden)stop();else{size();start();}}).observe(cover,{attributes:true,attributeFilter:['hidden']});
   new MutationObserver(theme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
