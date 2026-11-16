@@ -32,6 +32,12 @@
 <link rel="stylesheet" href="/assets/disease-desktop.css?v=20261115a">
 <link rel="stylesheet" href="/assets/astryx-ui.css">
 <link rel="stylesheet" href="/assets/pharmabiz.css?v=11">
+<style>
+/* Mobile-only: remove the install-on-phone guide from the Start screen. */
+@media (max-width: 760px) {
+  .workspace-page #cover .guide-install { display: none !important; }
+}
+</style>
 </head>
 <body class="workspace-page">
 <section class="cover start-focus" id="cover" aria-label="Giới thiệu PharmaBiz">
