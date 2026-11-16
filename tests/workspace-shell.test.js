@@ -103,9 +103,9 @@ test('focus chapters use an accessible bounded custom popover rather than native
 test('mobile popover opening upwards measures available space from entire picker, not trigger',()=>{
  const src=read('assets/focus-workspace.js');
  const css=read('assets/workspace-shell.css');
- assert.match(src,/const above=Math\.max\(0,picker\.getBoundingClientRect\(\)\.top-18\)/);
+ assert.match(src,/const above=Math\.max\(0,picker\.getBoundingClientRect\(\)\.top-top-7\)/);
  assert.match(src,/menu\.classList\.toggle\('focus-menu-up',openUp\)/);
- assert.match(src,/menu\.style\.maxHeight=Math\.max\(118,Math\.min\(440,room-8\)\)\+'px'/);
+ assert.match(src,/menu\.style\.maxHeight=Math\.min\(440,room\)\+'px'/);
  assert.match(css,/\.focus-menu\.focus-menu-up/);
 });
 

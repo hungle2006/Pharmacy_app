@@ -746,3 +746,8 @@ body.ws-detail-active{overflow:hidden}
  top:auto;
  bottom:calc(100% + 7px);
 }
+
+/* The open chapter picker must paint above filter controls in the same scroll pane. */
+.workspace-page #app .focus-toolbar:has(.focus-current[aria-expanded="true"]) {
+ z-index:45;
+}

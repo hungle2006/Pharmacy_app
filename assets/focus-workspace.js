@@ -129,13 +129,20 @@
       menuSearch.value='';drawMenu();menu.hidden=false;
       // Keep the list inside the visual viewport even if the toolbar is near its bottom.
       const box=trigger.getBoundingClientRect();
-      const bottomSafe=matchMedia('(max-width:760px)').matches?82:18;
-      const below=Math.max(0,innerHeight-bottomSafe-box.bottom-7);
-      const above=Math.max(0,picker.getBoundingClientRect().top-18);
+      const viewport=window.visualViewport;
+      const visibleTop=viewport?.offsetTop||0;
+      const visibleBottom=visibleTop+(viewport?.height||innerHeight);
+      const scroller=toolbar.closest('.content').getBoundingClientRect();
+      const tabbar=document.getElementById('mobile-taskbar');
+      const barTop=tabbar?.getClientRects().length ? tabbar.getBoundingClientRect().top : visibleBottom;
+      const top=Math.max(visibleTop,scroller.top)+8;
+      const bottom=Math.min(visibleBottom,scroller.bottom,barTop)-8;
+      const below=Math.max(0,bottom-box.bottom-7);
+      const above=Math.max(0,picker.getBoundingClientRect().top-top-7);
       const openUp=below<Math.min(300,menu.scrollHeight)&&above>below;
       menu.classList.toggle('focus-menu-up',openUp);
       const room=openUp?above:below;
-      menu.style.maxHeight=Math.max(118,Math.min(440,room-8))+'px';
+      menu.style.maxHeight=Math.min(440,room)+'px';
       trigger.setAttribute('aria-expanded','true');
       menuSearch.focus({preventScroll:true});
     }
