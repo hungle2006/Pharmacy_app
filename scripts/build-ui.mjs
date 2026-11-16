@@ -45,7 +45,23 @@ const taskGroups=[
     {id:'research',label:'Nghiên cứu',views:['business','workflow','modeling']}
   ];
 const navLabels={overview:'Tổng quan',lookup:'Tra cứu thuốc','disease-predict':'Dự đoán bệnh','market-forecast':'Dự báo thị trường','feature-price':'Dự đoán giá',business:'Đề tài nghiên cứu',workflow:'Nguồn & tích hợp',reports:'Thống kê dữ liệu',modeling:'Mô hình & đánh giá'};
-const taskIcons={'disease-predict':'M4 3h16v18H4z M8 8h8 M8 12h3 M14 12h2 M8 16h8','feature-price':'M4 3v18h17 M7 15l4-5 4 2 5-7 M7 18h1 M12 17h1 M17 15h1',overview:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',lookup:'M21 21l-5-5 M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',pricing:'M3 18l5-5 4 2 8-10 M15 5h5v5',competition:'M4 21V9h5v12 M10 21V3h5v18 M16 21v-8h5v8',portfolio:'M3 7l9-4 9 4-9 4z M3 12l9 4 9-4 M3 17l9 4 9-4',quality:'M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z M8 12l3 3 5-6',business:'M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5',workflow:'M4 3h6v6H4z M14 15h6v6h-6z M7 9v9h7 M10 6h7v9',reports:'M4 3h16v18H4z M8 16v-4 M12 16V7 M16 16v-6',eda:'M4 19V5 M4 19h17 M8 14l4-6 4 3 4-6',preparation:'M4 7h16 M7 3v8 M4 17h16 M16 13v8',modeling:'M3 17l5-7 5 4 7-10 M3 21h18','market-forecast':'M3 17l6-6 4 3 8-10 M16 4h5v5'};
+const taskIcons={
+  overview:'M4 4h6v7H4z M14 4h6v4h-6z M4 15h6v5H4z M14 12h6v8h-6z',
+  pricing:'M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9z M7.5 7.5h.01',
+  competition:'M4 20h16M5 16v-4m7 4V4m7 12V8',
+  portfolio:'m12 3 9 5-9 5-9-5z M3 12l9 5 9-5M3 16l9 5 9-5',
+  'market-forecast':'M4 19V5m0 14h16M7 14l4-4 4 2 5-6m-4 0h4v4',
+  lookup:'M21 21l-5-5m2-6a8 8 0 1 1-16 0 8 8 0 0 1 16 0',
+  'disease-predict':'M5 4h14v16H5z M12 8v8m-4-4h8',
+  'feature-price':'M5 3h14v18H5z M8 7h8m-8 5h1m6 0h1m-8 4h1m6 0h1',
+  quality:'m12 3 7 3v5c0 4-2.7 7.4-7 10-4.3-2.6-7-6-7-10V6z M9 12l2 2 4-4',
+  reports:'M6 3h8l4 4v14H6z M14 3v5h4M9 12h6m-6 4h6',
+  eda:'M4 20V4m0 16h16M8 14h.01M11 10h.01M15 13h.01M18 7h.01',
+  preparation:'M4 6h16M4 12h16M4 18h16M8 4v4m8 2v4m-6 2v4',
+  business:'M9 5H5v16h14V5h-4M9 3h6v4H9z M8 12h8m-8 4h6',
+  workflow:'M4 3h6v6H4z M14 15h6v6h-6z M7 9v9h7 M10 6h7v9',
+  modeling:'m12 3 9 5v8l-9 5-9-5V8z M3 8l9 5 9-5m-9 5v8'
+};
 const taskTitles={
   "overview": "Tổng quan thị trường",
   "lookup": "Tra cứu thuốc",

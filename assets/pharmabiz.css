@@ -1017,3 +1017,28 @@
   }
   .workspace-page #app .ws-sheet { animation-duration:245ms }
 }
+
+/* Consistent icon tiles in the Astryx sidebar. */
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button > span:first-child {
+  grid-template-columns:2rem minmax(0,1fr);
+  gap:.65rem;
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button > span:first-child > span:first-child {
+  width:2rem;
+  height:2rem;
+  justify-self:start;
+  border-radius:.6rem;
+  background:color-mix(in srgb,var(--task-ink) 8%,var(--surface));
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button svg { width:1.1rem;height:1.1rem }
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button.active { box-shadow:none }
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button.active > span:first-child > span:first-child {
+  background:var(--task-ink);
+  color:var(--surface);
+}
+@media(max-width:760px) {
+  .workspace-page #app .sidebar .task-nav-tiles .astryx-button > span:first-child {
+    grid-template-columns:minmax(0,1fr);
+    gap:.35rem;
+  }
+}
