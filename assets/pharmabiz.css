@@ -319,3 +319,18 @@
   .workspace-page #app #filters .ph-filter .ph-filter-menu { inset-inline:.75rem;width:auto;box-sizing:border-box }
   .workspace-page #app .overview-shortcuts button { padding-inline:.35rem }
 }
+
+.workspace-page #app .page-footer #back-top {
+  display:grid;
+  place-items:center;
+  width:2.75rem;
+  height:2.75rem;
+  padding:0;
+  color:var(--accent);
+}
+.workspace-page #app .page-footer #back-top:hover { background:var(--selection) }
+.workspace-page #app .ws-sheet-footer #export { display:inline-flex;align-items:center;gap:.45rem;min-height:44px }
+@media (max-width:760px) {
+  .workspace-page #app .ws-head-actions:has(.ws-source-action:not([hidden]))>#export:not([hidden]) { display:none!important }
+  .workspace-page #app .ws-sheet-footer:has(#export) > span { display:none }
+}

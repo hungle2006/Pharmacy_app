@@ -19,7 +19,8 @@
     chevron:'<path d="m9 18 6-6-6-6"/>',
     refresh:'<path d="M20 7v5h-5"/><path d="M4.6 10a8 8 0 0 1 13.9-4l1.5 1M4 17v-5h5M19.4 14a8 8 0 0 1-13.9 4L4 17"/>',
     spark:'<path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3ZM19 17l.7 2.3L22 20l-2.3.7L19 23l-.7-2.3L16 20l2.3-.7L19 17Z"/>',
-    up:'<path d="m18 15-6-6-6 6M12 9v12M4 4h16"/>',
+    up:'<path d="M12 19V5m-6 6 6-6 6 6"/>',
+    download:'<path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/>',
     menu:'<path d="M4 7h16M4 12h16M4 17h16"/>'
   };
   function icon(name){
@@ -37,7 +38,7 @@
   const head=content.querySelector('.page-head');
   const actions=document.createElement('div');actions.className='ws-head-actions';
   const exportButton=$('export');
-  if(exportButton){exportButton.innerHTML=icon('document')+'<span class="ws-export-label">Xuất CSV</span>';exportButton.setAttribute('aria-label','Xuất trang dữ liệu CSV');}
+  if(exportButton){exportButton.innerHTML=icon('download')+'<span class="ws-export-label">Xuất CSV</span>';exportButton.setAttribute('aria-label','Xuất trang dữ liệu CSV');}
   const sourceAction=document.createElement('button');sourceAction.type='button';
   sourceAction.className='ws-action ws-source-action';
   sourceAction.innerHTML=icon('document')+'<span>Bản ghi</span>';
@@ -72,6 +73,7 @@
       if(restoreFocus&&trigger?.isConnected)trigger.focus({preventScroll:true});
       if(kind==='lookup'&&restoreFocus&&!mobile.matches&&node.isConnected)node.focus({preventScroll:true});
     }
+    if(exportButton?.closest('.ws-sheet'))actions.append(exportButton);
     sheetBody.textContent='';
     lock();
   }
@@ -86,6 +88,9 @@
     if(node.tagName==='DETAILS')node.open=true;
     node.classList.add('ws-in-sheet');
     sheetBody.append(node);
+    if(kind==='records'&&mobile.matches&&exportButton&&!exportButton.hidden){
+      layer.querySelector('.ws-sheet-footer').append(exportButton);
+    }
     $('ws-sheet-heading').textContent=title;
     layer.hidden=false;lock();
     layer.querySelector('.ws-close').focus({preventScroll:true});
