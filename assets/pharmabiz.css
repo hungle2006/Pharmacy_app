@@ -788,3 +788,88 @@
     overflow-wrap:anywhere;
   }
 }
+
+/* Astryx navigation and workspace surfaces */
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button {
+  display:block;
+  padding:.25rem .45rem;
+  border-radius:.75rem;
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button > span:first-child {
+  display:grid;
+  grid-template-columns:1.85rem minmax(0,1fr);
+  gap:.6rem;
+  justify-content:start;
+  align-items:center;
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button > span:first-child > span:first-child {
+  display:grid;
+  place-items:center;
+  border-radius:.55rem;
+  min-height:1.85rem;
+  color:var(--task-ink);
+  background:var(--task-wash);
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button > span:first-child > span:last-child {
+  display:block;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.workspace-page .mobile-taskbar .astryx-button > span:first-child {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:.22rem;
+}
+.workspace-page .mobile-taskbar .astryx-button > span:first-child svg {
+  width:1.15rem;
+  height:1.15rem;
+}
+.workspace-page #app .page-head,
+.workspace-page[data-active-view="lookup"] #app .page-head {
+  --masthead-bg:#1c1832;
+  --masthead-ink:#faf7ff;
+  --masthead-muted:#dad0ef;
+  background:linear-gradient(122deg,var(--masthead-bg),#2d2450)!important;
+  border-color:color-mix(in srgb,var(--task-ink),var(--masthead-bg) 48%);
+}
+.workspace-page #app .page-head #page-title { color:var(--masthead-ink) }
+.workspace-page #app .page-head #page-kicker,
+.workspace-page #app .page-head #page-desc { color:var(--masthead-muted) }
+.workspace-page #app .page-head .task-heading-icon {
+  border-radius:.95rem;
+  background:var(--task-dark);
+  color:var(--masthead-bg);
+  transform:none;
+}
+.workspace-page #app .page-head::after {
+  border-color:color-mix(in srgb,var(--task-dark) 42%,transparent);
+  box-shadow:0 0 0 1.4rem color-mix(in srgb,var(--task-dark) 10%,transparent);
+}
+.workspace-page #app .page-head .ws-head-actions .ws-action,
+.workspace-page #app .page-head #export {
+  color:var(--masthead-ink);
+  background:#ffffff17;
+  border-color:#ffffff42;
+}
+.workspace-page #app .page-head .ws-head-actions button:focus-visible { outline-color:var(--task-dark) }
+.workspace-page #app .focus-toolbar .focus-current[aria-expanded="true"] { background:var(--task-wash) }
+.workspace-page #app .focus-toolbar,
+.workspace-page #app .market-actions .market-refresh { border-radius:.8rem }
+@media(max-width:760px) {
+  .workspace-page #app .sidebar .task-nav-tiles .astryx-button {
+    min-height:4rem;
+    padding:.45rem .55rem;
+  }
+  .workspace-page #app .sidebar .task-nav-tiles .astryx-button > span:first-child {
+    grid-template-columns:minmax(0,1fr);
+    justify-items:start;
+    gap:.35rem;
+  }
+  .workspace-page #app .sidebar .task-nav-tiles .astryx-button > span:first-child > span:first-child {
+    min-width:1.85rem;
+  }
+}
+@media(max-width:760px) {
+  .workspace-page #app .lookup-submit.astryx-button > span:first-child > span:last-child { display:none }
+}
