@@ -1042,3 +1042,61 @@
     gap:.35rem;
   }
 }
+
+/* Start and the workspace use a single alignment grid and clear content bands. */
+.workspace-page #cover.start-focus {
+  background:var(--hero);
+  padding-inline:max(var(--screen-pad),env(safe-area-inset-left),env(safe-area-inset-right));
+}
+.workspace-page #cover .start-main {
+  grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+  min-height:calc(100svh - 5rem);
+  gap:clamp(1.5rem,4.5vw,5rem);
+}
+.workspace-page #cover .start-copy { max-width:38rem }
+.workspace-page #cover h1 { font-size:clamp(2.5rem,5.8vw,5.8rem);max-width:none }
+.workspace-page #cover .start-art { height:min(62svh,36rem);border-radius:1rem }
+.workspace-page #cover .start-guide {
+  display:grid;
+  grid-template-columns:minmax(12rem,.55fr) minmax(0,1.45fr);
+  gap:2rem;
+  padding-block:clamp(2.5rem,7vw,5rem);
+}
+.workspace-page #cover .start-guide-grid { grid-template-columns:1fr;gap:0 }
+.workspace-page #cover .start-guide-grid .guide-card {
+  border:0;
+  border-top:1px solid var(--hero-line);
+  border-radius:0;
+  background:transparent;
+}
+.workspace-page #cover .start-guide-grid .guide-card:hover { background:color-mix(in srgb,var(--hero-ink) 8%,transparent) }
+.workspace-page #app .workspace-overview-row:has(#metrics[hidden]) { display:none }
+.workspace-page #app .page-head::after { display:none }
+.workspace-page #app .page-head { border-radius:.85rem }
+@media(min-width:1100px) {
+  .workspace-page[data-active-view="overview"] #app .workspace-overview-row {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(10.5rem,14rem);
+    gap:1rem;
+    align-items:stretch;
+    margin-block:.75rem 1rem;
+  }
+  .workspace-page[data-active-view="overview"] #app .workspace-overview-row .metrics {
+    margin:0;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .workspace-page[data-active-view="overview"] #app .workspace-overview-row .overview-shortcuts {
+    grid-template-columns:1fr;
+    margin:0;
+  }
+}
+@media(max-width:760px) {
+  .workspace-page #cover .start-main {
+    grid-template-columns:minmax(0,1fr);
+    min-height:calc(100svh - 3.85rem);
+    align-content:center;
+    gap:1rem;
+  }
+  .workspace-page #cover .start-art { height:clamp(12rem,35svh,19rem) }
+  .workspace-page #cover .start-guide { grid-template-columns:1fr;gap:.8rem }
+}

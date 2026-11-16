@@ -31,7 +31,7 @@
 <link rel="stylesheet" href="/assets/desktop-workspace.css?v=20261115a">
 <link rel="stylesheet" href="/assets/disease-desktop.css?v=20261115a">
 <link rel="stylesheet" href="/assets/astryx-ui.css">
-<link rel="stylesheet" href="/assets/pharmabiz.css?v=14">
+<link rel="stylesheet" href="/assets/pharmabiz.css?v=15">
 </head>
 <body class="workspace-page">
 <section class="cover start-focus" id="cover" aria-label="Giới thiệu PharmaBiz">
@@ -42,15 +42,14 @@
   <div class="start-main">
     <div class="start-copy">
       <p class="start-intro">THỊ TRƯỜNG DƯỢC VIỆT NAM</p>
-      <h1>Dữ liệu dược.<br><em>Góc nhìn thị trường.</em></h1>
+      <h1>Dữ liệu cho<br><em>thị trường dược.</em></h1>
       <p class="start-description">Tra cứu thuốc, đối chiếu giá kê khai và theo dõi xu hướng thị trường dược Việt Nam.</p>
       <button id="start" class="start-btn" type="button">Mở bảng phân tích <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></button>
     </div>
     <div class="start-art" aria-label="Mô hình viên nang 3D">
       <img id="capsule-preview" src="/assets/models/capsule-poster.png" alt="" width="800" height="800" fetchpriority="high">
       <canvas id="scene" aria-hidden="true"></canvas>
-      <span class="start-scene-note">Mô hình viên nang 3D</span>
-    </div>
+      </div>
   </div>
   <section class="start-guide" id="huong-dan" aria-labelledby="guide-title">
     <div class="start-guide-heading"><h2 id="guide-title">Cách sử dụng PharmaBiz</h2><p>Chọn tác vụ theo dữ liệu bạn cần tìm.</p></div>
@@ -142,12 +141,14 @@
       </section>
       <section id="disease-predict-panel" aria-label="Dự đoán bệnh từ mô tả và đối chiếu dữ liệu thuốc" hidden></section>
       <section id="feature-price-panel" aria-label="Ước tính giá thuốc từ đặc trưng" hidden></section>
+      <div class="workspace-overview-row">
       <section id="metrics" class="metrics" aria-label="Chỉ số chính"></section>
       <nav class="overview-shortcuts" aria-label="Tác vụ thường dùng" id="overview-shortcuts">
 <!-- astryx:overview-shortcuts -->
 <button type="button" class="astryx-button x1k57tk5 x1vidyx5 x1t137rt x1jhp3zv xx47ajj x16bblx1 x1wfwxd8 x13aywxo x1n2onr6 x3nfvp2 x6s0dn4 xl56j7k x1txdalj xce4md1 xrrkdod x1jxw6zd xjb2p0i xcr08ib x1kq96og x1e4wzip xuxw1ft xeuugli x193iq5w x1ypdohk x16khyan xrafxwg xuedmi6 x12w9bfk xlr8y92 xbswrv2 x11z29ks xli5ek3 xem8lmn xogcwkh x1t1ddl7 xziyay6 xz2mauf x1l7afqf x14e4jsf x6su2wr xif6eam x1ocadqd x1ukh9kf xrkptjy xjscm90 x1kec4ew x13r5q6d x1dn949c xw7rim2 xr9xsjc x1bxn267 x1osot8d xbkwwzw x10t12yn x1dn5vsf x7uyq82 x3f84ok x7ngsy6 x10ogxw0 xubczrd x18xnkjv xmvprkv xetgvay x1mrddfy x3oybdh x8ppqj x1249l8d xbht4k1 x1ex9uxt x3y5scg xg3abmg xoigjuk x1gnnqk1 x5lhr3w xc342km x13rsnn2 xng3xce xx61lck x1ylmb6m x17x4s8c x1tgivj0" data-variant="secondary" data-size="lg" data-elevation="none" style="--x-width:100%" data-astryx-pressable="" data-view="lookup"><span class="x78zum5 x1iyjqo2 xs83m0k xdl72j9 xkh2ocl x1beo9mf x18qz0cn x1h91t0o xarpa2k x14kbac9 xeuugli x1fjtqre x7b72wb x1ukc1h5 x1c440c0"><span class="x3nfvp2 x6s0dn4 xl56j7k x2lah0s xwqq7k2 xmll18r x1603h9y"><span class="astryx-text x1tgivj0 xjm74w1 xw6l6zx xxovm9e xt0psk2 xh015us shortcut-icon" data-type="body" data-color="primary" aria-hidden="true"><svg class="pb-control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 16l5 5m-3-11a7 7 0 1 1-14 0 7 7 0 0 1 14 0"></path></svg></span></span><span class="xb3r6kr xlyipyv xeuugli">Tra cứu thuốc</span></span><span role="status" aria-live="polite" class="x10l6tqk x1i1rx1s xjm9jq1 xkdpibf x1717udv xb3r6kr xzpqnlu xuxw1ft xng3xce x13vifvy x1o0tod x47corl x87ps6o"></span></button><button type="button" class="astryx-button x1k57tk5 x1vidyx5 x1t137rt x1jhp3zv xx47ajj x16bblx1 x1wfwxd8 x13aywxo x1n2onr6 x3nfvp2 x6s0dn4 xl56j7k x1txdalj xce4md1 xrrkdod x1jxw6zd xjb2p0i xcr08ib x1kq96og x1e4wzip xuxw1ft xeuugli x193iq5w x1ypdohk x16khyan xrafxwg xuedmi6 x12w9bfk xlr8y92 xbswrv2 x11z29ks xli5ek3 xem8lmn xogcwkh x1t1ddl7 xziyay6 xz2mauf x1l7afqf x14e4jsf x6su2wr xif6eam x1ocadqd x1ukh9kf xrkptjy xjscm90 x1kec4ew x13r5q6d x1dn949c xw7rim2 xr9xsjc x1bxn267 x1osot8d xbkwwzw x10t12yn x1dn5vsf x7uyq82 x3f84ok x7ngsy6 x10ogxw0 xubczrd x18xnkjv xmvprkv xetgvay x1mrddfy x3oybdh x8ppqj x1249l8d xbht4k1 x1ex9uxt x3y5scg xg3abmg xoigjuk x1gnnqk1 x5lhr3w xc342km x13rsnn2 xng3xce xx61lck x1ylmb6m x17x4s8c x1tgivj0" data-variant="secondary" data-size="lg" data-elevation="none" style="--x-width:100%" data-astryx-pressable="" data-view="market-forecast"><span class="x78zum5 x1iyjqo2 xs83m0k xdl72j9 xkh2ocl x1beo9mf x18qz0cn x1h91t0o xarpa2k x14kbac9 xeuugli x1fjtqre x7b72wb x1ukc1h5 x1c440c0"><span class="x3nfvp2 x6s0dn4 xl56j7k x2lah0s xwqq7k2 xmll18r x1603h9y"><span class="astryx-text x1tgivj0 xjm74w1 xw6l6zx xxovm9e xt0psk2 xh015us shortcut-icon" data-type="body" data-color="primary" aria-hidden="true"><svg class="pb-control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 6-6 4 3 8-10m-5 0h5v5"></path></svg></span></span><span class="xb3r6kr xlyipyv xeuugli">Dự báo</span></span><span role="status" aria-live="polite" class="x10l6tqk x1i1rx1s xjm9jq1 xkdpibf x1717udv xb3r6kr xzpqnlu xuxw1ft xng3xce x13vifvy x1o0tod x47corl x87ps6o"></span></button><button type="button" class="astryx-button x1k57tk5 x1vidyx5 x1t137rt x1jhp3zv xx47ajj x16bblx1 x1wfwxd8 x13aywxo x1n2onr6 x3nfvp2 x6s0dn4 xl56j7k x1txdalj xce4md1 xrrkdod x1jxw6zd xjb2p0i xcr08ib x1kq96og x1e4wzip xuxw1ft xeuugli x193iq5w x1ypdohk x16khyan xrafxwg xuedmi6 x12w9bfk xlr8y92 xbswrv2 x11z29ks xli5ek3 xem8lmn xogcwkh x1t1ddl7 xziyay6 xz2mauf x1l7afqf x14e4jsf x6su2wr xif6eam x1ocadqd x1ukh9kf xrkptjy xjscm90 x1kec4ew x13r5q6d x1dn949c xw7rim2 xr9xsjc x1bxn267 x1osot8d xbkwwzw x10t12yn x1dn5vsf x7uyq82 x3f84ok x7ngsy6 x10ogxw0 xubczrd x18xnkjv xmvprkv xetgvay x1mrddfy x3oybdh x8ppqj x1249l8d xbht4k1 x1ex9uxt x3y5scg xg3abmg xoigjuk x1gnnqk1 x5lhr3w xc342km x13rsnn2 xng3xce xx61lck x1ylmb6m x17x4s8c x1tgivj0" data-variant="secondary" data-size="lg" data-elevation="none" style="--x-width:100%" data-astryx-pressable="" data-view="reports"><span class="x78zum5 x1iyjqo2 xs83m0k xdl72j9 xkh2ocl x1beo9mf x18qz0cn x1h91t0o xarpa2k x14kbac9 xeuugli x1fjtqre x7b72wb x1ukc1h5 x1c440c0"><span class="x3nfvp2 x6s0dn4 xl56j7k x2lah0s xwqq7k2 xmll18r x1603h9y"><span class="astryx-text x1tgivj0 xjm74w1 xw6l6zx xxovm9e xt0psk2 xh015us shortcut-icon" data-type="body" data-color="primary" aria-hidden="true"><svg class="pb-control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18H5z M8 16v-3m4 3V8m4 8v-5"></path></svg></span></span><span class="xb3r6kr xlyipyv xeuugli">Thống kê</span></span><span role="status" aria-live="polite" class="x10l6tqk x1i1rx1s xjm9jq1 xkdpibf x1717udv xb3r6kr xzpqnlu xuxw1ft xng3xce x13vifvy x1o0tod x47corl x87ps6o"></span></button>
 <!-- /astryx:overview-shortcuts -->
       </nav>
+      </div>
       <div id="visuals" aria-live="polite"></div>
       <details id="task-reading-intro" class="focus-fold" hidden><summary>Hướng dẫn và phương pháp</summary><div id="task-reading-content"></div></details>
       <section class="panel records-panel" id="records-panel"><div class="panel-head"><div><div class="eyebrow">SOURCE EXPLORER</div><h2>Khám phá bản ghi</h2><p>Truy xuất sản phẩm và các quan sát giá từ database</p></div><span class="tag" id="records-count">—</span></div><div class="table-scroll"><table><thead><tr><th>Sản phẩm / Hoạt chất</th><th>Nhà sản xuất</th><th>Quốc gia</th><th>Loại giá / Đơn vị</th><th class="numeric">Giá quan sát</th></tr></thead><tbody id="records"></tbody></table></div><div class="table-footer"><span id="range">Đang tải…</span><div class="pagination"><button id="prev" aria-label="Trang trước">←</button><span id="pageinfo">01</span><button id="next" aria-label="Trang tiếp theo">→</button></div></div></section>
