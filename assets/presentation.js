@@ -133,7 +133,7 @@
     const total=Number(s.observations)||0, maxPage=Math.max(1,Math.ceil(total/12));$('records-count').textContent=fmt(total)+' quan sát';$('range').textContent='Hiển thị '+(total?(page-1)*12+1:0)+'–'+Math.min(page*12,total)+' / '+fmt(total)+' bản ghi';$('pageinfo').textContent=page+' / '+maxPage;$('prev').disabled=page<=1;$('next').disabled=page>=maxPage;
   }
   function options(o){for(const [id,title] of [['ingredient','Tất cả hoạt chất'],['country','Tất cả quốc gia'],['kind','Tất cả loại giá'],['unit','Tất cả đơn vị']]){const current=$(id).value;$(id).innerHTML='<option value="">'+title+'</option>'+(o?.[id]||[]).map(x=>'<option value="'+esc(x)+'">'+esc(id==='kind'?displayName(x):x)+'</option>').join('');$(id).value=current;}document.dispatchEvent(new Event('pharmabiz:filters-sync'));}
-  function setStatus(error,text){$('status').classList.toggle('error',error);$('status').innerHTML='<span class="signal"></span><span>'+esc(text)+'</span>';$('connection').classList.toggle('error',error);$('connection').textContent=error?'KẾT NỐI GIÁN ĐOẠN':'NEON CONNECTED';$('db-status').textContent=error?'Nguồn chưa sẵn sàng':'Dữ liệu đang kết nối';$('db-dot').style.background=error?'#c29862':'';}
+  function setStatus(error,text){$('status').classList.toggle('error',error);$('status').innerHTML='<span class="signal"></span><span>'+esc(text)+'</span>';$('connection').classList.toggle('error',error);$('connection').textContent=error?'Kết nối gián đoạn':'Dữ liệu đã kết nối';$('db-status').textContent=error?'Nguồn chưa sẵn sàng':'Dữ liệu đang kết nối';$('db-dot').style.background=error?'#c29862':'';}
   async function load(){
     controller?.abort();controller=new AbortController();const activeController=controller;const current=++seq;$('content').classList.add('loading');$('content').setAttribute('aria-busy','true');$('status').innerHTML='<span class="signal"></span><span>Đang cập nhật phân tích từ database…</span>';const abortTimer=setTimeout(()=>activeController.abort(),45000);
     try{const response=await fetch('/api/analytics?'+filters(),{signal:activeController.signal,cache:'no-store'});const result=await response.json();if(!response.ok||result.mode!=='database')throw new Error(result.notice||'Không thể đọc nguồn dữ liệu.');if(current!==seq)return;data=result;if(data.options){options(data.options);optionsLoaded=true;}setStatus(false,'Cập nhật '+new Date(data.refreshedAt).toLocaleString('vi-VN'));render();}
@@ -214,7 +214,7 @@
   function updateTheme(){
     const dark=document.documentElement.dataset.theme==='dark';
     for(const b of document.querySelectorAll('[data-theme-toggle]')){b.setAttribute('aria-pressed',String(dark));b.setAttribute('aria-label',dark?'Chuyển sang giao diện sáng':'Chuyển sang giao diện tối');b.querySelector('[data-theme-icon]').textContent=dark?'☀':'☾';b.querySelector('[data-theme-label]').textContent=dark?'Sáng':'Tối';}
-    document.querySelector('meta[name="theme-color"]').content=dark||!$('cover').hidden?'#1b1536':'#f5f4fb';
+    document.querySelector('meta[name="theme-color"]').content=!$('cover').hidden?'#06323b':dark?'#0e1d27':'#f2f7f8';
   }
   for(const b of document.querySelectorAll('[data-theme-toggle]'))b.onclick=()=>{const theme=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=theme;try{localStorage.setItem('pharmabiz-theme',theme);}catch{}updateTheme();};
   updateTheme();

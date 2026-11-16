@@ -1,60 +1,60 @@
 /* Shared PharmaBiz theme. Chart colors retain their semantic roles across views. */
 :root, :root[data-theme="light"],
 .workspace-page #app, .disease-page, .report-page {
-  --bg:#f5f4fb;
+  --bg:#f2f7f8;
   --surface:#fff;
   --paper:var(--surface);
   --white:var(--surface);
-  --surface-soft:#f2effa;
-  --ink:#211b39;
-  --muted:#5e5973;
-  --subtle:#6d6685;
-  --accent:#5536ae;
-  --border:#dfd9ed;
+  --surface-soft:#eaf4f5;
+  --ink:#122d39;
+  --muted:#405c69;
+  --subtle:#526d79;
+  --accent:#066662;
+  --border:#cfdee3;
   --nav:var(--surface);
-  --selection:#ebe5fa;
-  --mint:#eee7fc;
-  --chart-grid:#e5e0ef;
-  --chart-primary:#6341c5;
-  --chart-primary-soft:#d7c9f6;
-  --chart-secondary:#087b74;
+  --selection:#d8efeb;
+  --mint:#dcefe9;
+  --chart-grid:#dae7e9;
+  --chart-primary:#087d76;
+  --chart-primary-soft:#a8ded3;
+  --chart-secondary:#176a9b;
   --chart-rose:#ae547a;
   --chart-olive:#527746;
   --chart-slate:#6c7691;
-  --shadow:0 4px 18px #35235e08;
+  --shadow:0 4px 18px #103d4d0a;
 }
 :root[data-theme="dark"],
 [data-theme="dark"] .workspace-page #app,
 [data-theme="dark"] .disease-page,
 [data-theme="dark"] .report-page {
-  --bg:#161222;
-  --surface:#211a31;
+  --bg:#0e1d27;
+  --surface:#142732;
   --paper:var(--surface);
   --white:var(--surface);
-  --surface-soft:#2a223d;
-  --ink:#f4efff;
-  --muted:#c2b8d6;
-  --subtle:#aa9fbe;
-  --accent:#c9b5ff;
-  --border:#403553;
+  --surface-soft:#1a3540;
+  --ink:#f2fafb;
+  --muted:#b6cbd3;
+  --subtle:#a4bec7;
+  --accent:#83dacb;
+  --border:#36545f;
   --nav:var(--surface);
-  --selection:#3b2c62;
-  --mint:#382e51;
-  --chart-grid:#433753;
-  --chart-primary:#b99bf7;
-  --chart-primary-soft:#654e95;
-  --chart-secondary:#76d1bf;
+  --selection:#1d4949;
+  --mint:#1c4545;
+  --chart-grid:#32505c;
+  --chart-primary:#62cab5;
+  --chart-primary-soft:#367d75;
+  --chart-secondary:#8cc1ed;
   --chart-rose:#e29ab9;
   --chart-olive:#b2ce82;
   --chart-slate:#a9b3d0;
   --shadow:0 4px 18px #0a061522;
 }
 :root {
-  --hero:#1b1536;
-  --hero-ink:#faf7ff;
-  --hero-muted:#d1c8ea;
-  --hero-accent:#e0f39e;
-  --hero-line:#55496e;
+  --hero:#06323b;
+  --hero-ink:#f2fcfc;
+  --hero-muted:#bcdee1;
+  --hero-accent:#a7efd8;
+  --hero-line:#38646b;
   --screen-pad:clamp(1rem,5.8vw,6rem);
   --card-radius:1rem;
 }
@@ -110,13 +110,13 @@
 }
 .workspace-page #cover .start-btn:hover { filter:brightness(1.08) }
 .workspace-page #cover .start-btn span {
-  background:#1b153619;color:var(--hero);border:0;border-radius:.45rem;font-variant-emoji:text;
+  background:#06323b19;color:var(--hero);border:0;border-radius:.45rem;font-variant-emoji:text;
 }
 .workspace-page #cover .start-art {
   align-self:center;width:100%;height:clamp(21rem,37vw,35rem);
   min-height:0;max-height:none;margin:0;overflow:hidden;border:1px solid var(--hero-line);
   border-radius:clamp(1rem,2.2vw,2rem);
-  background:radial-gradient(ellipse at 50% 46%,#594078 0%,#30244d 52%,#211a3a 87%);
+  background:radial-gradient(ellipse at 50% 46%,#2b7181 0%,#0b4352 52%,#082c38 87%);
 }
 .workspace-page #cover .start-art::before, .workspace-page #cover .start-art::after { content:none }
 .workspace-page #cover #capsule-preview {
@@ -136,9 +136,9 @@
 .start-guide-grid .guide-card {
   display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:.6rem;
   min-height:100%;padding:1.15rem;border:1px solid var(--hero-line);border-radius:var(--card-radius);
-  background:#27203f;color:var(--hero-ink);text-align:left;text-decoration:none;white-space:normal;
+  background:#103f48;color:var(--hero-ink);text-align:left;text-decoration:none;white-space:normal;
 }
-.start-guide-grid .guide-card:hover { background:#382c54;border-color:var(--hero-accent);color:var(--hero-ink) }
+.start-guide-grid .guide-card:hover { background:#16505b;border-color:var(--hero-accent);color:var(--hero-ink) }
 .guide-card > .astryx-text { display:flex;flex-direction:column;gap:inherit;color:inherit }
 .guide-card .guide-step, .guide-card b { color:var(--hero-accent);font-size:.82rem;font-variant-emoji:text }
 .guide-card strong { display:flex;justify-content:space-between;gap:.5rem;font-size:1.02rem }
@@ -156,7 +156,7 @@
 .workspace-page #app .sidebar { background:var(--nav);border-color:var(--border) }
 .workspace-page #app .sidebar .brand-symbol,
 .workspace-page #app .workspace-brand .brand-symbol,
-:is(.disease-page,.report-page) .ui-mark { background:#38276b;color:var(--hero-ink) }
+:is(.disease-page,.report-page) .ui-mark { background:#0a625f;color:var(--hero-ink) }
 .workspace-page #app .sidebar .nav-button.active {
   background:var(--selection);color:var(--accent);
   border-color:transparent;border-inline-start-color:var(--accent);
@@ -254,7 +254,7 @@
   .workspace-page #cover .start-header { padding-top:env(safe-area-inset-top) }
 }
 @media print {
-  :root,:root[data-theme="dark"],[data-theme="dark"] .report-page { --bg:#fff;--surface:#fff;--paper:#fff;--ink:#211b39;--muted:#5e5973;--border:#dfd9ed;--surface-soft:#f2effa;--accent:#5536ae }
+  :root,:root[data-theme="dark"],[data-theme="dark"] .report-page { --bg:#fff;--surface:#fff;--paper:#fff;--ink:#122d39;--muted:#405c69;--border:#cfdee3;--surface-soft:#eaf4f5;--accent:#066662 }
 }
 
 /* Keep every closed filter inside its own grid track at every workspace width. */
@@ -609,31 +609,31 @@
 /* Section color follows the task from the navigation to the workspace. */
 .workspace-page #app,
 .workspace-page #app .task-nav-group[data-group="market"] {
-  --task-ink:#5932a9;
-  --task-wash:#ede3ff;
-  --task-tint:#faf6ff;
-  --task-dark:#d6bdff;
+  --task-ink:#066662;
+  --task-wash:#d8efeb;
+  --task-tint:#f4faf8;
+  --task-dark:#a3e6d8;
 }
 .workspace-page[data-task-group="lookup"] #app,
 .workspace-page #app .task-nav-group[data-group="lookup"] {
-  --task-ink:#2549a7;
-  --task-wash:#deebff;
-  --task-tint:#f3f7ff;
-  --task-dark:#b6ccff;
+  --task-ink:#1a608d;
+  --task-wash:#dceef9;
+  --task-tint:#f1f8fc;
+  --task-dark:#a9d9fb;
 }
 .workspace-page[data-task-group="data"] #app,
 .workspace-page #app .task-nav-group[data-group="data"] {
-  --task-ink:#265c40;
-  --task-wash:#def5c8;
-  --task-tint:#f6fbeb;
-  --task-dark:#c7ef9e;
+  --task-ink:#276045;
+  --task-wash:#e0f0e7;
+  --task-tint:#f4faf6;
+  --task-dark:#b8e7cc;
 }
 .workspace-page[data-task-group="research"] #app,
 .workspace-page #app .task-nav-group[data-group="research"] {
-  --task-ink:#8a3668;
-  --task-wash:#ffe1f1;
-  --task-tint:#fff5fa;
-  --task-dark:#ffc1e0;
+  --task-ink:#37578c;
+  --task-wash:#e5eefb;
+  --task-tint:#f5f8fd;
+  --task-dark:#bdd1ef;
 }
 [data-theme="dark"] .workspace-page #app {
   --task-ink:var(--task-dark);
@@ -827,10 +827,10 @@
 }
 .workspace-page #app .page-head,
 .workspace-page[data-active-view="lookup"] #app .page-head {
-  --masthead-bg:#1c1832;
-  --masthead-ink:#faf7ff;
-  --masthead-muted:#dad0ef;
-  background:linear-gradient(122deg,var(--masthead-bg),#2d2450)!important;
+  --masthead-bg:#0a3440;
+  --masthead-ink:#f2fcfc;
+  --masthead-muted:#c3e2e6;
+  background:linear-gradient(122deg,var(--masthead-bg),#125567)!important;
   border-color:color-mix(in srgb,var(--task-ink),var(--masthead-bg) 48%);
 }
 .workspace-page #app .page-head #page-title { color:var(--masthead-ink) }
@@ -931,4 +931,89 @@
 @keyframes pb-sheet-in {
   from { opacity:.65;transform:translateY(1rem) }
   to { opacity:1;transform:translateY(0) }
+}
+
+/* Modern clinical surfaces: the data takes the visual lead. */
+.workspace-page #cover h1 { max-width:15ch;line-height:1.04 }
+.workspace-page #cover .start-art {
+  background:
+    radial-gradient(ellipse at 49% 48%,#287b8f 0%,transparent 60%),
+    repeating-linear-gradient(0deg,transparent 0 31px,#acd9df17 31px 32px),
+    repeating-linear-gradient(90deg,transparent 0 31px,#acd9df17 31px 32px),
+    #092f3b;
+}
+.workspace-page #cover .start-scene-note {
+  padding:.35rem .55rem;
+  border:1px solid var(--hero-line);
+  border-radius:.5rem;
+  background:var(--hero);
+}
+.workspace-page #cover .start-btn { width:max-content;max-width:100%;gap:1.1rem }
+.workspace-page #app .page-head .task-heading-icon {
+  border-radius:.7rem;
+}
+.workspace-page #app :is(.panel,.metric,.lookup-detail-panel,.dp-card,.fp-card,.market-article) {
+  border-radius:.85rem;
+}
+.workspace-page #app .metrics .metric:first-child {
+  border-inline-start:3px solid var(--task-ink);
+}
+.workspace-page #app .status-strip:not(.error),
+.workspace-page #app .lookup-message:not(.error) {
+  color:var(--muted);
+}
+.workspace-page #app .sidebar .task-nav-tiles .astryx-button.active { box-shadow:inset .2rem 0 var(--task-ink) }
+.workspace-page #app :is(.focus-current,.overview-shortcuts button,.market-horizon,.lookup-item) {
+  transition:background-color 160ms ease,border-color 160ms ease,box-shadow 180ms ease;
+}
+.workspace-page #app :is(.market-horizon.is-active,.lookup-item[aria-selected="true"]) {
+  border-color:var(--accent);
+  background:var(--selection);
+}
+.workspace-page #app :is(.market-horizon-label,.market-horizon-name,.market-horizon-footer) { overflow-wrap:anywhere }
+.workspace-page #app .lookup-search-box:focus-within,
+.workspace-page #app #filters .search-field:focus-within {
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 17%,transparent);
+}
+.workspace-page #app .task-heading-copy :is(h1,p) { overflow-wrap:anywhere }
+.workspace-page #app .ws-sheet-footer > button:not([hidden]) { min-height:44px }
+.workspace-page #app #market-forecast-panel .market-horizon-icon { display:none }
+.workspace-page #app #market-forecast-panel .market-horizon-top { justify-content:flex-start }
+
+@media(max-width:760px) {
+  .workspace-page #cover .start-btn { width:100%;justify-content:space-between }
+  .workspace-page #app .task-heading-icon { border-radius:.6rem }
+  .workspace-page #app #market-forecast-panel .market-horizon-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr));
+    gap:.5rem;
+    overflow:visible;
+    padding:0 0 .4rem;
+  }
+  .workspace-page #app #market-forecast-panel .market-horizon {
+    min-width:0;
+    width:100%;
+    min-height:0;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;
+    gap:.3rem .55rem;
+    padding:.65rem .75rem;
+    text-align:left;
+  }
+  .workspace-page #app #market-forecast-panel .market-horizon-top { grid-column:1/-1 }
+  .workspace-page #app #market-forecast-panel .market-horizon-value { margin:0 }
+  .workspace-page #app #market-forecast-panel .market-horizon-label,
+  .workspace-page #app #market-forecast-panel .market-horizon-footer { grid-column:1/-1;margin:0 }
+  .workspace-page #app .ws-sheet-header,
+  .workspace-page #app .ws-sheet-footer { padding-inline:.9rem }
+}
+@media(prefers-reduced-motion:no-preference) {
+  .workspace-page #app :is(.lookup-item,.market-horizon) .market-horizon-value {
+    transition:color 140ms ease;
+  }
+  .workspace-page #app :is(.ph-filter-menu,.focus-menu):not([hidden]) {
+    animation-duration:155ms;
+  }
+  .workspace-page #app .ws-sheet { animation-duration:245ms }
 }

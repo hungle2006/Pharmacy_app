@@ -28,10 +28,12 @@
     ], { duration: 270 });
     const metrics = document.getElementById('metrics');
     if (!metrics.hidden) {
-      [...metrics.children].slice(0, 4).forEach((metric, index) => play(metric, [
-        { opacity: .35, transform: 'translateY(7px)' },
-        { opacity: 1, transform: 'translateY(0)' },
-      ], { duration: 280, delay: index * 26 }));
+      play(metrics, [{ opacity: .55 }, { opacity: 1 }], { duration: 210, delay: 45 });
+      return;
+    }
+    const panel = content.querySelector(':scope > :is(#lookup-panel,#market-forecast-panel,#disease-predict-panel,#feature-price-panel):not([hidden])');
+    if (panel) {
+      play(panel, [{ opacity: .68 }, { opacity: 1 }], { duration: 210, delay: 35 });
     }
   }
 

@@ -90,7 +90,7 @@
         '<span class="market-horizon-name">Xu hướng giá '+h+' tháng</span>'+
         '<strong class="market-horizon-value '+(shown>=0?'up':'down')+'">'+pct(shown)+'</strong>'+
         '<span class="market-horizon-label">'+context+'</span>'+
-        '<span class="market-horizon-footer"><span>'+integer(item.n_products)+' mã thuốc trong lịch sử</span><b aria-hidden="true">↗</b></span></button>';
+        '<span class="market-horizon-footer"><span>'+integer(item.n_products)+' mã thuốc trong lịch sử</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18 18 6M8 6h10v10"/></svg></span></button>';
     }).join('');
     const item=report.horizons?.[String(horizon)]||{};
     const valid=item.status==='approved' && hasNumber(item.forecast_change_pct);
