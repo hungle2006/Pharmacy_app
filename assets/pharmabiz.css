@@ -110,7 +110,7 @@
 }
 .workspace-page #cover .start-btn:hover { filter:brightness(1.08) }
 .workspace-page #cover .start-btn span {
-  background:#1b153619;color:var(--hero);border:0;border-radius:.45rem;
+  background:#1b153619;color:var(--hero);border:0;border-radius:.45rem;font-variant-emoji:text;
 }
 .workspace-page #cover .start-art {
   align-self:center;width:100%;height:clamp(21rem,37vw,35rem);
@@ -140,12 +140,12 @@
 }
 .start-guide-grid .guide-card:hover { background:#382c54;border-color:var(--hero-accent);color:var(--hero-ink) }
 .guide-card > .astryx-text { display:flex;flex-direction:column;gap:inherit;color:inherit }
-.guide-card .guide-step, .guide-card b { color:var(--hero-accent);font-size:.82rem }
+.guide-card .guide-step, .guide-card b { color:var(--hero-accent);font-size:.82rem;font-variant-emoji:text }
 .guide-card strong { display:flex;justify-content:space-between;gap:.5rem;font-size:1.02rem }
 .guide-card small { color:var(--hero-muted);font-size:.86rem;line-height:1.6 }
 .guide-install { margin-top:1rem;color:var(--hero-muted) }
 .guide-install summary { display:list-item;padding:.8rem 0;min-height:2.75rem;color:var(--hero-ink);cursor:pointer;font-weight:650 }
-.guide-install p { margin:.45rem 0;max-width:67ch;font-size:.9rem }
+.workspace-page #cover .guide-install p { margin:.45rem 0;max-width:67ch;font-size:.9rem;color:var(--hero-muted) }
 .workspace-page #cover .start-footer {
   min-height:4rem;justify-content:space-between;gap:1rem;padding:.75rem 0;
   border-color:var(--hero-line);color:var(--hero-muted)
@@ -175,6 +175,7 @@
   background:linear-gradient(112deg,var(--selection),var(--surface) 75%);
   border:1px solid var(--border);border-radius:var(--card-radius);box-shadow:none;
 }
+.workspace-page #app .page-head::before, .workspace-page #app .page-head::after { content:none }
 .workspace-page #app #page-title { color:var(--ink);font-weight:740;letter-spacing:-.04em }
 .workspace-page #app #page-title span { display:none }
 .workspace-page #app .page-head :is(.eyebrow,p) { color:var(--muted) }
@@ -212,7 +213,7 @@
 .workspace-page #app .overview-shortcuts button:hover { background:var(--selection);border-color:var(--accent) }
 .overview-shortcuts .shortcut-icon {
   display:grid;place-items:center;flex:none;width:1.5rem;height:1.5rem;
-  border-radius:.45rem;background:var(--selection);color:var(--accent);font-size:1rem
+  border-radius:.45rem;background:var(--selection);color:var(--accent);font-size:1rem;font-variant-emoji:text
 }
 .workspace-page .mobile-taskbar { background:var(--surface);border-top-color:var(--border) }
 .workspace-page .mobile-taskbar button.active { color:var(--accent);background:var(--selection);border-radius:.65rem }
